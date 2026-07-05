@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>2048</title>
+  <link rel="stylesheet" href="../../css/estilo.css" />
+  <link rel="manifest" href="../../manifest.json" />
+  <meta name="theme-color" content="#121212" />
+  <script src="../../js/tema.js"></script>
+  <style>
+    body {
+      overflow: hidden;
+      height: 100vh;
+    }
+    .grade-2048 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      max-width: 340px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      padding: 8px;
+      border-radius: 12px;
+      touch-action: none;
+    }
+    .peca {
+      aspect-ratio: 1 / 1;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      font-weight: 700;
+      background: #2a2a2a;
+      color: var(--text);
+    }
+    .v2 { background: #3a3a2a; }
+    .v4 { background: #4a4a2a; }
+    .v8 { background: #5f4a2a; color: #fff; }
+    .v16 { background: #6f4a1f; color: #fff; }
+    .v32 { background: #7f3a1f; color: #fff; }
+    .v64 { background: #8f2a1f; color: #fff; }
+    .v128 { background: #7f6f1f; color: #fff; }
+    .v256 { background: #8f7f1f; color: #fff; }
+    .v512 { background: #9f8f0f; color: #fff; }
+    .v1024 { background: #af9f0f; color: #fff; font-size: 1.1rem; }
+    .v2048 { background: #ffd54f; color: #222; font-size: 1.1rem; }
+    @keyframes surgir {
+      from { transform: scale(0.3); opacity: 0.3; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    @keyframes pop {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.18); }
+      100% { transform: scale(1); }
+    }
+    .peca.nova { animation: surgir 0.16s ease; }
+    .peca.fundida { animation: pop 0.2s ease; }
+  </style>
+</head>
+<body>
+  <a class="voltar" href="../../index.html">← voltar</a>
+
+  <div class="tela-jogo">
+    <h1><span class="icone-titulo" data-icone="2048"></span> 2048</h1>
+    <div class="placar">
+      <span>Pontos da partida: <strong id="pontos-partida">0</strong></span>
+      <span>Melhor: <strong id="melhor">0</strong></span>
+    </div>
+    <div id="grade" class="grade-2048"></div>
+    <p class="msg-pontos" id="mensagem">Deslize o dedo para mover as peças</p>
+    <button class="btn" id="reiniciar">Reiniciar</button>
+  </div>
+
+  <script src="../../js/icones.js"></script>
+  <script src="../../js/util.js"></script>
+  <script src="../../js/pontos.js"></script>
+  <script src="../../js/som.js"></script>
+  <script src="../../js/musica.js"></script>
+  <script src="../../js/recordes.js"></script>
+  <script src="../../js/conquistas.js"></script>
+  <script src="../../js/missoes.js"></script>
+  <script src="../../js/app.js"></script>
+  <script src="../../js/modal.js"></script>
+  <script src="jogo.js"></script>
+</body>
+</html>

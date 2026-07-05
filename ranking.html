@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Ranking</title>
+  <link rel="stylesheet" href="css/estilo.css" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#121212" />
+  <script src="js/tema.js"></script>
+  <style>
+    .lista-ranking {
+      max-width: 420px;
+      margin: 0 auto;
+      padding: 0 16px 40px;
+    }
+    .linha-rank {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 10px 14px;
+      margin-bottom: 6px;
+      font-weight: 600;
+      font-size: 0.92rem;
+    }
+    .linha-rank .pos {
+      width: 34px;
+      text-align: center;
+      font-weight: 800;
+      color: var(--text-dim);
+    }
+    .linha-rank .nome { flex: 1; }
+    .linha-rank .pts { color: var(--accent); }
+    .linha-rank.eu {
+      border: 2px solid var(--accent);
+      background: linear-gradient(90deg, var(--card-bg), rgba(79, 140, 255, 0.15));
+    }
+    .aviso-local {
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 0.75rem;
+      padding: 0 24px 30px;
+    }
+  </style>
+</head>
+<body>
+  <a class="voltar" href="index.html">← voltar</a>
+
+  <header>
+    <h1><span class="icone-titulo" data-icone="ranking"></span> Ranking da Semana</h1>
+    <p>Pontos ganhos nos últimos 7 dias</p>
+  </header>
+
+  <div class="lista-ranking" id="lista"></div>
+  <p class="aviso-local">Ranking de treino com bots — quando o app estiver online, você enfrenta jogadores de verdade! 🌐</p>
+
+  <script src="js/icones.js"></script>
+  <script src="js/util.js"></script>
+  <script src="js/pontos.js"></script>
+  <script src="js/som.js"></script>
+  <script src="js/musica.js"></script>
+  <script src="js/recordes.js"></script>
+  <script src="js/conquistas.js"></script>
+  <script src="js/missoes.js"></script>
+  <script src="js/nuvem.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    const listaEl = document.getElementById("lista");
+    const avisoEl = document.querySelector(".aviso-local");
+    const MEDALHAS = ["🥇", "🥈", "🥉"];
+
+    function render(jogadores) {
+      listaEl.innerHTML = "";
+      jogadores.forEach((jogador, i) => {
+        const linha = document.createElement("div");
+        linha.className = "linha-rank" + (jogador.eu ? " eu" : "");
+        linha.innerHTML = `
+          <span class="pos">${MEDALHAS[i] || i + 1 + "º"}</span>
+          <span class="nome">${jogador.nome}${jogador.bot ? ' <span style="opacity:0.45;font-size:0.7rem;">bot</span>' : ""}</span>
+          <span class="pts">${jogador.pontos} <span class="icone-inline" data-icone="estrela"></span></span>
+        `;
+        listaEl.appendChild(linha);
+      });
+      aplicarIcones();
+    }
+
+    async function carregar() {
+      listaEl.innerHTML = '<p style="text-align:center;color:var(--text-dim);">Carregando ranking...</p>';
+
+      // envia sua pontuação e busca os jogadores reais
+      await Nuvem.enviarPontuacao(Ranking.pontosDaSemana());
+      const online = await Nuvem.buscarRanking();
+
+      if (online) {
+        const meuId = Nuvem.deviceId();
+        const reais = online.map((r) => ({
+          nome: r.device_id === meuId ? r.apelido + " (você)" : r.apelido,
+          pontos: r.pontos,
+          eu: r.device_id === meuId,
+        }));
+        // poucos jogadores reais? bots de treino completam a lista
+        const bots = Ranking.lista().filter((b) => !b.eu).map((b) => ({ ...b, bot: true }));
+        while (reais.length < 12 && bots.length) reais.push(bots.shift());
+        render(reais.sort((a, b) => b.pontos - a.pontos));
+        avisoEl.textContent = "Ranking online 🌐 — bots de treino completam a lista enquanto a comunidade cresce!";
+      } else {
+        render(Ranking.lista());
+        avisoEl.textContent = "Sem conexão (ou nuvem ainda não configurada) — mostrando ranking de treino com bots.";
+      }
+    }
+
+    carregar();
+  </script>
+</body>
+</html>

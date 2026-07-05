@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Genius</title>
+  <link rel="stylesheet" href="../../css/estilo.css" />
+  <link rel="manifest" href="../../manifest.json" />
+  <meta name="theme-color" content="#121212" />
+  <script src="../../js/tema.js"></script>
+  <style>
+    .painel-genius {
+      display: grid;
+      grid-template-columns: repeat(2, 130px);
+      gap: 12px;
+      justify-content: center;
+      margin: 0 auto;
+    }
+    .botao-cor {
+      aspect-ratio: 1 / 1;
+      border-radius: 16px;
+      border: none;
+      opacity: 0.4;
+      transition: opacity 0.15s ease;
+    }
+    .botao-cor.aceso { opacity: 1; }
+    .verde { background: #4caf50; }
+    .vermelho { background: #e05d5d; }
+    .amarelo { background: #ffd54f; }
+    .azul { background: #4f8cff; }
+  </style>
+</head>
+<body>
+  <a class="voltar" href="../../index.html">← voltar</a>
+
+  <div class="tela-jogo">
+    <h1><span class="icone-titulo" data-icone="genius"></span> Genius</h1>
+    <div class="placar">
+      <span>Rodada: <strong id="rodada">0</strong></span>
+      <span>Melhor: <strong id="melhor">0</strong></span>
+    </div>
+
+    <div class="painel-genius">
+      <button class="botao-cor verde" data-cor="0"></button>
+      <button class="botao-cor vermelho" data-cor="1"></button>
+      <button class="botao-cor amarelo" data-cor="2"></button>
+      <button class="botao-cor azul" data-cor="3"></button>
+    </div>
+
+    <p class="msg-pontos" id="mensagem">Aperte Iniciar e repita a sequência</p>
+    <button class="btn" id="iniciar">Iniciar</button>
+  </div>
+
+  <script src="../../js/icones.js"></script>
+  <script src="../../js/util.js"></script>
+  <script src="../../js/pontos.js"></script>
+  <script src="../../js/som.js"></script>
+  <script src="../../js/musica.js"></script>
+  <script src="../../js/recordes.js"></script>
+  <script src="../../js/conquistas.js"></script>
+  <script src="../../js/missoes.js"></script>
+  <script src="../../js/app.js"></script>
+  <script src="../../js/modal.js"></script>
+  <script src="jogo.js"></script>
+</body>
+</html>

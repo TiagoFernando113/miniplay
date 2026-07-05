@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>MiniPlay</title>
+  <link rel="stylesheet" href="css/estilo.css" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#121212" />
+  <script src="js/tema.js"></script>
+</head>
+<body>
+  <header>
+    <h1><span id="avatar">🙂</span> MiniPlay</h1>
+    <p id="linha-streak">Escolha um jogo pra jogar</p>
+    <p class="pontos-hub"><span class="icone-inline" data-icone="estrela"></span> Pontos: <strong id="pontos-totais">0</strong></p>
+    <div id="nivel-hub" style="max-width:260px;margin:8px auto 0;">
+      <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--text-dim);">
+        <span id="nivel-rotulo"></span><span id="nivel-xp"></span>
+      </div>
+      <div class="barra" style="margin-top:3px;"><div class="barra-cheia" id="nivel-barra"></div></div>
+    </div>
+    <p id="versao-app" style="font-size:0.65rem;color:var(--text-dim);margin-top:2px;"></p>
+  </header>
+
+  <section class="painel-missoes" id="painel-missoes"></section>
+
+  <a class="botao-jogar" href="jogos.html">
+    <span class="icone-inline" data-icone="jogar"></span> JOGAR
+  </a>
+
+  <nav class="atalhos">
+    <a class="atalho" href="loja.html"><span class="icone-inline" data-icone="loja"></span>Loja</a>
+    <a class="atalho" href="ranking.html"><span class="icone-inline" data-icone="ranking"></span>Ranking</a>
+    <a class="atalho" href="conquistas.html"><span class="icone-inline" data-icone="conquistas"></span>Conquistas</a>
+    <a class="atalho" href="perfil.html"><span class="icone-inline" data-icone="perfil"></span>Perfil</a>
+    <a class="atalho" href="ajustes.html"><span class="icone-inline" data-icone="ajustes"></span>Ajustes</a>
+  </nav>
+
+
+  <script src="js/icones.js"></script>
+  <script src="js/util.js"></script>
+  <script src="js/pontos.js"></script>
+  <script src="js/som.js"></script>
+  <script src="js/musica.js"></script>
+  <script src="js/recordes.js"></script>
+  <script src="js/conquistas.js"></script>
+  <script src="js/missoes.js"></script>
+  <script src="js/nuvem.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    const avatarEl = document.getElementById("avatar");
+    avatarEl.innerHTML = Avatar.emoji();
+    const moldura = Cosmetico.dados("moldura");
+    if (moldura) avatarEl.classList.add(moldura);
+    if (Cosmetico.possui("trofeu", "trofeu")) {
+      avatarEl.insertAdjacentHTML("afterend",
+        ' <span class="icone-inline" data-icone="gema" style="color:#7fdfff;"></span>');
+    }
+
+    // mini login na primeira visita: escolhe nome e avatar
+    if (!localStorage.getItem("loginFeito")) {
+      const apelidoAtual = localStorage.getItem("apelido") || "";
+      const donos = Avatar.comprados();
+      const avataresHtml = Object.entries(AVATARES)
+        .map(([id, a]) => {
+          const tem = donos.includes(id);
+          return `<button type="button" class="escolha-avatar" data-avatar="${id}" ${tem ? "" : "disabled"}
+            style="font-size:1.7rem;background:var(--bg);border:2px solid ${id === Avatar.atual() ? "var(--accent)" : "#333"};border-radius:12px;padding:6px 9px;${tem ? "" : "opacity:0.35;"}">
+            ${tem ? a.emoji : '<span class="icone-inline" data-icone="cadeado"></span>'}</button>`;
+        })
+        .join("");
+
+      const login = document.createElement("div");
+      login.className = "modal-fundo visivel";
+      login.innerHTML = `
+        <div class="modal-caixa" style="max-width:340px;">
+          <div class="modal-emoji">🎮</div>
+          <h2>Bem-vindo ao MiniPlay!</h2>
+          <p style="color:var(--text-dim);font-weight:400;margin-bottom:10px;">Como você quer ser chamado?</p>
+          <input type="text" id="campo-nome" maxlength="16" placeholder="Seu nome de jogador"
+            value="${apelidoAtual}"
+            style="width:100%;background:var(--bg);color:var(--text);border:1px solid #444;border-radius:10px;padding:12px;font-size:1.05rem;text-align:center;font-weight:700;user-select:text;-webkit-user-select:text;box-sizing:border-box;" />
+          <p style="color:var(--text-dim);font-weight:400;font-size:0.8rem;margin:14px 0 6px;">Escolha seu avatar (desbloqueie mais na loja!)</p>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:16px;">${avataresHtml}</div>
+          <button class="btn" id="entrar">Começar a jogar!</button>
+          <p style="color:var(--text-dim);font-weight:400;font-size:0.72rem;margin:10px 0 0;">
+            ⭐ ganhe pontos · 🎯 missões diárias · 🏆 seu nome no ranking online
+          </p>
+        </div>
+      `;
+      document.body.appendChild(login);
+      aplicarIcones();
+
+      login.querySelectorAll(".escolha-avatar:not([disabled])").forEach((botao) => {
+        botao.addEventListener("click", () => {
+          login.querySelectorAll(".escolha-avatar").forEach((b) => (b.style.borderColor = "#333"));
+          botao.style.borderColor = "var(--accent)";
+          Avatar.usar(botao.dataset.avatar);
+          avatarEl.innerHTML = Avatar.emoji();
+          Som.clique();
+        });
+      });
+
+      document.getElementById("entrar").addEventListener("click", () => {
+        const nome = document.getElementById("campo-nome").value.trim().slice(0, 16);
+        if (!nome) {
+          document.getElementById("campo-nome").style.borderColor = "#ff6f6f";
+          Som.erro();
+          return;
+        }
+        localStorage.setItem("apelido", nome);
+        localStorage.setItem("loginFeito", "1");
+        localStorage.setItem("viuIntro", "1");
+        login.remove();
+        Som.vitoria();
+        vibrar([40, 30, 40]);
+        setTimeout(() => location.reload(), 400);
+        // já garante o nome no ranking online
+        if (window.Nuvem) Nuvem.enviarPontuacao(Ranking.pontosDaSemana());
+      });
+    }
+
+
+
+    // missões do dia + sequência + bônus diário
+    const diario = Missoes.dados();
+    {
+      const apelido = localStorage.getItem("apelido");
+      document.getElementById("linha-streak").innerHTML =
+        (apelido ? `<strong>${apelido}</strong> · ` : "") +
+        '<span class="icone-inline" data-icone="fogo" style="color:#ff9f4f;"></span> ' +
+        `${diario.streak} dia(s) seguidos`;
+    }
+
+    const bonus = Missoes.bonusDiario();
+    if (bonus) {
+      setTimeout(() => Missoes.toast(`${ICONES.presente} Bônus diário: +${bonus.valor} pontos!`), 600);
+    }
+
+    // voltar pelo gesto do Android restaura a página congelada — força atualizar
+    window.addEventListener("pageshow", (e) => {
+      if (e.persisted) location.reload();
+    });
+
+    // nível do jogador
+    document.getElementById("nivel-rotulo").textContent = `Nv ${Nivel.atual()} · ${Nivel.titulo()}`;
+    document.getElementById("nivel-xp").textContent = `${Pontos.acumulado()} XP`;
+    document.getElementById("nivel-barra").style.width = Math.round(Nivel.progresso() * 100) + "%";
+
+    const painel = document.getElementById("painel-missoes");
+    painel.innerHTML = '<h2><span class="icone-inline" data-icone="alvo"></span> Missões de hoje</h2>';
+    Missoes.dados().missoes.forEach((m) => {
+      const linha = document.createElement("div");
+      linha.className = "missao" + (m.feita ? " feita" : "");
+      const pct = Math.min(100, Math.round((m.prog / m.meta) * 100));
+      linha.innerHTML = `
+        <div class="missao-topo">
+          <span>${m.feita ? "✓" : ""} ${m.desc}</span>
+          <span class="missao-premio">+${m.premio} <span class="icone-inline" data-icone="estrela"></span></span>
+        </div>
+        <div class="barra"><div class="barra-cheia" style="width:${pct}%"></div></div>
+      `;
+      painel.appendChild(linha);
+    });
+    aplicarIcones();
+  </script>
+</body>
+</html>

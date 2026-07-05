@@ -1,0 +1,687 @@
+:root {
+  --bg: #121212;
+  --card-bg: #1e1e1e;
+  --accent: #4f8cff;
+  --text: #f0f0f0;
+  --text-dim: #a0a0a0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  /* impede o "puxar pra recarregar" e o quicar da tela nos jogos */
+  overscroll-behavior: none;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, Roboto, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: pan-y;
+  /* sem selecionar/copiar texto — cara de app de verdade */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+button, .carta, .celula, .doce, .letra, .quadrado, .bloco, .buraco, .agua {
+  touch-action: manipulation;
+}
+
+header {
+  padding: 20px 16px;
+  text-align: center;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 1.6rem;
+}
+
+header p {
+  margin: 4px 0 0;
+  color: var(--text-dim);
+  font-size: 0.9rem;
+}
+
+.grid-jogos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 14px;
+  padding: 16px;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.card-jogo {
+  background: var(--card-bg);
+  border-radius: 14px;
+  padding: 20px 12px;
+  text-align: center;
+  text-decoration: none;
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  transition: transform 0.15s ease;
+}
+
+.card-jogo:active {
+  transform: scale(0.95);
+}
+
+.card-jogo .icone {
+  font-size: 2.2rem;
+}
+
+.card-jogo span.nome {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.voltar {
+  display: inline-block;
+  margin: 12px 16px;
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.tela-jogo {
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 0 16px 40px;
+  text-align: center;
+}
+
+.placar {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin: 10px 0 20px;
+  font-size: 1rem;
+  color: var(--text-dim);
+}
+
+.btn {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn:active {
+  opacity: 0.8;
+}
+
+.pontos-hub {
+  margin-top: 10px !important;
+  color: #ffd54f !important;
+  font-size: 1rem !important;
+}
+
+.msg-pontos {
+  color: #ffd54f;
+  font-weight: 600;
+  min-height: 1.4em;
+  margin: 10px 0;
+}
+
+.modal-fundo {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  padding: 24px;
+}
+
+.modal-fundo.visivel {
+  opacity: 1;
+}
+
+.modal-caixa {
+  background: var(--card-bg);
+  border-radius: 20px;
+  padding: 28px 24px;
+  text-align: center;
+  max-width: 320px;
+  width: 100%;
+  transform: scale(0.9);
+  transition: transform 0.25s ease;
+  border: 1px solid #333;
+}
+
+.modal-fundo.visivel .modal-caixa {
+  transform: scale(1);
+}
+
+.modal-emoji {
+  font-size: 3rem;
+  margin-bottom: 8px;
+}
+
+.modal-caixa h2 {
+  margin: 0 0 8px;
+  font-size: 1.4rem;
+}
+
+.modal-caixa p {
+  margin: 0 0 20px;
+  color: #ffd54f;
+  font-weight: 600;
+}
+
+.modal-caixa .btn {
+  width: 100%;
+}
+
+.modal-menu {
+  display: block;
+  margin-top: 14px;
+  color: var(--text-dim);
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+@keyframes aparecer {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.card-jogo {
+  animation: aparecer 0.35s ease both;
+  animation-delay: calc(var(--i, 0) * 45ms);
+}
+
+.card-jogo .recorde-card {
+  font-size: 0.75rem;
+  color: #ffd54f;
+  min-height: 1em;
+}
+
+.toast-conquista {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: #2a2a10;
+  color: #ffd54f;
+  border: 1px solid #ffd54f;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-weight: 600;
+  z-index: 200;
+  opacity: 0;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  white-space: nowrap;
+}
+
+.toast-conquista.visivel {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+.seletor {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.seletor button {
+  background: var(--card-bg);
+  color: var(--text-dim);
+  border: 1px solid #333;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.seletor button.ativo {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.lista-itens {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 14px;
+  padding: 16px;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.item-card {
+  background: var(--card-bg);
+  border-radius: 14px;
+  padding: 18px 12px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.item-card.bloqueada {
+  opacity: 0.4;
+  filter: grayscale(1);
+}
+
+.item-card .icone {
+  font-size: 2.2rem;
+}
+
+.item-card .nome {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.item-card .desc {
+  font-size: 0.78rem;
+  color: var(--text-dim);
+}
+
+.item-card .btn {
+  font-size: 0.85rem;
+  padding: 8px 14px;
+  width: 100%;
+}
+
+.item-card .btn.secundario {
+  background: transparent;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+}
+
+.painel-missoes {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.painel-missoes h2 {
+  font-size: 1rem;
+  margin: 4px 0 8px;
+  color: var(--text-dim);
+}
+
+.missao {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 10px 14px;
+  margin-bottom: 8px;
+}
+
+.missao.feita {
+  opacity: 0.55;
+}
+
+.missao-topo {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.88rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.missao-premio {
+  color: #ffd54f;
+}
+
+.barra {
+  height: 6px;
+  background: #333;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.barra-cheia {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+/* jogos de tela cheia: canvas ocupa o celular todo, HUD flutua por cima */
+.pagina-cheia {
+  overflow: hidden;
+  height: 100vh;
+}
+
+.pagina-cheia canvas {
+  position: fixed;
+  inset: 0;
+  border-radius: 0;
+  max-width: none;
+}
+
+.hud {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  z-index: 80;
+  pointer-events: none;
+}
+
+.hud > * {
+  pointer-events: auto;
+}
+
+.hud-chip {
+  background: rgba(10, 10, 16, 0.6);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  padding: 6px 12px;
+  font-size: 0.9rem;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+button.hud-chip {
+  font-size: 1rem;
+}
+
+.hud-msg {
+  position: fixed;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 80;
+  background: rgba(10, 10, 16, 0.6);
+  padding: 6px 14px;
+  border-radius: 10px;
+  color: #ffd54f;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin: 0;
+  pointer-events: none;
+  white-space: nowrap;
+  max-width: 92vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: opacity 0.4s ease;
+}
+
+.hud-msg.escondida {
+  opacity: 0;
+}
+
+.btn-tela-cheia {
+  position: fixed;
+  top: 10px;
+  right: 12px;
+  z-index: 90;
+  background: var(--card-bg);
+  color: var(--text);
+  border: 1px solid #444;
+  border-radius: 10px;
+  width: 42px;
+  height: 42px;
+  font-size: 1.3rem;
+}
+
+/* celular deitado (jogos de canvas): jogo inteiro à esquerda, painel à direita */
+@media (orientation: landscape) and (max-height: 540px) {
+  .voltar {
+    position: fixed;
+    top: 8px;
+    left: 10px;
+    z-index: 60;
+    margin: 0;
+    background: rgba(0, 0, 0, 0.45);
+    padding: 4px 10px;
+    border-radius: 8px;
+  }
+
+  .tela-jogo:has(> canvas) {
+    display: grid;
+    grid-template-columns: minmax(0, auto) minmax(180px, 300px);
+    grid-auto-rows: min-content;
+    align-items: center;
+    align-content: center;
+    justify-content: center;
+    column-gap: 24px;
+    max-width: none;
+    min-height: 100vh;
+    padding: 8px 12px;
+    box-sizing: border-box;
+  }
+
+  .tela-jogo:has(> canvas) > canvas {
+    grid-column: 1;
+    grid-row: 1 / span 30;
+    max-height: 96vh;
+    max-width: 58vw;
+    width: auto;
+    height: auto;
+    justify-self: end;
+  }
+
+  .tela-jogo:has(> canvas) > :not(canvas) {
+    grid-column: 2;
+    margin: 4px 0;
+    justify-self: center;
+  }
+
+  .tela-jogo:has(> canvas) h1 {
+    font-size: 1.05rem;
+    margin: 0;
+  }
+
+  .tela-jogo:has(> canvas) .placar {
+    margin: 0;
+    gap: 14px;
+  }
+
+  .tela-jogo:has(> canvas) .msg-pontos {
+    font-size: 0.85rem;
+    margin: 0;
+  }
+
+  .controles,
+  .controles-blocos {
+    margin-top: 0;
+    grid-template-columns: repeat(3, 56px);
+    grid-template-rows: repeat(2, 56px);
+  }
+
+  .controles-blocos {
+    grid-template-columns: repeat(4, 56px);
+    grid-template-rows: 56px;
+  }
+
+  .controles button,
+  .controles-blocos button {
+    height: auto;
+  }
+}
+
+#avatar.moldura-ouro,
+#avatar.moldura-neon {
+  display: inline-block;
+  border-radius: 50%;
+  padding: 2px 6px;
+}
+
+#avatar.moldura-ouro {
+  border: 2px solid #ffd54f;
+  box-shadow: 0 0 12px rgba(255, 213, 79, 0.5);
+}
+
+#avatar.moldura-neon {
+  border: 2px solid #00ff9f;
+  box-shadow: 0 0 12px rgba(0, 255, 159, 0.5);
+}
+
+.card-jogo .icone {
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+}
+
+.card-jogo .icone svg {
+  width: 40px;
+  height: 40px;
+}
+
+.icone-titulo {
+  display: inline-flex;
+  vertical-align: -4px;
+  color: var(--accent);
+}
+
+.icone-titulo svg {
+  width: 26px;
+  height: 26px;
+}
+
+.icone-inline {
+  display: inline-flex;
+  vertical-align: -3px;
+  color: currentColor;
+}
+
+.icone-inline svg {
+  width: 17px;
+  height: 17px;
+}
+
+.linha-jogo .icone-inline {
+  color: var(--accent);
+  margin-right: 6px;
+}
+
+.botao-jogar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 16px auto 10px;
+  max-width: 668px;
+  width: calc(100% - 32px);
+  background: var(--accent);
+  color: #fff;
+  border-radius: 18px;
+  padding: 20px;
+  font-size: 1.35rem;
+  font-weight: 800;
+  text-decoration: none;
+  letter-spacing: 1px;
+  box-shadow: 0 4px 16px rgba(79, 140, 255, 0.35);
+  animation: aparecer 0.35s ease both;
+}
+
+.botao-jogar:active {
+  transform: scale(0.97);
+}
+
+.botao-jogar .icone-inline svg {
+  width: 26px;
+  height: 26px;
+}
+
+.atalhos {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  padding: 4px 16px 24px;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.atalho {
+  flex: 1 1 30%;
+  min-width: 100px;
+  max-width: 210px;
+  background: var(--card-bg);
+  border-radius: 16px;
+  padding: 18px 8px;
+  text-align: center;
+  text-decoration: none;
+  color: var(--text);
+  font-size: 0.9rem;
+  font-weight: 700;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  animation: aparecer 0.35s ease both;
+}
+
+.atalho:active {
+  transform: scale(0.94);
+}
+
+.atalho .icone-inline svg {
+  width: 32px;
+  height: 32px;
+  color: var(--accent);
+}
+
+.avatar-svg {
+  width: 36px;
+  height: 36px;
+  vertical-align: -8px;
+}
+
+.escolha-avatar .avatar-svg {
+  width: 30px;
+  height: 30px;
+  vertical-align: middle;
+}
+
+.item-card .icone .avatar-svg {
+  width: 40px;
+  height: 40px;
+}
+
+.escolha-avatar .icone-inline svg {
+  width: 26px;
+  height: 26px;
+  color: var(--text-dim);
+}
+
+.item-card .icone svg {
+  width: 38px;
+  height: 38px;
+  color: var(--accent);
+}
+
+.item-card.bloqueada .icone svg {
+  color: var(--text-dim);
+}
+
+.toast-conquista svg {
+  width: 17px;
+  height: 17px;
+  vertical-align: -3px;
+  margin-right: 2px;
+}

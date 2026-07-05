@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Puzzle 15</title>
+  <link rel="stylesheet" href="../../css/estilo.css" />
+  <link rel="manifest" href="../../manifest.json" />
+  <meta name="theme-color" content="#121212" />
+  <script src="../../js/tema.js"></script>
+  <style>
+    .grade-puzzle {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      max-width: 320px;
+      margin: 0 auto;
+    }
+    .bloco {
+      aspect-ratio: 1 / 1;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: 700;
+      user-select: none;
+      transition: transform 0.1s ease;
+    }
+    .bloco:active { transform: scale(0.94); }
+    .bloco.vazio {
+      background: transparent;
+    }
+  </style>
+</head>
+<body>
+  <a class="voltar" href="../../index.html">← voltar</a>
+
+  <div class="tela-jogo">
+    <h1><span class="icone-titulo" data-icone="puzzle15"></span> Puzzle 15</h1>
+    <div class="placar">
+      <span>Movimentos: <strong id="movimentos">0</strong></span>
+    </div>
+
+    <div id="grade" class="grade-puzzle"></div>
+
+    <p class="msg-pontos" id="mensagem">Ordene os números de 1 a 15</p>
+    <button class="btn" id="reiniciar">Embaralhar</button>
+  </div>
+
+  <script src="../../js/icones.js"></script>
+  <script src="../../js/util.js"></script>
+  <script src="../../js/pontos.js"></script>
+  <script src="../../js/som.js"></script>
+  <script src="../../js/musica.js"></script>
+  <script src="../../js/recordes.js"></script>
+  <script src="../../js/conquistas.js"></script>
+  <script src="../../js/missoes.js"></script>
+  <script src="../../js/app.js"></script>
+  <script src="../../js/modal.js"></script>
+  <script src="jogo.js"></script>
+</body>
+</html>

@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Loja</title>
+  <link rel="stylesheet" href="css/estilo.css" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#121212" />
+  <script src="js/tema.js"></script>
+</head>
+<body>
+  <a class="voltar" href="index.html">← voltar</a>
+
+  <header>
+    <h1><span class="icone-titulo" data-icone="loja"></span> Loja</h1>
+    <p class="pontos-hub">⭐ Pontos: <strong id="pontos-totais">0</strong></p>
+  </header>
+
+  <div id="banner-destaque" style="max-width:700px;margin:0 auto;padding:0 16px;"></div>
+
+  <header><h1 style="font-size:1.1rem;">🎨 Temas</h1></header>
+  <main class="lista-itens" id="lista-temas"></main>
+
+  <header><h1 style="font-size:1.1rem;">😺 Avatares</h1></header>
+  <main class="lista-itens" id="lista-avatares"></main>
+
+  <div id="secoes-cosmeticos"></div>
+
+  <script src="js/icones.js"></script>
+  <script src="js/util.js"></script>
+  <script src="js/pontos.js"></script>
+  <script src="js/som.js"></script>
+  <script src="js/musica.js"></script>
+  <script src="js/recordes.js"></script>
+  <script src="js/conquistas.js"></script>
+  <script src="js/missoes.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    function avisar(texto) {
+      const aviso = document.createElement("div");
+      aviso.className = "toast-conquista";
+      aviso.textContent = texto;
+      document.body.appendChild(aviso);
+      requestAnimationFrame(() => aviso.classList.add("visivel"));
+      setTimeout(() => {
+        aviso.classList.remove("visivel");
+        setTimeout(() => aviso.remove(), 400);
+      }, 2500);
+    }
+
+    // destaque da semana: um item sorteado com 30% de desconto
+    const TODOS_ITENS = [];
+    for (const [id, t] of Object.entries(TEMAS)) if (t.preco > 0) TODOS_ITENS.push("tema:" + id);
+    for (const [id, a] of Object.entries(AVATARES)) if (a.preco > 0) TODOS_ITENS.push("avatar:" + id);
+    for (const [cat, c] of Object.entries(COSMETICOS))
+      for (const [id, item] of Object.entries(c.itens)) if (item.preco > 0) TODOS_ITENS.push(cat + ":" + id);
+    const DESTAQUE = TODOS_ITENS[semanaDoAno() % TODOS_ITENS.length];
+
+    function precoFinal(chaveItem, precoBase) {
+      return chaveItem === DESTAQUE ? Math.round(precoBase * 0.7) : precoBase;
+    }
+
+    function montarSecao(elemento, itens, dono, cat) {
+      elemento.innerHTML = "";
+      const comprados = dono.comprados();
+      const emUso = dono.atual();
+
+      for (const [id, item] of Object.entries(itens)) {
+        const chaveItem = cat + ":" + id;
+        const preco = precoFinal(chaveItem, item.preco);
+        const emDestaque = chaveItem === DESTAQUE && !comprados.includes(id);
+        const card = document.createElement("div");
+        card.className = "item-card";
+
+        const possui = comprados.includes(id);
+        let botaoHtml;
+        if (id === emUso) {
+          botaoHtml = '<button class="btn secundario" disabled>Em uso ✓</button>';
+        } else if (possui) {
+          botaoHtml = '<button class="btn" data-acao="usar">Usar</button>';
+        } else if (emDestaque) {
+          botaoHtml = `<button class="btn" data-acao="comprar" style="background:#cf8f2f;"><s style="opacity:0.6;">${item.preco}</s> ⭐ ${preco}</button>`;
+        } else {
+          botaoHtml = `<button class="btn" data-acao="comprar">⭐ ${preco}</button>`;
+        }
+
+        const amostra = item.cores
+          ? `<span class="desc" style="display:flex;gap:4px;">${["bg", "card", "accent"]
+              .map((k) => `<span style="width:16px;height:16px;border-radius:4px;border:1px solid #555;background:${item.cores[k]}"></span>`)
+              .join("")}</span>`
+          : "";
+
+        const icone = desenhoDoItem(cat, id, item);
+
+        card.innerHTML = `
+          ${icone}
+          <span class="nome">${item.nome}</span>
+          ${amostra}
+          ${botaoHtml}
+        `;
+
+        // tocar no card (fora do botão) mostra a prévia do tema
+        if (item.cores) {
+          card.addEventListener("click", (e) => {
+            if (!e.target.closest("button")) previaTema(item.cores);
+          });
+        }
+
+        const botao = card.querySelector("button[data-acao]");
+        if (botao) {
+          botao.addEventListener("click", () => {
+            if (botao.dataset.acao === "usar") {
+              dono.usar(id);
+              Som.clique();
+            } else if (Pontos.gastar(item.preco)) {
+              dono.comprar(id);
+              dono.usar(id);
+              Som.vitoria();
+              vibrar([50, 30, 50]);
+            } else {
+              Som.erro();
+              avisar(`Faltam ${item.preco - Pontos.get()} pontos — jogue mais! 🎮`);
+            }
+            desenharLoja();
+          });
+        }
+
+        elemento.appendChild(card);
+      }
+    }
+
+    // prévia: toca no card do tema e vê as cores por 3 segundos
+    let temporizadorPrevia = null;
+    function previaTema(cores) {
+      const raiz = document.documentElement.style;
+      raiz.setProperty("--bg", cores.bg);
+      raiz.setProperty("--card-bg", cores.card);
+      raiz.setProperty("--accent", cores.accent);
+      raiz.setProperty("--text", cores.text);
+      raiz.setProperty("--text-dim", cores.dim);
+      avisar("Prévia do tema por 3 segundos ✨");
+      clearTimeout(temporizadorPrevia);
+      temporizadorPrevia = setTimeout(() => Tema.aplicar(), 3000);
+    }
+
+    // amostra visual de cada item: desenha como fica NO JOGO
+    function desenhoDoItem(cat, id, item) {
+      const d = item.dados;
+
+      if (item.cores) {
+        return `<span class="icone"><span style="display:inline-block;width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg, ${item.cores.bg}, ${item.cores.accent});border:2px solid rgba(255,255,255,0.3);"></span></span>`;
+      }
+      if (cat === "avatar") {
+        return `<span class="icone">${item.emoji}</span>`;
+      }
+      if (cat === "cobra") {
+        return `<span class="icone"><svg viewBox="0 0 46 24" style="width:46px;height:26px;">
+          <rect x="1" y="9" width="8" height="8" rx="2" fill="${d[1]}"/>
+          <rect x="10" y="9" width="8" height="8" rx="2" fill="${d[1]}"/>
+          <rect x="19" y="9" width="8" height="8" rx="2" fill="${d[1]}"/>
+          <rect x="28" y="6" width="13" height="13" rx="4" fill="${d[0]}"/>
+          <circle cx="37" cy="10" r="1.6" fill="#12203a"/></svg></span>`;
+      }
+      if (cat === "bolha") {
+        return `<span class="icone"><svg viewBox="0 0 36 36" style="width:36px;height:36px;">
+          <circle cx="18" cy="18" r="15" fill="${d}" stroke="#fff" stroke-width="2"/>
+          <circle cx="12" cy="12" r="4" fill="rgba(255,255,255,0.45)"/></svg></span>`;
+      }
+      if (cat === "passaro") {
+        return `<span class="icone"><svg viewBox="0 0 40 30" style="width:42px;height:32px;">
+          <ellipse cx="18" cy="15" rx="13" ry="10" fill="${d}"/>
+          <ellipse cx="14" cy="17" rx="6" ry="4" fill="rgba(0,0,0,0.25)"/>
+          <circle cx="24" cy="11" r="3.4" fill="#fff"/><circle cx="25" cy="11" r="1.7" fill="#222"/>
+          <path d="M31 13l7 2-7 3z" fill="#ff9f4f"/></svg></span>`;
+      }
+      if (cat === "carta") {
+        return `<span class="icone"><svg viewBox="0 0 28 36" style="width:30px;height:38px;">
+          <rect x="1" y="1" width="26" height="34" rx="4" fill="var(--card-bg)" stroke="var(--accent)" stroke-width="1.6"/>
+          <text x="14" y="24" text-anchor="middle" font-size="15" font-weight="bold" fill="var(--accent)">${d}</text></svg></span>`;
+      }
+      if (cat === "moldura") {
+        const anel = id === "ouro" ? "#ffd54f" : id === "neon" ? "#00ff9f" : "transparent";
+        return `<span class="icone"><svg viewBox="0 0 36 36" style="width:36px;height:36px;">
+          <circle cx="18" cy="18" r="16" fill="none" stroke="${anel}" stroke-width="2.5"/>
+          <circle cx="18" cy="18" r="11" fill="#f0c8a0"/>
+          <circle cx="14.5" cy="16.5" r="1.4" fill="#3a2a10"/><circle cx="21.5" cy="16.5" r="1.4" fill="#3a2a10"/>
+          <path d="M14.5 21c1 1.2 6 1.2 7 0" stroke="#3a2a10" stroke-width="1.3" fill="none" stroke-linecap="round"/></svg></span>`;
+      }
+      if (cat === "trofeu") {
+        return `<span class="icone"><svg viewBox="0 0 24 24" style="width:36px;height:36px;">
+          <path d="M7 3h10l4 6-9 12L3 9l4-6z" fill="#7fdfff" stroke="#4f9fd8" stroke-width="1"/>
+          <path d="M3 9h18M7 3l5 6 5-6M12 9v12" stroke="#4f9fd8" stroke-width="0.9" fill="none"/></svg></span>`;
+      }
+      return `<span class="icone">${item.emoji}</span>`;
+    }
+
+    function donoCosmetico(cat) {
+      return {
+        categoria: cat,
+        comprados: () => Cosmetico.comprados(cat),
+        atual: () => Cosmetico.atual(cat),
+        comprar: (id) => Cosmetico.comprar(cat, id),
+        usar: (id) => Cosmetico.usar(cat, id),
+      };
+    }
+
+    function desenharLoja() {
+      montarSecao(document.getElementById("lista-temas"), TEMAS, Tema, "tema");
+      montarSecao(document.getElementById("lista-avatares"), AVATARES, Avatar, "avatar");
+
+      const secoesEl = document.getElementById("secoes-cosmeticos");
+      secoesEl.innerHTML = "";
+      for (const [cat, categoria] of Object.entries(COSMETICOS)) {
+        const cabecalho = document.createElement("header");
+        cabecalho.innerHTML = `<h1 style="font-size:1.1rem;">${categoria.titulo}</h1>`;
+        secoesEl.appendChild(cabecalho);
+        const lista = document.createElement("main");
+        lista.className = "lista-itens";
+        secoesEl.appendChild(lista);
+        montarSecao(lista, categoria.itens, donoCosmetico(cat), cat);
+      }
+    }
+
+    desenharLoja();
+
+    // banner do destaque
+    {
+      const [catD, idD] = DESTAQUE.split(":");
+      let nomeD = "";
+      if (catD === "tema") nomeD = "Tema " + TEMAS[idD].nome;
+      else if (catD === "avatar") nomeD = "Avatar " + AVATARES[idD].nome;
+      else nomeD = COSMETICOS[catD].itens[idD].nome;
+      document.getElementById("banner-destaque").innerHTML =
+        `<div class="missao" style="border:1px solid #cf8f2f;text-align:center;font-weight:700;">🔖 Destaque da semana: ${nomeD} — 30% OFF!</div>`;
+    }
+  </script>
+</body>
+</html>

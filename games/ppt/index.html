@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Pedra, Papel e Tesoura</title>
+  <link rel="stylesheet" href="../../css/estilo.css" />
+  <link rel="manifest" href="../../manifest.json" />
+  <meta name="theme-color" content="#121212" />
+  <script src="../../js/tema.js"></script>
+  <style>
+    .maos {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      font-size: 3.5rem;
+      margin: 20px 0;
+      min-height: 1.4em;
+    }
+    .escolhas {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+    }
+    .escolhas button {
+      font-size: 2.2rem;
+      background: var(--card-bg);
+      border: none;
+      border-radius: 16px;
+      padding: 16px 20px;
+    }
+    .escolhas button:active { background: var(--accent); }
+    @keyframes tremer {
+      0%, 100% { transform: translateY(0); }
+      25% { transform: translateY(-10px); }
+      75% { transform: translateY(6px); }
+    }
+    .maos.tremendo { animation: tremer 0.3s ease infinite; }
+  </style>
+</head>
+<body>
+  <a class="voltar" href="../../index.html">← voltar</a>
+
+  <div class="tela-jogo">
+    <h1><span class="icone-titulo" data-icone="ppt"></span> Pedra, Papel e Tesoura</h1>
+
+    <div class="seletor" id="seletor-modo">
+      <button data-modo="bot" class="ativo">🤖 vs Bot</button>
+      <button data-modo="duo">👥 2 Jogadores</button>
+    </div>
+
+    <div class="placar">
+      <span>Você: <strong id="placar-a">0</strong></span>
+      <span><span id="rotulo-vs">Bot</span>: <strong id="placar-b">0</strong></span>
+    </div>
+
+    <div class="maos" id="maos">🤜 🤛</div>
+    <p class="msg-pontos" id="mensagem">Melhor de 5 — escolha sua jogada!</p>
+
+    <div class="escolhas" id="escolhas">
+      <button data-jogada="0">✊</button>
+      <button data-jogada="1">✋</button>
+      <button data-jogada="2">✌️</button>
+    </div>
+  </div>
+
+  <script src="../../js/icones.js"></script>
+  <script src="../../js/util.js"></script>
+  <script src="../../js/pontos.js"></script>
+  <script src="../../js/som.js"></script>
+  <script src="../../js/musica.js"></script>
+  <script src="../../js/recordes.js"></script>
+  <script src="../../js/conquistas.js"></script>
+  <script src="../../js/missoes.js"></script>
+  <script src="../../js/app.js"></script>
+  <script src="../../js/modal.js"></script>
+  <script src="jogo.js"></script>
+</body>
+</html>

@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Ajustes</title>
+  <link rel="stylesheet" href="css/estilo.css" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#121212" />
+  <script src="js/tema.js"></script>
+  <style>
+    .opcoes-ajustes {
+      max-width: 420px;
+      margin: 0 auto;
+      padding: 0 16px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .linha-ajuste {
+      background: var(--card-bg);
+      border-radius: 14px;
+      padding: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    .linha-ajuste .info { text-align: left; }
+    .linha-ajuste .titulo { font-weight: 700; }
+    .linha-ajuste .sub { font-size: 0.8rem; color: var(--text-dim); }
+    .chave {
+      position: relative;
+      width: 52px;
+      height: 30px;
+      flex-shrink: 0;
+      appearance: none;
+      background: #444;
+      border-radius: 20px;
+      transition: background 0.2s ease;
+      border: none;
+    }
+    .chave:checked { background: var(--accent); }
+    .chave::after {
+      content: "";
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 24px;
+      height: 24px;
+      background: #fff;
+      border-radius: 50%;
+      transition: left 0.2s ease;
+    }
+    .chave:checked::after { left: 25px; }
+    textarea {
+      width: 100%;
+      min-height: 90px;
+      background: #0e0e16;
+      color: var(--text);
+      border: 1px solid #333;
+      border-radius: 10px;
+      padding: 10px;
+      font-size: 0.75rem;
+      box-sizing: border-box;
+      user-select: text;
+      -webkit-user-select: text;
+    }
+    .btn.perigo { background: #8f2a2a; }
+  </style>
+</head>
+<body>
+  <a class="voltar" href="index.html">← voltar</a>
+
+  <header>
+    <h1><span class="icone-titulo" data-icone="ajustes"></span> Ajustes</h1>
+    <p id="info-streak"></p>
+  </header>
+
+  <div class="opcoes-ajustes">
+    <div class="linha-ajuste">
+      <div class="info">
+        <div class="titulo"><span class="icone-inline" data-icone="som"></span> Sons</div>
+        <div class="sub">Efeitos sonoros dos jogos</div>
+      </div>
+      <input type="checkbox" class="chave" id="chave-som" />
+    </div>
+
+    <div class="linha-ajuste" style="flex-direction:column; align-items:stretch;">
+      <div class="info">
+        <div class="titulo"><span class="icone-inline" data-icone="som"></span> Volume geral</div>
+        <div class="sub">Sons e música</div>
+      </div>
+      <input type="range" id="controle-volume" min="0" max="100" style="width:100%; accent-color:var(--accent);" />
+    </div>
+
+    <div class="linha-ajuste">
+      <div class="info">
+        <div class="titulo"><span class="icone-inline" data-icone="musica"></span> Música de fundo</div>
+        <div class="sub">Trilha chiptune gerada na hora</div>
+      </div>
+      <input type="checkbox" class="chave" id="chave-musica" />
+    </div>
+
+    <div class="linha-ajuste">
+      <div class="info">
+        <div class="titulo"><span class="icone-inline" data-icone="girar"></span> Girar jogos de ação</div>
+        <div class="sub">Cobrinha, Bolhas, Território e Conquista entram deitados. Desligue pra jogar deitado na cama.</div>
+      </div>
+      <input type="checkbox" class="chave" id="chave-girar" />
+    </div>
+
+    <div class="linha-ajuste">
+      <div class="info">
+        <div class="titulo"><span class="icone-inline" data-icone="vibrar"></span> Vibração</div>
+        <div class="sub">Vibrar ao acertar e errar</div>
+      </div>
+      <input type="checkbox" class="chave" id="chave-vibrar" />
+    </div>
+
+    <div class="linha-ajuste" style="flex-direction:column; align-items:stretch;">
+      <div class="info">
+        <div class="titulo">🏷️ Seu apelido no ranking</div>
+        <div class="sub">Como você aparece pros outros jogadores</div>
+      </div>
+      <input type="text" id="campo-apelido" maxlength="16"
+        style="background:#0e0e16;color:var(--text);border:1px solid #333;border-radius:10px;padding:10px;font-size:1rem;user-select:text;-webkit-user-select:text;" />
+    </div>
+
+    <div class="linha-ajuste" style="flex-direction:column; align-items:stretch;">
+      <div class="info">
+        <div class="titulo"><span class="icone-inline" data-icone="salvar"></span> Backup do progresso</div>
+        <div class="sub">Copie o código e guarde. Pra restaurar, cole e toque em Restaurar.</div>
+      </div>
+      <textarea id="area-backup" placeholder="Toque em Exportar para gerar seu código..."></textarea>
+      <div style="display:flex; gap:8px;">
+        <button class="btn" id="exportar" style="flex:1;">Exportar</button>
+        <button class="btn" id="restaurar" style="flex:1;">Restaurar</button>
+      </div>
+    </div>
+
+    <div class="linha-ajuste">
+      <div class="info">
+        <div class="titulo"><span class="icone-inline" data-icone="lixeira"></span> Apagar tudo</div>
+        <div class="sub">Zera pontos, níveis, recordes e compras</div>
+      </div>
+      <button class="btn perigo" id="resetar">Apagar</button>
+    </div>
+  </div>
+
+  <script src="js/icones.js"></script>
+  <script src="js/util.js"></script>
+  <script src="js/pontos.js"></script>
+  <script src="js/som.js"></script>
+  <script src="js/musica.js"></script>
+  <script src="js/recordes.js"></script>
+  <script src="js/conquistas.js"></script>
+  <script src="js/missoes.js"></script>
+  <script src="js/nuvem.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    const chaveSom = document.getElementById("chave-som");
+    const chaveVibrar = document.getElementById("chave-vibrar");
+    const areaBackup = document.getElementById("area-backup");
+
+    chaveSom.checked = Config.get().som;
+    chaveVibrar.checked = Config.get().vibrar;
+
+    chaveSom.addEventListener("change", () => {
+      Config.set("som", chaveSom.checked);
+      if (chaveSom.checked) Som.acerto();
+    });
+    chaveVibrar.addEventListener("change", () => {
+      Config.set("vibrar", chaveVibrar.checked);
+      if (chaveVibrar.checked) vibrar(40);
+    });
+
+    const campoApelido = document.getElementById("campo-apelido");
+    campoApelido.value = Nuvem.apelido();
+    campoApelido.addEventListener("change", () => {
+      const novo = campoApelido.value.trim().slice(0, 16);
+      if (novo) {
+        localStorage.setItem("apelido", novo);
+        Som.acerto();
+      }
+    });
+
+    const controleVolume = document.getElementById("controle-volume");
+    controleVolume.value = Math.round((Config.get().volume ?? 1) * 100);
+    controleVolume.addEventListener("change", () => {
+      Config.set("volume", controleVolume.value / 100);
+      Som.acerto();
+    });
+
+    const chaveGirar = document.getElementById("chave-girar");
+    chaveGirar.checked = Config.get().girar !== false;
+    chaveGirar.addEventListener("change", () => {
+      Config.set("girar", chaveGirar.checked);
+      Som.clique();
+    });
+
+    const chaveMusica = document.getElementById("chave-musica");
+    chaveMusica.checked = Config.get().musica !== false;
+    chaveMusica.addEventListener("change", () => {
+      Config.set("musica", chaveMusica.checked);
+      if (chaveMusica.checked) Musica.iniciar();
+      else Musica.parar();
+    });
+
+    const diario = JSON.parse(localStorage.getItem("diario") || "{}");
+    document.getElementById("info-streak").textContent =
+      diario.streak ? `🔥 Sequência: ${diario.streak} dia(s) seguidos` : "";
+
+    document.getElementById("exportar").addEventListener("click", () => {
+      const dados = {};
+      for (let i = 0; i < localStorage.length; i++) {
+        const chave = localStorage.key(i);
+        dados[chave] = localStorage.getItem(chave);
+      }
+      areaBackup.value = btoa(unescape(encodeURIComponent(JSON.stringify(dados))));
+      areaBackup.select();
+      Som.clique();
+    });
+
+    document.getElementById("restaurar").addEventListener("click", () => {
+      try {
+        const dados = JSON.parse(decodeURIComponent(escape(atob(areaBackup.value.trim()))));
+        Object.entries(dados).forEach(([chave, valor]) => localStorage.setItem(chave, valor));
+        Som.vitoria();
+        alert("Progresso restaurado! ✅");
+        location.reload();
+      } catch (e) {
+        Som.erro();
+        alert("Código inválido — confira se colou tudo.");
+      }
+    });
+
+    document.getElementById("resetar").addEventListener("click", () => {
+      if (confirm("Apagar TODO o progresso? Não dá pra desfazer!")) {
+        localStorage.clear();
+        location.href = "index.html";
+      }
+    });
+  </script>
+</body>
+</html>

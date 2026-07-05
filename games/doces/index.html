@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Doces</title>
+  <link rel="stylesheet" href="../../css/estilo.css" />
+  <link rel="manifest" href="../../manifest.json" />
+  <meta name="theme-color" content="#121212" />
+  <script src="../../js/tema.js"></script>
+  <style>
+    .grade-doces {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 4px;
+      max-width: 340px;
+      margin: 0 auto;
+    }
+    .doce {
+      aspect-ratio: 1 / 1;
+      background: var(--card-bg);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      user-select: none;
+      transition: transform 0.12s ease;
+    }
+    .doce.selecionado {
+      transform: scale(1.15);
+      background: var(--accent);
+    }
+    .doce.sumindo {
+      transform: scale(0);
+      transition: transform 0.25s ease;
+    }
+    .doce.listrado {
+      background: repeating-linear-gradient(45deg, var(--card-bg), var(--card-bg) 5px, #4a4a6a 5px, #4a4a6a 9px);
+      border: 1px solid #b56fff;
+    }
+    .doce.bomba {
+      background: radial-gradient(circle, #3a2a4a, var(--card-bg));
+      border: 1px solid #ffd54f;
+    }
+    @keyframes cair {
+      from { transform: translateY(-14px); opacity: 0.5; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .doce.caindo { animation: cair 0.2s ease; }
+  </style>
+</head>
+<body>
+  <a class="voltar" href="../../index.html">← voltar</a>
+
+  <div class="tela-jogo">
+    <h1><span class="icone-titulo" data-icone="doces"></span> Doces</h1>
+    <div class="placar">
+      <span>Nível: <strong id="nivel">1</strong></span>
+      <span>Jogadas: <strong id="jogadas">20</strong></span>
+      <span>Pontos: <strong id="pontos-partida">0</strong> / <span id="meta">600</span></span>
+    </div>
+
+    <div id="grade" class="grade-doces"></div>
+
+    <p class="msg-pontos" id="mensagem">Troque doces vizinhos para combinar 3+</p>
+    <button class="btn" id="reiniciar">Reiniciar</button>
+  </div>
+
+  <script src="../../js/icones.js"></script>
+  <script src="../../js/util.js"></script>
+  <script src="../../js/pontos.js"></script>
+  <script src="../../js/som.js"></script>
+  <script src="../../js/musica.js"></script>
+  <script src="../../js/recordes.js"></script>
+  <script src="../../js/conquistas.js"></script>
+  <script src="../../js/missoes.js"></script>
+  <script src="../../js/app.js"></script>
+  <script src="../../js/modal.js"></script>
+  <script src="jogo.js"></script>
+</body>
+</html>

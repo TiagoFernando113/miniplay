@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Blocos</title>
+  <link rel="stylesheet" href="../../css/estilo.css" />
+  <link rel="manifest" href="../../manifest.json" />
+  <meta name="theme-color" content="#121212" />
+  <script src="../../js/tema.js"></script>
+  <style>
+    canvas {
+      background: #0d0d18;
+      border-radius: 10px;
+      max-width: 100%;
+    }
+    .controles-blocos {
+      display: grid;
+      grid-template-columns: repeat(5, 58px);
+      gap: 8px;
+      justify-content: center;
+      margin-top: 14px;
+    }
+    .controles-blocos button {
+      height: 58px;
+      font-size: 1.4rem;
+      background: var(--card-bg);
+      color: var(--text);
+      border: none;
+      border-radius: 12px;
+    }
+    .controles-blocos button:active { background: var(--accent); }
+  </style>
+</head>
+<body>
+  <a class="voltar" href="../../index.html">← voltar</a>
+
+  <div class="tela-jogo">
+    <h1><span class="icone-titulo" data-icone="blocos"></span> Blocos</h1>
+    <div class="placar">
+      <span>Linhas: <strong id="linhas">0</strong></span>
+      <span>Pontos: <strong id="pontos-partida">0</strong></span>
+      <span>Melhor: <strong id="melhor">0</strong></span>
+    </div>
+
+    <canvas id="tela" width="250" height="400"></canvas>
+
+    <div class="controles-blocos">
+      <button id="btn-esquerda">⬅️</button>
+      <button id="btn-girar">🔄</button>
+      <button id="btn-direita">➡️</button>
+      <button id="btn-descer">⏬</button>
+      <button id="btn-guardar">📥</button>
+    </div>
+
+    <div style="display:flex; gap:8px; justify-content:center; margin-top:16px;">
+      <button class="btn" id="pausar">⏸️ Pausar</button>
+      <button class="btn" id="reiniciar">Reiniciar</button>
+    </div>
+  </div>
+
+  <script src="../../js/icones.js"></script>
+  <script src="../../js/util.js"></script>
+  <script src="../../js/pontos.js"></script>
+  <script src="../../js/som.js"></script>
+  <script src="../../js/musica.js"></script>
+  <script src="../../js/recordes.js"></script>
+  <script src="../../js/conquistas.js"></script>
+  <script src="../../js/missoes.js"></script>
+  <script src="../../js/app.js"></script>
+  <script src="../../js/modal.js"></script>
+  <script src="jogo.js"></script>
+</body>
+</html>

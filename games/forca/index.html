@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Forca</title>
+  <link rel="stylesheet" href="../../css/estilo.css" />
+  <link rel="manifest" href="../../manifest.json" />
+  <meta name="theme-color" content="#121212" />
+  <script src="../../js/tema.js"></script>
+  <style>
+    .vidas { font-size: 1.4rem; letter-spacing: 4px; margin: 8px 0; }
+    .palavra {
+      font-size: 1.8rem;
+      letter-spacing: 8px;
+      font-weight: 700;
+      margin: 16px 0;
+      word-break: break-all;
+    }
+    .dica { color: var(--text-dim); margin-bottom: 8px; }
+    .teclado {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+      max-width: 380px;
+      margin: 0 auto;
+    }
+    .teclado button {
+      aspect-ratio: 1 / 1;
+      font-size: 1rem;
+      font-weight: 700;
+      background: var(--card-bg);
+      color: var(--text);
+      border: none;
+      border-radius: 8px;
+    }
+    .teclado button:disabled { opacity: 0.25; }
+  </style>
+</head>
+<body>
+  <a class="voltar" href="../../index.html">← voltar</a>
+
+  <div class="tela-jogo">
+    <h1><span class="icone-titulo" data-icone="forca"></span> Forca</h1>
+    <div class="placar">
+      <span>Nível: <strong id="nivel">1</strong></span>
+    </div>
+    <p class="dica">Dica: <strong id="dica"></strong></p>
+    <svg id="boneco" viewBox="0 0 120 130" width="120" height="130" style="margin:4px auto; display:block;">
+      <!-- forca -->
+      <line x1="10" y1="125" x2="80" y2="125" stroke="#8a6d4a" stroke-width="4"/>
+      <line x1="30" y1="125" x2="30" y2="10" stroke="#8a6d4a" stroke-width="4"/>
+      <line x1="28" y1="12" x2="85" y2="12" stroke="#8a6d4a" stroke-width="4"/>
+      <line x1="83" y1="10" x2="83" y2="28" stroke="#a0a0a0" stroke-width="3"/>
+      <!-- boneco: aparece parte por parte -->
+      <circle id="p1" cx="83" cy="40" r="12" stroke="#f0f0f0" stroke-width="3" fill="none" style="display:none"/>
+      <line id="p2" x1="83" y1="52" x2="83" y2="85" stroke="#f0f0f0" stroke-width="3" style="display:none"/>
+      <line id="p3" x1="83" y1="60" x2="66" y2="75" stroke="#f0f0f0" stroke-width="3" style="display:none"/>
+      <line id="p4" x1="83" y1="60" x2="100" y2="75" stroke="#f0f0f0" stroke-width="3" style="display:none"/>
+      <line id="p5" x1="83" y1="85" x2="68" y2="108" stroke="#f0f0f0" stroke-width="3" style="display:none"/>
+      <line id="p6" x1="83" y1="85" x2="98" y2="108" stroke="#f0f0f0" stroke-width="3" style="display:none"/>
+    </svg>
+    <div class="vidas" id="vidas"></div>
+    <div class="palavra" id="palavra"></div>
+    <div class="teclado" id="teclado"></div>
+    <button class="btn" id="reiniciar" style="margin-top:20px;">Nova palavra</button>
+  </div>
+
+  <script src="../../js/icones.js"></script>
+  <script src="../../js/util.js"></script>
+  <script src="../../js/pontos.js"></script>
+  <script src="../../js/som.js"></script>
+  <script src="../../js/musica.js"></script>
+  <script src="../../js/recordes.js"></script>
+  <script src="../../js/conquistas.js"></script>
+  <script src="../../js/missoes.js"></script>
+  <script src="../../js/palavras.js"></script>
+  <script src="../../js/app.js"></script>
+  <script src="../../js/modal.js"></script>
+  <script src="jogo.js"></script>
+</body>
+</html>

@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Meu Perfil</title>
+  <link rel="stylesheet" href="css/estilo.css" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#121212" />
+  <script src="js/tema.js"></script>
+  <style>
+    .cartoes-stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      max-width: 420px;
+      margin: 0 auto 20px;
+      padding: 0 16px;
+    }
+    .cartao-stat {
+      background: var(--card-bg);
+      border-radius: 14px;
+      padding: 14px;
+      text-align: center;
+    }
+    .cartao-stat .valor { font-size: 1.6rem; font-weight: 800; color: var(--accent); }
+    .cartao-stat .rotulo { font-size: 0.78rem; color: var(--text-dim); }
+    .grafico {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 10px;
+      height: 120px;
+      max-width: 420px;
+      margin: 0 auto 6px;
+      padding: 0 16px;
+    }
+    .grafico .coluna {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 4px;
+      height: 100%;
+      flex: 1;
+    }
+    .grafico .barra-dia {
+      width: 100%;
+      max-width: 34px;
+      background: var(--accent);
+      border-radius: 6px 6px 0 0;
+      min-height: 3px;
+      transition: height 0.4s ease;
+    }
+    .grafico .dia { font-size: 0.68rem; color: var(--text-dim); }
+    .grafico .qtd { font-size: 0.72rem; color: #ffd54f; font-weight: 700; }
+    .titulo-secao {
+      font-size: 1rem;
+      color: var(--text-dim);
+      text-align: center;
+      margin: 20px 0 10px;
+    }
+    .lista-jogos-stats {
+      max-width: 420px;
+      margin: 0 auto;
+      padding: 0 16px 40px;
+    }
+    .linha-jogo {
+      display: flex;
+      justify-content: space-between;
+      background: var(--card-bg);
+      border-radius: 10px;
+      padding: 10px 14px;
+      margin-bottom: 6px;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    .linha-jogo .qtd { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <a class="voltar" href="index.html">← voltar</a>
+
+  <header>
+    <h1><span id="avatar">🙂</span> <span id="nome-jogador">Meu Perfil</span></h1>
+    <p id="linha-streak"></p>
+  </header>
+
+  <div style="max-width:420px;margin:0 auto 16px;padding:0 16px;">
+    <div style="background:var(--card-bg);border-radius:14px;padding:14px;text-align:center;">
+      <div style="font-size:1.3rem;font-weight:800;" id="nivel-titulo"></div>
+      <div class="barra" style="margin:8px 0 4px;"><div class="barra-cheia" id="nivel-barra"></div></div>
+      <div style="font-size:0.75rem;color:var(--text-dim);" id="nivel-detalhe"></div>
+    </div>
+  </div>
+
+  <div class="cartoes-stats">
+    <div class="cartao-stat"><div class="valor" id="total-partidas">0</div><div class="rotulo">partidas jogadas</div></div>
+    <div class="cartao-stat"><div class="valor" id="total-pontos">0</div><div class="rotulo">pontos acumulados</div></div>
+    <div class="cartao-stat"><div class="valor" id="total-conquistas">0</div><div class="rotulo">conquistas</div></div>
+    <div class="cartao-stat"><div class="valor" id="jogos-diferentes">0</div><div class="rotulo">jogos diferentes</div></div>
+  </div>
+
+  <p class="titulo-secao">Partidas nos últimos 7 dias</p>
+  <div class="grafico" id="grafico"></div>
+  <p class="titulo-secao" id="meta-semanal" style="color:#ffd54f;"></p>
+
+  <p class="titulo-secao">Seus jogos favoritos</p>
+  <div class="lista-jogos-stats" id="lista-jogos"></div>
+
+  <script src="js/icones.js"></script>
+  <script src="js/util.js"></script>
+  <script src="js/pontos.js"></script>
+  <script src="js/som.js"></script>
+  <script src="js/musica.js"></script>
+  <script src="js/recordes.js"></script>
+  <script src="js/conquistas.js"></script>
+  <script src="js/missoes.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    const DIAS_SEMANA = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
+
+    document.getElementById("avatar").innerHTML = Avatar.emoji();
+    const apelidoSalvo = localStorage.getItem("apelido");
+    if (apelidoSalvo) document.getElementById("nome-jogador").textContent = apelidoSalvo;
+
+    document.getElementById("nivel-titulo").textContent = `Nível ${Nivel.atual()} — ${Nivel.titulo()}`;
+    document.getElementById("nivel-barra").style.width = Math.round(Nivel.progresso() * 100) + "%";
+    document.getElementById("nivel-detalhe").textContent =
+      `${Pontos.acumulado()} XP · faltam ${Nivel.limiar(Nivel.atual()) - Pontos.acumulado()} pro próximo nível`;
+
+    const stats = Stats.dados();
+    const porJogo = Object.entries(stats.porJogo).sort((a, b) => b[1] - a[1]);
+    const totalPartidas = porJogo.reduce((s, [, n]) => s + n, 0);
+
+    document.getElementById("total-partidas").textContent = totalPartidas;
+    document.getElementById("total-pontos").textContent = Pontos.acumulado();
+    document.getElementById("total-conquistas").textContent =
+      `${Conquistas.desbloqueadas().length}/${LISTA_CONQUISTAS.length}`;
+    document.getElementById("jogos-diferentes").textContent = `${porJogo.length}/21`;
+
+    const diario = JSON.parse(localStorage.getItem("diario") || "{}");
+    document.getElementById("linha-streak").textContent =
+      diario.streak ? `🔥 ${diario.streak} dia(s) seguidos` : "";
+
+    // gráfico dos últimos 7 dias
+    const graficoEl = document.getElementById("grafico");
+    const dias = [];
+    for (let i = 6; i >= 0; i--) {
+      const data = new Date(Date.now() - i * 86400000);
+      dias.push({
+        chave: data.toISOString().slice(0, 10),
+        nome: DIAS_SEMANA[data.getDay()],
+        qtd: stats.porDia[data.toISOString().slice(0, 10)] || 0,
+      });
+    }
+    const maximo = Math.max(1, ...dias.map((d) => d.qtd));
+    dias.forEach((d) => {
+      const coluna = document.createElement("div");
+      coluna.className = "coluna";
+      coluna.innerHTML = `
+        <span class="qtd">${d.qtd || ""}</span>
+        <div class="barra-dia" style="height:${Math.round((d.qtd / maximo) * 75)}%"></div>
+        <span class="dia">${d.nome}</span>
+      `;
+      graficoEl.appendChild(coluna);
+    });
+
+    // meta semanal: compare com a semana passada
+    let estaSemana = 0;
+    let semanaPassada = 0;
+    for (let i = 0; i < 14; i++) {
+      const chave = new Date(Date.now() - i * 86400000).toISOString().slice(0, 10);
+      const qtd = stats.porDia[chave] || 0;
+      if (i < 7) estaSemana += qtd;
+      else semanaPassada += qtd;
+    }
+    const metaEl = document.getElementById("meta-semanal");
+    if (semanaPassada === 0 && estaSemana === 0) {
+      metaEl.textContent = "";
+    } else if (estaSemana > semanaPassada) {
+      metaEl.textContent = `Você superou a semana passada! ${estaSemana} × ${semanaPassada} partidas 🏆`;
+    } else {
+      metaEl.textContent = `Semana passada: ${semanaPassada} partidas — faltam ${semanaPassada - estaSemana + 1} pra superar!`;
+    }
+
+    // ranking pessoal por jogo
+    const listaEl = document.getElementById("lista-jogos");
+    if (porJogo.length === 0) {
+      listaEl.innerHTML = '<p style="text-align:center;color:var(--text-dim);">Jogue algumas partidas pra ver suas estatísticas!</p>';
+    }
+    porJogo.forEach(([jogo, qtd]) => {
+      const linha = document.createElement("div");
+      linha.className = "linha-jogo";
+      linha.innerHTML = `<span><span class="icone-inline" data-icone="${jogo}"></span>${NOMES_JOGOS[jogo] || jogo}</span><span class="qtd">${qtd} partida(s)</span>`;
+      listaEl.appendChild(linha);
+    });
+    aplicarIcones();
+  </script>
+</body>
+</html>

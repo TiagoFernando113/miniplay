@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Jogo da Memória</title>
+  <link rel="stylesheet" href="../../css/estilo.css" />
+  <link rel="manifest" href="../../manifest.json" />
+  <meta name="theme-color" content="#121212" />
+  <script src="../../js/tema.js"></script>
+  <link rel="stylesheet" href="estilo.css" />
+</head>
+<body>
+  <a class="voltar" href="../../index.html">← voltar</a>
+
+  <div class="tela-jogo">
+    <h1><span class="icone-titulo" data-icone="memoria"></span> Jogo da Memória</h1>
+
+    <div class="seletor" id="seletor-dificuldade">
+      <button data-nivel="facil">Fácil</button>
+      <button data-nivel="medio" class="ativo">Médio</button>
+      <button data-nivel="dificil">Difícil</button>
+    </div>
+
+    <div class="placar">
+      <span>Jogadas: <strong id="jogadas">0</strong></span>
+      <span>Pares: <strong id="pares">0</strong> / <span id="total-pares">0</span></span>
+    </div>
+
+    <div id="tabuleiro" class="tabuleiro"></div>
+
+    <button class="btn" id="reiniciar" style="margin-top:20px;">Reiniciar</button>
+  </div>
+
+  <script src="../../js/icones.js"></script>
+  <script src="../../js/util.js"></script>
+  <script src="../../js/pontos.js"></script>
+  <script src="../../js/som.js"></script>
+  <script src="../../js/musica.js"></script>
+  <script src="../../js/recordes.js"></script>
+  <script src="../../js/conquistas.js"></script>
+  <script src="../../js/missoes.js"></script>
+  <script src="../../js/app.js"></script>
+  <script src="../../js/modal.js"></script>
+  <script src="jogo.js"></script>
+</body>
+</html>

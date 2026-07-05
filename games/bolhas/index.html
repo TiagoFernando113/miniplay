@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Bolhas</title>
+  <link rel="stylesheet" href="../../css/estilo.css" />
+  <link rel="manifest" href="../../manifest.json" />
+  <meta name="theme-color" content="#121212" />
+  <script src="../../js/tema.js"></script>
+</head>
+<body class="pagina-cheia" data-paisagem>
+  <canvas id="tela"></canvas>
+
+  <div class="hud">
+    <a class="hud-chip" href="../../index.html">←</a>
+    <span class="hud-chip">🫧 <strong id="tamanho">12</strong> · 🏆 <strong id="melhor">0</strong></span>
+    <button class="hud-chip" id="reiniciar">🔄</button>
+  </div>
+  <p class="hud-msg" id="mensagem">Joystick no dedo! ➗ divide pra dar o bote, 💨 ejeta massa 🫧</p>
+
+  <div class="botoes-acao">
+    <button id="btn-dividir">➗</button>
+    <button id="btn-ejetar">💨</button>
+  </div>
+  <style>
+    .botoes-acao {
+      position: fixed;
+      bottom: 48px;
+      right: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 80;
+    }
+    .botoes-acao button {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      background: rgba(10, 10, 16, 0.6);
+      color: #fff;
+      font-size: 1.5rem;
+    }
+    .botoes-acao button:active {
+      background: var(--accent);
+    }
+  </style>
+
+  <script src="../../js/icones.js"></script>
+  <script src="../../js/util.js"></script>
+  <script src="../../js/pontos.js"></script>
+  <script src="../../js/som.js"></script>
+  <script src="../../js/musica.js"></script>
+  <script src="../../js/recordes.js"></script>
+  <script src="../../js/conquistas.js"></script>
+  <script src="../../js/missoes.js"></script>
+  <script src="../../js/app.js"></script>
+  <script src="../../js/modal.js"></script>
+  <script src="jogo.js"></script>
+</body>
+</html>

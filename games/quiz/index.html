@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Quiz</title>
+  <link rel="stylesheet" href="../../css/estilo.css" />
+  <link rel="manifest" href="../../manifest.json" />
+  <meta name="theme-color" content="#121212" />
+  <script src="../../js/tema.js"></script>
+  <style>
+    .pergunta {
+      background: var(--card-bg);
+      border-radius: 14px;
+      padding: 20px 16px;
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+      min-height: 4em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .opcoes {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+    .opcoes button {
+      background: var(--card-bg);
+      color: var(--text);
+      border: 1px solid #3a3a3a;
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 0.95rem;
+      text-align: left;
+    }
+    .opcoes button.certa { background: #1f5f3f; border-color: #2f8f5f; }
+    .opcoes button.errada { background: #5f1f1f; border-color: #8f2f2f; }
+    .tempo-barra {
+      height: 8px;
+      background: #333;
+      border-radius: 4px;
+      overflow: hidden;
+      max-width: 400px;
+      margin: 0 auto 14px;
+    }
+    .tempo-cheia {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 4px;
+      transition: width 0.1s linear;
+    }
+    .tempo-cheia.urgente { background: #e05d5d; }
+    .sequencia { color: #ffd54f; font-weight: 700; min-height: 1.2em; margin: 8px 0 0; }
+  </style>
+</head>
+<body>
+  <a class="voltar" href="../../index.html">← voltar</a>
+
+  <div class="tela-jogo">
+    <h1><span class="icone-titulo" data-icone="quiz"></span> Quiz</h1>
+    <div class="placar">
+      <span>Pergunta: <strong id="numero">1</strong> / 10</span>
+      <span>Acertos: <strong id="acertos">0</strong></span>
+      <span>Melhor: <strong id="melhor">0</strong></span>
+    </div>
+
+    <div class="pergunta" id="pergunta">Carregando...</div>
+    <div class="tempo-barra"><div class="tempo-cheia" id="tempo-cheia" style="width:100%"></div></div>
+    <div class="opcoes" id="opcoes"></div>
+    <p class="sequencia" id="sequencia"></p>
+  </div>
+
+  <script src="../../js/icones.js"></script>
+  <script src="../../js/util.js"></script>
+  <script src="../../js/pontos.js"></script>
+  <script src="../../js/som.js"></script>
+  <script src="../../js/musica.js"></script>
+  <script src="../../js/recordes.js"></script>
+  <script src="../../js/conquistas.js"></script>
+  <script src="../../js/missoes.js"></script>
+  <script src="../../js/app.js"></script>
+  <script src="../../js/modal.js"></script>
+  <script src="jogo.js"></script>
+</body>
+</html>
