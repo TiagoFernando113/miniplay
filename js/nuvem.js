@@ -68,7 +68,7 @@ const Nuvem = {
   async buscarRanking() {
     try {
       const resposta = await fetch(
-        this.URL + `/rest/v1/ranking_semanal?semana=eq.210000&select=device_id,apelido,pontos,streak,prestigio&order=pontos.desc&limit=50`,
+        this.URL + `/rest/v1/ranking_semanal?semana=eq.210000&select=device_id,apelido,pontos,streak,prestigio&order=pontos.desc&limit=500`,
         { headers: this._cabecalhos() }
       );
       if (!resposta.ok) return null;

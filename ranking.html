@@ -129,7 +129,7 @@
       }
 
       if (atual === "geral") {
-        subEl.textContent = "Pontos totais acumulados";
+        subEl.textContent = "Todos os jogadores — pontos totais";
         Nuvem.enviarPontuacao(Ranking.pontosDaSemana()); // não trava a exibição
         const online = await Nuvem.buscarRanking();
         const enfeite = (r) =>
@@ -142,7 +142,7 @@
         if (atual !== "geral") return;
         if (online) {
           lista.sort((a, b) => b.valor - a.valor);
-          const html = lista.slice(0, 30).map((j, i) => linha(i + 1, j.nome, j.valor, j.eu, "pts", j.suf)).join("")
+          const html = lista.map((j, i) => linha(i + 1, j.nome, j.valor, j.eu, "pts", j.suf)).join("")
             || '<p style="text-align:center;color:var(--text-dim);">Ninguém no ranking ainda.</p>';
           listaEl.innerHTML = html;
           salvarCache("geral", html, "");
