@@ -88,6 +88,37 @@ const Nuvem = {
     } catch (e) { /* offline: fica só o recorde local */ }
   },
 
+  _coletarSave() {
+    const dados = {};
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k === "cacheRanking") continue; // não precisa subir cache
+      dados[k] = localStorage.getItem(k);
+    }
+    return JSON.stringify(dados);
+  },
+
+  async salvarNuvem(codigo) {
+    try {
+      const r = await fetch(this.URL + "/rest/v1/saves", {
+        method: "POST",
+        headers: { ...this._cabecalhos(), Prefer: "resolution=merge-duplicates" },
+        body: JSON.stringify({ codigo, dados: this._coletarSave(), atualizado_em: new Date().toISOString() }),
+      });
+      return r.ok;
+    } catch (e) { return false; }
+  },
+
+  async carregarNuvem(codigo) {
+    try {
+      const r = await fetch(this.URL + `/rest/v1/saves?codigo=eq.${encodeURIComponent(codigo)}&select=dados`, { headers: this._cabecalhos() });
+      if (!r.ok) return null;
+      const linhas = await r.json();
+      if (!linhas.length) return null;
+      return JSON.parse(linhas[0].dados);
+    } catch (e) { return null; }
+  },
+
   // top N de um jogo
   async buscarTopJogo(jogo, limite = 10) {
     try {

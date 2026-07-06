@@ -141,6 +141,19 @@
       </div>
     </div>
 
+    <div class="linha-ajuste" style="flex-direction:column; align-items:stretch;">
+      <div class="info">
+        <div class="titulo">☁️ Progresso na nuvem</div>
+        <div class="sub">Guarde seu progresso e use em qualquer celular. Crie um código, anote e use o mesmo pra restaurar.</div>
+      </div>
+      <input type="text" id="codigo-nuvem" maxlength="20" placeholder="seu código (ex: TIAGO123)"
+        style="text-transform:uppercase;background:#0e0e16;color:var(--text);border:1px solid #333;border-radius:10px;padding:10px;font-size:1rem;font-weight:700;text-align:center;letter-spacing:2px;user-select:text;-webkit-user-select:text;" />
+      <div style="display:flex; gap:8px;">
+        <button class="btn" id="salvar-nuvem" style="flex:1;">☁️ Salvar</button>
+        <button class="btn" id="carregar-nuvem" style="flex:1;">⬇️ Carregar</button>
+      </div>
+    </div>
+
     <div class="linha-ajuste">
       <div class="info">
         <div class="titulo"><span class="icone-inline" data-icone="lixeira"></span> Apagar tudo</div>
@@ -264,6 +277,29 @@
         Som.erro();
         alert("Código inválido — confira se colou tudo.");
       }
+    });
+
+    const campoCodigo = document.getElementById("codigo-nuvem");
+    campoCodigo.value = localStorage.getItem("codigoNuvem") || "";
+
+    document.getElementById("salvar-nuvem").addEventListener("click", async () => {
+      const cod = campoCodigo.value.replace(/[^A-Za-z0-9]/g, "").toUpperCase();
+      if (cod.length < 6) { alert("O código precisa de pelo menos 6 letras/números."); return; }
+      const ok = await Nuvem.salvarNuvem(cod);
+      if (ok) { localStorage.setItem("codigoNuvem", cod); Som.vitoria(); alert("Progresso salvo na nuvem! ☁️ Guarde o código: " + cod); }
+      else { Som.erro(); alert("Sem conexão — tente de novo."); }
+    });
+
+    document.getElementById("carregar-nuvem").addEventListener("click", async () => {
+      const cod = campoCodigo.value.replace(/[^A-Za-z0-9]/g, "").toUpperCase();
+      if (cod.length < 6) { alert("Digite o código que você usou pra salvar."); return; }
+      if (!confirm("Isso vai substituir o progresso deste celular pelo da nuvem. Continuar?")) return;
+      const dados = await Nuvem.carregarNuvem(cod);
+      if (dados) {
+        Object.entries(dados).forEach(([k, v]) => localStorage.setItem(k, v));
+        localStorage.setItem("codigoNuvem", cod);
+        Som.vitoria(); alert("Progresso restaurado! ✅"); location.href = "index.html";
+      } else { Som.erro(); alert("Código não encontrado ou sem conexão."); }
     });
 
     document.getElementById("resetar").addEventListener("click", () => {
