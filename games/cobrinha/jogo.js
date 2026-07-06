@@ -69,7 +69,7 @@ function passo() {
       emoji: novoRecorde ? "🏆" : "🐍",
       titulo: novoRecorde ? "Novo recorde!" : "Fim de jogo!",
       texto: `${comidas} comida(s)${ganhos > 0 ? ` • +${ganhos} pontos` : ""}`,
-      aoJogarDeNovo: novoJogo,
+      aoJogarDeNovo: novoJogo, aoMenu: abrirLobby,
     });
     return;
   }
@@ -159,7 +159,32 @@ window.addEventListener("resize", () => {
   if (virou || mudou) novoJogo();
 });
 
-botaoReiniciar.addEventListener("click", novoJogo);
-novoJogo();
+function abrirLobby() {
+  rodando = false;
+  clearInterval(intervalo);
+  Lobby.mostrar({
+    titulo: "Cobrinha",
+    skinCat: "cobra",
+    temOnline: true,
+    previewHTML: () => {
+      const d = window.Cosmetico ? Cosmetico.dados("cobra") : ["#7ddf7d", "#4faf4f"];
+      return `<svg viewBox="0 0 120 40"><rect x="4" y="16" width="12" height="12" rx="3" fill="${d[1]}"/><rect x="18" y="16" width="12" height="12" rx="3" fill="${d[1]}"/><rect x="32" y="16" width="12" height="12" rx="3" fill="${d[1]}"/><rect x="46" y="16" width="12" height="12" rx="3" fill="${d[1]}"/><rect x="60" y="14" width="16" height="16" rx="4" fill="${d[0]}"/><rect x="70" y="19" width="3" height="3" fill="#12203a"/></svg>`;
+    },
+    aoJogar: ({ modo }) => {
+      if (modo === "online") {
+        // o online da cobrinha é o Cobra Batalha (arena .io)
+        location.href = "../cobrabatalha/index.html";
+      } else {
+        novoJogo();
+      }
+    },
+  });
+}
+
+const botaoLobby = document.getElementById("btn-lobby");
+if (botaoLobby) botaoLobby.addEventListener("click", abrirLobby);
+const botaoVoltar = document.getElementById("btn-voltar");
+if (botaoVoltar) botaoVoltar.addEventListener("click", abrirLobby);
 
 configurarMelhor("cobrinha");
+abrirLobby();
