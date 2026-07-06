@@ -130,7 +130,7 @@
 
       if (atual === "geral") {
         subEl.textContent = "Todos os jogadores — pontos totais";
-        Nuvem.enviarPontuacao(Ranking.pontosDaSemana()); // não trava a exibição
+        Nuvem.enviarPontuacao(Pontos.acumulado()); // sobe o acumulado, não a semana
         const online = await Nuvem.buscarRanking();
         const enfeite = (r) =>
           (r.prestigio ? ` <span class="enf enf-pres">${ICONES.gema}</span>` : "") +
