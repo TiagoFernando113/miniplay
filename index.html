@@ -135,7 +135,7 @@
     window.addEventListener("appinstalled", () => {
       if (window.Nuvem) { Nuvem.registrarInstalacao(); localStorage.setItem("instaladoRegistrado", "1"); }
     });
-    if (jaInstalado && window.Nuvem && !localStorage.getItem("instaladoRegistrado")) {
+    if (jaInstalado && window.Nuvem) {
       Nuvem.registrarInstalacao(); localStorage.setItem("instaladoRegistrado", "1");
     }
     btnInstalar.addEventListener("click", async () => {
@@ -151,9 +151,13 @@
       }
     });
     if (window.Nuvem) {
-      Nuvem.contarInstalacoes().then((n) => {
-        if (n > 0) document.getElementById("contador-instalados").textContent = n + " pessoas já baixaram";
+      const mostraContador = () => Nuvem.contarInstalacoes().then((n) => {
+        const el = document.getElementById("contador-instalados");
+        el.textContent = n > 0 ? (n === 1 ? "1 pessoa já baixou o app" : n + " pessoas já baixaram o app")
+                               : "Seja o primeiro a baixar o app!";
       });
+      mostraContador();
+      setTimeout(mostraContador, 4000); // atualiza depois do registro
     }
 
     // lembrete de sequência: ainda não jogou hoje e tem sequência ativa
