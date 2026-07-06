@@ -1,4 +1,4 @@
-const APP_VERSAO = "v50";
+const APP_VERSAO = "v51";
 
 // mata o menu de toque longo (copiar link...) — MENOS em campos de texto,
 // senão o jogador não consegue copiar/colar o código de backup!
@@ -126,6 +126,8 @@ if (location.pathname.includes("/games/")) {
   document.addEventListener(
     "touchmove",
     (e) => {
+      // deixa rolar dentro de telas sobrepostas (lobby, modal)
+      if (e.target.closest && e.target.closest(".lobby-fundo, .modal-fundo, textarea")) return;
       if (document.documentElement.scrollHeight <= window.innerHeight + 2) {
         e.preventDefault();
       }

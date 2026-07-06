@@ -20,12 +20,14 @@ const Lobby = {
       <div class="lobby-caixa">
         <a class="lobby-voltar" href="../../index.html">←</a>
         <h1 class="lobby-titulo">${cfg.titulo}</h1>
+        <p class="lobby-pontos">⭐ <strong id="lobby-pontos">0</strong> pontos</p>
 
         <div class="lobby-preview" id="lobby-preview"></div>
 
         ${categoria ? `
-          <p class="lobby-sub">Escolha sua skin</p>
+          <p class="lobby-sub">Sua skin — toque pra equipar ou comprar</p>
           <div class="lobby-skins" id="lobby-skins"></div>
+          <p class="lobby-aviso" id="lobby-aviso"></p>
         ` : ""}
 
         ${cfg.temOnline ? `
@@ -55,31 +57,53 @@ const Lobby = {
       if (cfg.previewHTML) preview.innerHTML = cfg.previewHTML();
     };
 
-    // grade de skins (equipar na hora; bloqueadas levam à loja)
-    if (categoria) {
+    const pontosEl = fundo.querySelector("#lobby-pontos");
+    const atualizarPontos = () => { if (pontosEl) pontosEl.textContent = Pontos.get(); };
+    atualizarPontos();
+
+    // grade de skins: equipar as suas, comprar as bloqueadas ali mesmo
+    const desenharSkins = () => {
+      if (!categoria) return;
       const grade = fundo.querySelector("#lobby-skins");
+      const avisoEl = fundo.querySelector("#lobby-aviso");
+      grade.innerHTML = "";
       const comprados = Cosmetico.comprados(cfg.skinCat);
       const atual = Cosmetico.atual(cfg.skinCat);
+
       Object.entries(categoria.itens).forEach(([id, item]) => {
         const tem = comprados.includes(id);
         const btn = document.createElement("button");
         btn.className = "lobby-skin" + (id === atual ? " ativa" : "") + (tem ? "" : " bloqueada");
         btn.innerHTML = this._amostraSkin(cfg.skinCat, item) +
-          `<span class="ls-nome">${tem ? item.nome : "🔒 " + item.preco}</span>`;
+          `<span class="ls-nome">${tem ? item.nome : "⭐" + item.preco}</span>`;
         btn.addEventListener("click", () => {
-          if (!tem) {
-            location.href = "../../loja.html";
-            return;
+          if (tem) {
+            Cosmetico.usar(cfg.skinCat, id);
+            desenharSkins();
+            desenharPreview();
+            if (window.Som) Som.clique();
+          } else {
+            // comprar aqui mesmo
+            if (Pontos.get() >= item.preco) {
+              Pontos.gastar(item.preco);
+              Cosmetico.comprar(cfg.skinCat, id);
+              Cosmetico.usar(cfg.skinCat, id);
+              atualizarPontos();
+              desenharSkins();
+              desenharPreview();
+              if (window.Som) Som.vitoria();
+              if (window.vibrar) vibrar([40, 30, 40]);
+              avisoEl.textContent = `${item.nome} desbloqueada! ✨`;
+            } else {
+              if (window.Som) Som.erro();
+              avisoEl.textContent = `Faltam ${item.preco - Pontos.get()} pontos pra essa skin — jogue mais!`;
+            }
           }
-          Cosmetico.usar(cfg.skinCat, id);
-          grade.querySelectorAll(".lobby-skin").forEach((b) => b.classList.remove("ativa"));
-          btn.classList.add("ativa");
-          if (window.Som) Som.clique();
-          desenharPreview();
         });
         grade.appendChild(btn);
       });
-    }
+    };
+    desenharSkins();
     desenharPreview();
 
     // seleção de modo
