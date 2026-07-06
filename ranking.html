@@ -9,52 +9,50 @@
   <meta name="theme-color" content="#121212" />
   <script src="js/tema.js"></script>
   <style>
-    .lista-ranking {
-      max-width: 420px;
-      margin: 0 auto;
-      padding: 0 16px 40px;
-    }
+    .lista-ranking { max-width: 440px; margin: 0 auto; padding: 0 16px 40px; }
     .linha-rank {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      background: var(--card-bg);
-      border-radius: 12px;
-      padding: 10px 14px;
-      margin-bottom: 6px;
-      font-weight: 600;
-      font-size: 0.92rem;
+      display: flex; align-items: center; gap: 12px;
+      background: var(--card-bg); border-radius: 12px;
+      padding: 10px 14px; margin-bottom: 6px;
+      font-weight: 600; font-size: 0.92rem;
     }
-    .linha-rank .pos {
-      width: 34px;
-      text-align: center;
-      font-weight: 800;
-      color: var(--text-dim);
+    .linha-rank .pos { width: 34px; text-align: center; font-weight: 800; color: var(--text-dim); }
+    .linha-rank .nome { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .linha-rank .pts { color: var(--accent); font-weight: 800; }
+    .linha-rank.eu { border: 2px solid var(--accent); background: linear-gradient(90deg, var(--card-bg), rgba(79,140,255,0.15)); }
+    .seletor-jogo {
+      display: flex; gap: 8px; overflow-x: auto; padding: 0 16px 12px;
+      max-width: 640px; margin: 0 auto; scrollbar-width: none;
     }
-    .linha-rank .nome { flex: 1; }
-    .linha-rank .pts { color: var(--accent); }
-    .linha-rank.eu {
-      border: 2px solid var(--accent);
-      background: linear-gradient(90deg, var(--card-bg), rgba(79, 140, 255, 0.15));
+    .seletor-jogo::-webkit-scrollbar { display: none; }
+    .aba-jogo {
+      flex: 0 0 auto; background: var(--card-bg); color: var(--text-dim);
+      border: 1px solid #333; border-radius: 20px; padding: 8px 16px;
+      font-weight: 700; font-size: 0.85rem; white-space: nowrap;
     }
-    .aviso-local {
-      text-align: center;
-      color: var(--text-dim);
-      font-size: 0.75rem;
-      padding: 0 24px 30px;
+    .aba-jogo.ativa { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .cartao-gap {
+      max-width: 440px; margin: 0 auto 12px; padding: 14px 16px;
+      background: linear-gradient(90deg, rgba(255,159,79,0.12), var(--card-bg));
+      border: 1px solid #cf8f2f; border-radius: 14px; text-align: center;
+      font-weight: 700;
     }
+    .cartao-gap .grande { font-size: 1.3rem; color: #ffd54f; }
+    .aviso-local { text-align: center; color: var(--text-dim); font-size: 0.75rem; padding: 8px 24px 30px; }
   </style>
 </head>
 <body>
   <a class="voltar" href="index.html">← voltar</a>
 
   <header>
-    <h1><span class="icone-titulo" data-icone="ranking"></span> Ranking da Semana</h1>
-    <p>Pontos ganhos nos últimos 7 dias</p>
+    <h1><span class="icone-titulo" data-icone="ranking"></span> Ranking</h1>
+    <p id="subtitulo">Escolha uma categoria</p>
   </header>
 
+  <div class="seletor-jogo" id="abas"></div>
+  <div id="gap"></div>
   <div class="lista-ranking" id="lista"></div>
-  <p class="aviso-local">Ranking de treino com bots — quando o app estiver online, você enfrenta jogadores de verdade! 🌐</p>
+  <p class="aviso-local" id="aviso"></p>
 
   <script src="js/icones.js"></script>
   <script src="js/util.js"></script>
@@ -68,47 +66,102 @@
   <script src="js/app.js"></script>
   <script>
     const listaEl = document.getElementById("lista");
-    const avisoEl = document.querySelector(".aviso-local");
+    const gapEl = document.getElementById("gap");
+    const abasEl = document.getElementById("abas");
+    const avisoEl = document.getElementById("aviso");
+    const subEl = document.getElementById("subtitulo");
     const MEDALHAS = ["🥇", "🥈", "🥉"];
+    const meuId = Nuvem.deviceId();
 
-    function render(jogadores) {
-      listaEl.innerHTML = "";
-      jogadores.forEach((jogador, i) => {
-        const linha = document.createElement("div");
-        linha.className = "linha-rank" + (jogador.eu ? " eu" : "");
-        linha.innerHTML = `
-          <span class="pos">${MEDALHAS[i] || i + 1 + "º"}</span>
-          <span class="nome">${jogador.nome}${jogador.bot ? ' <span style="opacity:0.45;font-size:0.7rem;">bot</span>' : ""}</span>
-          <span class="pts">${jogador.pontos} <span class="icone-inline" data-icone="estrela"></span></span>
-        `;
-        listaEl.appendChild(linha);
+    // abas: Geral (pontos da semana) + um por jogo rankeado
+    const CATEGORIAS = [{ id: "geral", nome: "🏆 Geral (semana)" }].concat(
+      Object.entries(RANKING_JOGOS).map(([id, j]) => ({ id, nome: j.nome }))
+    );
+    let atual = "geral";
+
+    CATEGORIAS.forEach((c) => {
+      const b = document.createElement("button");
+      b.className = "aba-jogo" + (c.id === atual ? " ativa" : "");
+      b.textContent = c.nome;
+      b.addEventListener("click", () => {
+        atual = c.id;
+        document.querySelectorAll(".aba-jogo").forEach((x) => x.classList.remove("ativa"));
+        b.classList.add("ativa");
+        Som.clique();
+        carregar();
       });
-      aplicarIcones();
+      abasEl.appendChild(b);
+    });
+
+    function linha(pos, nome, valor, ehEu, rotulo) {
+      return `<div class="linha-rank${ehEu ? " eu" : ""}">
+        <span class="pos">${MEDALHAS[pos - 1] || pos + "º"}</span>
+        <span class="nome">${nome}</span>
+        <span class="pts">${valor}${rotulo ? " " + rotulo : ""}</span>
+      </div>`;
     }
 
     async function carregar() {
-      listaEl.innerHTML = '<p style="text-align:center;color:var(--text-dim);">Carregando ranking...</p>';
+      gapEl.innerHTML = "";
+      listaEl.innerHTML = '<p style="text-align:center;color:var(--text-dim);">Carregando...</p>';
 
-      // envia sua pontuação e busca os jogadores reais
-      await Nuvem.enviarPontuacao(Ranking.pontosDaSemana());
-      const online = await Nuvem.buscarRanking();
-
-      if (online) {
-        const meuId = Nuvem.deviceId();
-        const reais = online.map((r) => ({
+      if (atual === "geral") {
+        subEl.textContent = "Pontos ganhos nos últimos 7 dias";
+        await Nuvem.enviarPontuacao(Ranking.pontosDaSemana());
+        const online = await Nuvem.buscarRanking();
+        const lista = online ? online.map((r) => ({
           nome: r.device_id === meuId ? r.apelido + " (você)" : r.apelido,
-          pontos: r.pontos,
-          eu: r.device_id === meuId,
-        }));
-        // poucos jogadores reais? bots de treino completam a lista
-        const bots = Ranking.lista().filter((b) => !b.eu).map((b) => ({ ...b, bot: true }));
-        while (reais.length < 12 && bots.length) reais.push(bots.shift());
-        render(reais.sort((a, b) => b.pontos - a.pontos));
-        avisoEl.textContent = "Ranking online 🌐 — bots de treino completam a lista enquanto a comunidade cresce!";
-      } else {
-        render(Ranking.lista());
-        avisoEl.textContent = "Sem conexão (ou nuvem ainda não configurada) — mostrando ranking de treino com bots.";
+          valor: r.pontos, eu: r.device_id === meuId,
+        })) : [];
+        if (online) {
+          const bots = Ranking.lista().filter((b) => !b.eu).map((b) => ({ nome: b.nome, valor: b.pontos, bot: true }));
+          while (lista.length < 12 && bots.length) lista.push(bots.shift());
+          lista.sort((a, b) => b.valor - a.valor);
+          listaEl.innerHTML = lista.slice(0, 20).map((j, i) => linha(i + 1, j.nome + (j.bot ? " ⟨bot⟩" : ""), j.valor, j.eu, "⭐")).join("");
+          avisoEl.textContent = "🌐 Ranking online — bots completam a lista enquanto a comunidade cresce.";
+        } else {
+          listaEl.innerHTML = Ranking.lista().map((j, i) => linha(i + 1, j.nome, j.pontos, j.sou, "⭐")).join("");
+          avisoEl.textContent = "Sem conexão — ranking de treino com bots.";
+        }
+        aplicarIcones();
+        return;
       }
+
+      // ranking de um jogo específico
+      const info = RANKING_JOGOS[atual];
+      subEl.textContent = `Melhores do ${info.nome} — top 10`;
+      const meuRecorde = Recordes.get(atual) || 0;
+      if (window.Nuvem) await Nuvem.enviarRecorde(atual, meuRecorde);
+      const top = await Nuvem.buscarTopJogo(atual, 10);
+
+      if (!top) {
+        listaEl.innerHTML = '<p style="text-align:center;color:var(--text-dim);">Sem conexão — jogue e volte quando tiver internet.</p>';
+        avisoEl.textContent = "";
+        return;
+      }
+
+      const naLista = top.some((r) => r.device_id === meuId);
+      listaEl.innerHTML = top.map((r, i) =>
+        linha(i + 1, (r.device_id === meuId ? r.apelido + " (você)" : r.apelido), r.valor, r.device_id === meuId, info.rotulo)
+      ).join("") || '<p style="text-align:center;color:var(--text-dim);">Ninguém marcou aqui ainda — seja o primeiro! 🏆</p>';
+
+      // cartão "quanto falta pro top 10"
+      if (!naLista) {
+        const decimo = top.length >= 10 ? top[9].valor : 0;
+        if (top.length < 10) {
+          gapEl.innerHTML = `<div class="cartao-gap">Seu recorde: <span class="grande">${meuRecorde}</span> ${info.rotulo}<br/>
+            <span style="color:var(--text-dim);font-weight:400;">Ainda tem vaga no top 10 — jogue e entre!</span></div>`;
+        } else {
+          const falta = Math.max(1, decimo + 1 - meuRecorde);
+          gapEl.innerHTML = `<div class="cartao-gap">Seu recorde: <span class="grande">${meuRecorde}</span> ${info.rotulo}<br/>
+            Faltam <span class="grande">${falta}</span> pra entrar no <strong>top 10</strong>!</div>`;
+        }
+      } else {
+        const pos = top.findIndex((r) => r.device_id === meuId) + 1;
+        gapEl.innerHTML = `<div class="cartao-gap">🎉 Você está em <span class="grande">${pos}º</span> lugar no ${info.nome}!</div>`;
+      }
+      avisoEl.textContent = "🌐 Ranking mundial por jogo — bata seu recorde pra subir!";
+      aplicarIcones();
     }
 
     carregar();

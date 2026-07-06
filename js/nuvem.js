@@ -64,6 +64,35 @@ const Nuvem = {
       return null;
     }
   },
+
+  // envia seu recorde de um jogo (só sobe se melhorou)
+  async enviarRecorde(jogo, valor) {
+    try {
+      await fetch(this.URL + "/rest/v1/recordes_jogos", {
+        method: "POST",
+        headers: { ...this._cabecalhos(), Prefer: "resolution=merge-duplicates" },
+        body: JSON.stringify({
+          device_id: this.deviceId(),
+          jogo,
+          apelido: this.apelido(),
+          valor,
+          atualizado_em: new Date().toISOString(),
+        }),
+      });
+    } catch (e) { /* offline: fica só o recorde local */ }
+  },
+
+  // top N de um jogo
+  async buscarTopJogo(jogo, limite = 10) {
+    try {
+      const r = await fetch(
+        this.URL + `/rest/v1/recordes_jogos?jogo=eq.${jogo}&order=valor.desc&limit=${limite}`,
+        { headers: this._cabecalhos() }
+      );
+      if (!r.ok) return null;
+      return await r.json();
+    } catch (e) { return null; }
+  },
 };
 
 window.Nuvem = Nuvem;

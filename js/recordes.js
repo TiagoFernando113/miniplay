@@ -15,6 +15,10 @@ const Recordes = {
       todos[jogo] = valor;
       localStorage.setItem("recordes", JSON.stringify(todos));
       if (window.Conquistas) Conquistas.verificar();
+      // recorde de jogo rankeado sobe pro ranking online
+      if (!menorMelhor && window.Nuvem && window.RANKING_JOGOS && RANKING_JOGOS[jogo]) {
+        Nuvem.enviarRecorde(jogo, valor);
+      }
     }
     return ehNovo;
   },

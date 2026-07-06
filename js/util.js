@@ -108,6 +108,22 @@ const JOGOS_TODOS = [
   "campo", "puzzle15", "cacapalavras", "passaro", "torre", "hexagono",
 ];
 
+// Jogos com ranking online (maior valor = melhor)
+const RANKING_JOGOS = {
+  passaro: { nome: "Pássaro", rotulo: "canos" },
+  torre: { nome: "Torre", rotulo: "andares" },
+  cobrabatalha: { nome: "Cobra Batalha", rotulo: "tamanho" },
+  cobrinha: { nome: "Cobrinha", rotulo: "comidas" },
+  bolhas: { nome: "Bolhas", rotulo: "tamanho" },
+  hexagono: { nome: "Hexágono", rotulo: "pontos" },
+  blocos: { nome: "Blocos", rotulo: "pontos" },
+  p2048: { nome: "2048", rotulo: "pontos" },
+  doces: { nome: "Doces", rotulo: "pontos" },
+  alvo: { nome: "Acerte o Alvo", rotulo: "acertos" },
+  genius: { nome: "Genius", rotulo: "rodada" },
+  quiz: { nome: "Quiz", rotulo: "/10 acertos" },
+};
+
 const JogoDaSemana = {
   atual() {
     return JOGOS_TODOS[semanaDoAno() % JOGOS_TODOS.length];
@@ -179,6 +195,7 @@ window.semanaDoAno = semanaDoAno;
 window.JOGOS_TODOS = JOGOS_TODOS;
 window.NOMES_JOGOS = NOMES_JOGOS;
 window.JogoDaSemana = JogoDaSemana;
+window.RANKING_JOGOS = RANKING_JOGOS;
 window.Nivel = Nivel;
 window.Ranking = Ranking;
 window.Retomar = Retomar;
