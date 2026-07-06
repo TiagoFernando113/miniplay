@@ -133,8 +133,10 @@
         <div class="sub">Copie o código e guarde. Pra restaurar, cole e toque em Restaurar.</div>
       </div>
       <textarea id="area-backup" placeholder="Toque em Exportar para gerar seu código..."></textarea>
-      <div style="display:flex; gap:8px;">
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
         <button class="btn" id="exportar" style="flex:1;">Exportar</button>
+        <button class="btn" id="copiar" style="flex:1;">Copiar</button>
+        <button class="btn" id="colar" style="flex:1;">Colar</button>
         <button class="btn" id="restaurar" style="flex:1;">Restaurar</button>
       </div>
     </div>
@@ -220,6 +222,35 @@
       areaBackup.value = btoa(unescape(encodeURIComponent(JSON.stringify(dados))));
       areaBackup.select();
       Som.clique();
+    });
+
+    document.getElementById("copiar").addEventListener("click", async () => {
+      if (!areaBackup.value) {
+        alert("Toque em Exportar primeiro!");
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(areaBackup.value);
+        Som.acerto();
+        alert("Código copiado! ✅ Agora cole no app novo (Ajustes → Colar → Restaurar).");
+      } catch (e) {
+        areaBackup.select();
+        alert("Não deu pra copiar automático — o texto está selecionado, use o menu de copiar.");
+      }
+    });
+
+    document.getElementById("colar").addEventListener("click", async () => {
+      try {
+        const texto = await navigator.clipboard.readText();
+        if (texto) {
+          areaBackup.value = texto.trim();
+          Som.acerto();
+          alert("Colado! Agora toque em Restaurar.");
+        }
+      } catch (e) {
+        alert("Toque e segure dentro da caixa pra colar manualmente (agora funciona).");
+        areaBackup.focus();
+      }
     });
 
     document.getElementById("restaurar").addEventListener("click", () => {

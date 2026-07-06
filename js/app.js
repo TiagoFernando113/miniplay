@@ -1,7 +1,12 @@
-const APP_VERSAO = "v44";
+const APP_VERSAO = "v45";
 
-// mata o menu de toque longo (copiar link, abrir no navegador...) — cara de app
-window.addEventListener("contextmenu", (e) => e.preventDefault());
+// mata o menu de toque longo (copiar link...) — MENOS em campos de texto,
+// senão o jogador não consegue copiar/colar o código de backup!
+window.addEventListener("contextmenu", (e) => {
+  const alvo = e.target;
+  if (alvo && (alvo.tagName === "INPUT" || alvo.tagName === "TEXTAREA")) return;
+  e.preventDefault();
+});
 document.addEventListener("DOMContentLoaded", () => {
   const el = document.getElementById("versao-app");
   if (el) el.textContent = APP_VERSAO;
