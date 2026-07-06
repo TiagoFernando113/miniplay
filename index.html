@@ -128,8 +128,10 @@
         setTimeout(() => location.reload(), 400);
         // já garante o nome no ranking online
         if (window.Nuvem) Nuvem.enviarPontuacao(Pontos.acumulado());
+      });
+    }
 
-    // botão baixar app + contador de instalações
+    // botão baixar app + contador de instalações (roda em toda abertura)
     const btnInstalar = document.getElementById("atalho-instalar");
     const jaInstalado = matchMedia("(display-mode: standalone), (display-mode: fullscreen)").matches;
     window.addEventListener("appinstalled", () => {
@@ -138,7 +140,7 @@
     if (jaInstalado && window.Nuvem) {
       Nuvem.registrarInstalacao(); localStorage.setItem("instaladoRegistrado", "1");
     }
-    btnInstalar.addEventListener("click", async () => {
+    if (btnInstalar) btnInstalar.addEventListener("click", async () => {
       if (jaInstalado) { mostrarConfirmacao("O app já está instalado neste celular!", () => {}); return; }
       const prompt = window.__deferredPrompt;
       if (prompt) {
@@ -147,28 +149,17 @@
         window.__deferredPrompt = null;
         if (escolha && escolha.outcome === "accepted" && window.Nuvem) Nuvem.registrarInstalacao();
       } else {
-        mostrarConfirmacao("Pra instalar: toque no menu (⋮) do Chrome e escolha 'Adicionar à tela inicial' ou 'Instalar app'.", () => {});
+        mostrarConfirmacao("Pra instalar: toque no menu (tres pontinhos) do Chrome e escolha 'Adicionar a tela inicial' ou 'Instalar app'.", () => {});
       }
     });
     if (window.Nuvem) {
       const mostraContador = () => Nuvem.contarInstalacoes().then((n) => {
         const el = document.getElementById("contador-instalados");
-        el.textContent = n > 0 ? (n === 1 ? "1 pessoa já baixou o app" : n + " pessoas já baixaram o app")
+        if (el) el.textContent = n > 0 ? (n === 1 ? "1 pessoa ja baixou o app" : n + " pessoas ja baixaram o app")
                                : "Seja o primeiro a baixar o app!";
       });
       mostraContador();
-      setTimeout(mostraContador, 4000); // atualiza depois do registro
-    }
-
-    // lembrete de sequência: ainda não jogou hoje e tem sequência ativa
-    {
-      const hojeStr = new Date().toISOString().slice(0, 10);
-      const jaJogouHoje = (Stats.dados().porDia[hojeStr] || 0) > 0;
-      if (diario.streak >= 2 && !jaJogouHoje) {
-        setTimeout(() => Missoes.toast(`Sequência de ${diario.streak} dias — jogue hoje pra manter!`), 1400);
-      }
-    }
-      });
+      setTimeout(mostraContador, 4000);
     }
 
 
@@ -181,6 +172,15 @@
         (apelido ? `<strong>${escaparHtml(apelido)}</strong> · ` : "") +
         '<span class="icone-inline" data-icone="fogo" style="color:#ff9f4f;"></span> ' +
         `${diario.streak} dia(s) seguidos`;
+    }
+
+    // lembrete de sequência: ainda não jogou hoje e tem sequência ativa
+    {
+      const hojeStr = new Date().toISOString().slice(0, 10);
+      const jaJogouHoje = (Stats.dados().porDia[hojeStr] || 0) > 0;
+      if (diario.streak >= 2 && !jaJogouHoje) {
+        setTimeout(() => Missoes.toast(`Sequência de ${diario.streak} dias — jogue hoje pra manter!`), 1400);
+      }
     }
 
     const bonus = Missoes.bonusDiario();
