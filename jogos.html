@@ -164,6 +164,30 @@
     }
 
     aplicarIcones();
+
+    // presença online ao vivo: badge de quem está jogando agora
+    async function atualizarPresenca() {
+      if (!window.Nuvem) return;
+      const cont = await Nuvem.contarOnline();
+      const mapa = { cobrabatalha: "cobrabatalha", bolhas: "bolhas", velha: "velha" };
+      Object.entries(mapa).forEach(([jogo]) => {
+        const card = document.querySelector(`a[href*="games/${jogo}/"]`);
+        if (!card) return;
+        let badge = card.querySelector(".badge-online");
+        const n = cont[jogo] || 0;
+        if (n > 0) {
+          if (!badge) {
+            badge = document.createElement("span");
+            badge.className = "badge-online";
+            card.style.position = "relative";
+            card.appendChild(badge);
+          }
+          badge.textContent = `🟢 ${n} jogando`;
+        } else if (badge) { badge.remove(); }
+      });
+    }
+    atualizarPresenca();
+    setInterval(atualizarPresenca, 15000);
   </script>
 </body>
 </html>

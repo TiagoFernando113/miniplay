@@ -213,4 +213,18 @@ window.escaparHtml = escaparHtml;
 window.Nivel = Nivel;
 window.Ranking = Ranking;
 window.Retomar = Retomar;
+
+// heartbeat de presença: chama enquanto o jogador está numa partida online
+let _presencaTimer = null;
+function iniciarPresencaOnline(jogo) {
+  pararPresencaOnline();
+  if (!window.Nuvem) return;
+  Nuvem.baterPresenca(jogo);
+  _presencaTimer = setInterval(() => { if (!document.hidden) Nuvem.baterPresenca(jogo); }, 12000);
+}
+function pararPresencaOnline() {
+  if (_presencaTimer) { clearInterval(_presencaTimer); _presencaTimer = null; }
+}
+window.iniciarPresencaOnline = iniciarPresencaOnline;
+window.pararPresencaOnline = pararPresencaOnline;
 window.confirmarSaida = confirmarSaida;

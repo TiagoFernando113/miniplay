@@ -94,6 +94,7 @@ async function entrarAquario() {
   try {
     await Online.abrir("BOLHAS", aoMensagemAquario, aoPresencaAquario);
     onlineAtivo = true;
+    if (window.iniciarPresencaOnline) iniciarPresencaOnline("bolhas");
     novoJogo(); // todo mundo começa pequeno: justo
     onlineAtivo = true; // (novoJogo não desliga o online)
     avisoOnline("Você entrou no aquário! Jogadores reais têm nome em cima 🌐");
@@ -735,6 +736,7 @@ ligarBotao("btn-ejetar", ejetar);
 function abrirLobby() {
   rodando = false;
   onlineAtivo = false;
+  if (window.pararPresencaOnline) pararPresencaOnline();
   souHost = false;
   outros.clear();
   botsRemotos = [];

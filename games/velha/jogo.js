@@ -279,6 +279,7 @@ async function criarSala() {
   try {
     await Online.abrir(codigo, aoMensagemOnline, aoPresencaOnline);
     salaAtual = codigo;
+    if (window.iniciarPresencaOnline) iniciarPresencaOnline("velha");
     criarTabuleiro();
     mostrarEspera(true);
     document.getElementById("codigo-grande").textContent = codigo;

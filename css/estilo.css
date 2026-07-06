@@ -848,3 +848,10 @@ button.hud-chip {
   .lobby-modo { padding: 8px 6px; }
   .lobby-jogar { grid-column: 2; margin: 0; padding: 14px; }
 }
+
+.badge-online {
+  position: absolute; top: 6px; left: 6px;
+  background: rgba(20,60,20,0.9); color: #6fdf6f;
+  font-size: 0.6rem; font-weight: 800;
+  padding: 2px 7px; border-radius: 8px; border: 1px solid #3fdf6f;
+}

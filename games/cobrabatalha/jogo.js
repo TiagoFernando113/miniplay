@@ -489,6 +489,7 @@ async function entrarOnline() {
   try {
     await Online.abrir("COBRAS", aoMensagem, aoPresenca);
     onlineAtivo = true;
+    if (window.iniciarPresencaOnline) iniciarPresencaOnline("cobrabatalha");
     novoJogo();
   } catch (e) {
     onlineAtivo = false;
@@ -499,6 +500,7 @@ async function entrarOnline() {
 function abrirLobby() {
   rodando = false;
   onlineAtivo = false;
+  if (window.pararPresencaOnline) pararPresencaOnline();
   if (window.Online) Online.fechar();
   Lobby.mostrar({
     titulo: "Cobra Batalha",

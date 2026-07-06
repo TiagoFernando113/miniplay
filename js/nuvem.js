@@ -88,6 +88,30 @@ const Nuvem = {
     } catch (e) { /* offline: fica só o recorde local */ }
   },
 
+  // avisa que estou jogando online agora (heartbeat, chamar a cada ~10s)
+  async baterPresenca(jogo) {
+    try {
+      await fetch(this.URL + "/rest/v1/online_agora", {
+        method: "POST",
+        headers: { ...this._cabecalhos(), Prefer: "resolution=merge-duplicates" },
+        body: JSON.stringify({ device_id: this.deviceId(), jogo, apelido: this.apelido(), atualizado_em: new Date().toISOString() }),
+      });
+    } catch (e) {}
+  },
+
+  // quem está online agora (últimos 40s), agrupado por jogo
+  async contarOnline() {
+    try {
+      const desde = new Date(Date.now() - 40000).toISOString();
+      const r = await fetch(this.URL + `/rest/v1/online_agora?atualizado_em=gt.${desde}&select=jogo`, { headers: this._cabecalhos() });
+      if (!r.ok) return {};
+      const linhas = await r.json();
+      const cont = {};
+      linhas.forEach((l) => { cont[l.jogo] = (cont[l.jogo] || 0) + 1; });
+      return cont;
+    } catch (e) { return {}; }
+  },
+
   _coletarSave() {
     const dados = {};
     for (let i = 0; i < localStorage.length; i++) {
