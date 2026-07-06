@@ -823,3 +823,28 @@ button.hud-chip {
   transition: all 0.3s ease; white-space: nowrap; pointer-events: none;
 }
 .aviso-jogo.visivel { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+/* lobby deitado: 2 colunas compactas, sem scroll */
+@media (orientation: landscape) and (max-height: 560px) {
+  .lobby-fundo { align-items: center; }
+  .lobby-caixa {
+    max-width: 760px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 24px;
+    align-items: center;
+    padding: 10px 20px;
+  }
+  .lobby-titulo { grid-column: 1 / -1; margin: 0; font-size: 1.2rem; }
+  .lobby-pontos { grid-column: 1 / -1; margin: 0; }
+  .lobby-preview { grid-column: 1; grid-row: 3 / 6; min-height: 70px; margin: 0; }
+  .lobby-preview svg { width: 100px; height: 56px; }
+  .lobby-caixa > .lobby-sub:nth-of-type(1) { grid-column: 2; margin: 0; }
+  .lobby-skins { grid-column: 2; }
+  .lobby-skin svg { width: 36px; height: 22px; }
+  .lobby-aviso { grid-column: 2; margin: 0; }
+  .lobby-caixa > .lobby-sub:nth-of-type(2) { grid-column: 1; margin: 4px 0 0; }
+  .lobby-modos { grid-column: 1; }
+  .lobby-modo { padding: 8px 6px; }
+  .lobby-jogar { grid-column: 2; margin: 0; padding: 14px; }
+}
