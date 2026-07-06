@@ -124,8 +124,9 @@
         subEl.textContent = "Pontos ganhos nos últimos 7 dias";
         Nuvem.enviarPontuacao(Ranking.pontosDaSemana()); // não trava a exibição
         const online = await Nuvem.buscarRanking();
+        const enfeite = (r) => (r.prestigio ? " 💠" : "") + (r.streak >= 2 ? ` 🔥${r.streak}` : "");
         const lista = online ? online.map((r) => ({
-          nome: r.device_id === meuId ? r.apelido + " (você)" : r.apelido,
+          nome: (r.device_id === meuId ? r.apelido + " (você)" : r.apelido) + enfeite(r),
           valor: r.pontos, eu: r.device_id === meuId,
         })) : [];
         if (atual !== "geral") return; // trocou de aba enquanto carregava

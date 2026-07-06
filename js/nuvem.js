@@ -46,6 +46,8 @@ const Nuvem = {
           semana: semanaDoAno(),
           apelido: this.apelido(),
           pontos,
+          streak: this._streakLocal(),
+          prestigio: this._temPrestigio(),
           atualizado_em: new Date().toISOString(),
         }),
       });
@@ -56,10 +58,17 @@ const Nuvem = {
   },
 
   // busca o top 50 da semana
+  _streakLocal() {
+    try { return JSON.parse(localStorage.getItem("diario") || "{}").streak || 0; } catch (e) { return 0; }
+  },
+  _temPrestigio() {
+    return !!(window.Cosmetico && Cosmetico.possui("trofeu", "trofeu"));
+  },
+
   async buscarRanking() {
     try {
       const resposta = await fetch(
-        this.URL + `/rest/v1/ranking_semanal?semana=eq.${semanaDoAno()}&order=pontos.desc&limit=50`,
+        this.URL + `/rest/v1/ranking_semanal?semana=eq.${semanaDoAno()}&select=device_id,apelido,pontos,streak,prestigio&order=pontos.desc&limit=50`,
         { headers: this._cabecalhos() }
       );
       if (!resposta.ok) return null;

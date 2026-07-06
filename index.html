@@ -128,6 +128,15 @@
         setTimeout(() => location.reload(), 400);
         // já garante o nome no ranking online
         if (window.Nuvem) Nuvem.enviarPontuacao(Ranking.pontosDaSemana());
+
+    // lembrete de sequência: ainda não jogou hoje e tem sequência ativa
+    {
+      const hojeStr = new Date().toISOString().slice(0, 10);
+      const jaJogouHoje = (Stats.dados().porDia[hojeStr] || 0) > 0;
+      if (diario.streak >= 2 && !jaJogouHoje) {
+        setTimeout(() => Missoes.toast(`🔥 Sequência de ${diario.streak} dias — jogue hoje pra manter!`), 1400);
+      }
+    }
       });
     }
 
