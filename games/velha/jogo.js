@@ -169,6 +169,11 @@ function verificarFim(simbolo) {
       fimDeJogo = true;
       linha.forEach((i) => tabuleiroEl.children[i].classList.add("vencedora"));
 
+      const rotuloBotao = modo === "online" ? "Revanche ⚔" : "Jogar de novo";
+      const reiniciarPartida = () => {
+        if (modo === "online") Online.enviar({ t: "r" });
+        criarTabuleiro();
+      };
       if (modo === "duo") {
         Som.vitoria();
         vibrar([60, 40, 60]);
@@ -177,9 +182,10 @@ function verificarFim(simbolo) {
           emoji: "🏆",
           titulo: `${simbolo} venceu!`,
           texto: "+20 pontos",
-          aoJogarDeNovo: criarTabuleiro,
+          botao: rotuloBotao,
+          aoJogarDeNovo: reiniciarPartida,
         }), 600);
-      } else if (simbolo === "❌") {
+      } else if ((modo === "online" && simbolo === meuSimbolo) || (modo !== "online" && simbolo === "❌")) {
         Som.vitoria();
         vibrar([60, 40, 60]);
         Pontos.add(50);
@@ -189,16 +195,18 @@ function verificarFim(simbolo) {
           emoji: "🏆",
           titulo: "Você venceu!",
           texto: "+50 pontos",
-          aoJogarDeNovo: criarTabuleiro,
+          botao: rotuloBotao,
+          aoJogarDeNovo: reiniciarPartida,
         }), 600);
       } else {
         Som.erro();
         localStorage.setItem("velhaSequencia", "0");
         setTimeout(() => Modal.mostrar({
           emoji: "😅",
-          titulo: "O bot venceu!",
+          titulo: modo === "online" ? "Você perdeu!" : "O bot venceu!",
           texto: "Tente de novo",
-          aoJogarDeNovo: criarTabuleiro,
+          botao: rotuloBotao,
+          aoJogarDeNovo: reiniciarPartida,
         }), 600);
       }
       return true;
@@ -212,7 +220,11 @@ function verificarFim(simbolo) {
       emoji: "🤝",
       titulo: "Empate!",
       texto: "+10 pontos",
-      aoJogarDeNovo: criarTabuleiro,
+      botao: modo === "online" ? "Revanche ⚔" : "Jogar de novo",
+      aoJogarDeNovo: () => {
+        if (modo === "online") Online.enviar({ t: "r" });
+        criarTabuleiro();
+      },
     }), 600);
     return true;
   }
@@ -229,10 +241,12 @@ function aoMensagemOnline(p) {
 
 function aoPresencaOnline(jogadores) {
   if (jogadores >= 2 && !salaConectada) {
+    const botEstavaJogando = botAssumiu;
     salaConectada = true;
     botAssumiu = false;
-    clearTimeout(esperaBot);
-    statusOnline(`Adversário conectado! Você é ${meuSimbolo}`);
+    clearInterval(contagemBot);
+    if (botEstavaJogando) criarTabuleiro(); // partida limpa pro humano
+    statusOnline(`Amigo conectado! Você é o ${meuSimbolo}`);
     Som.vitoria();
     vibrar([40, 30, 40]);
     mensagemEl.textContent = meuSimbolo === "❌" ? "Você começa!" : "Adversário começa...";
@@ -246,45 +260,95 @@ function aoPresencaOnline(jogadores) {
   }
 }
 
+let salaAtual = null;
+let contagemBot = null;
+
+function mostrarEspera(mostrar) {
+  document.getElementById("online-acoes").style.display = mostrar ? "none" : "block";
+  document.getElementById("online-espera").style.display = mostrar ? "block" : "none";
+}
+
+function linkDaSala(codigo) {
+  return location.origin + location.pathname + "?sala=" + codigo;
+}
+
 async function criarSala() {
   const codigo = Online.gerarCodigo();
   meuSimbolo = "❌";
   statusOnline("Criando sala...");
   try {
     await Online.abrir(codigo, aoMensagemOnline, aoPresencaOnline);
+    salaAtual = codigo;
     criarTabuleiro();
-    statusOnline(`Sala ${codigo} — passe o código pro seu amigo! (bot entra em 20s)`);
-    clearTimeout(esperaBot);
-    esperaBot = setTimeout(() => {
-      if (!salaConectada) {
-        botAssumiu = true;
-        statusOnline("Ninguém entrou — o bot vai jogar com você!");
-        mensagemEl.textContent = "Você começa!";
+    mostrarEspera(true);
+    document.getElementById("codigo-grande").textContent = codigo;
+
+    // contagem regressiva até o bot entrar
+    let restantes = 30;
+    statusOnline(`Esperando seu amigo... (bot entra em ${restantes}s)`);
+    clearInterval(contagemBot);
+    contagemBot = setInterval(() => {
+      restantes--;
+      if (salaConectada) {
+        clearInterval(contagemBot);
+        return;
       }
-    }, 20000);
+      if (restantes <= 0) {
+        clearInterval(contagemBot);
+        botAssumiu = true;
+        statusOnline("Ninguém entrou — o bot joga no lugar. Chegando alguém, ele sai!");
+        mensagemEl.textContent = "Você começa!";
+      } else {
+        statusOnline(`Esperando seu amigo... (bot entra em ${restantes}s)`);
+      }
+    }, 1000);
   } catch (e) {
-    statusOnline("Sem conexão — tente de novo");
+    statusOnline("Sem conexão com a sala — verifica a internet e tenta de novo");
   }
 }
 
-async function entrarSala() {
-  const codigo = document.getElementById("campo-sala").value.trim().toUpperCase();
+async function entrarSala(codigoDireto) {
+  const codigo = (codigoDireto || document.getElementById("campo-sala").value).trim().toUpperCase();
   if (codigo.length !== 4) {
-    statusOnline("Código tem 4 letras/números");
+    statusOnline("O código tem 4 letras/números");
     return;
   }
   meuSimbolo = "⭕";
   statusOnline("Entrando na sala " + codigo + "...");
   try {
     await Online.abrir(codigo, aoMensagemOnline, aoPresencaOnline);
+    salaAtual = codigo;
     criarTabuleiro();
+    // se em 5s só tem você na sala, o código deve estar errado
+    setTimeout(() => {
+      if (!salaConectada) {
+        statusOnline("Ninguém nessa sala 🤔 — confere o código ou cria uma nova");
+      }
+    }, 5000);
   } catch (e) {
-    statusOnline("Sem conexão — tente de novo");
+    statusOnline("Sem conexão com a sala — verifica a internet e tenta de novo");
+  }
+}
+
+async function convidarAmigo() {
+  const texto = `Bora jogar Velha comigo no MiniPlay! Entra na minha sala: ${linkDaSala(salaAtual)}`;
+  if (navigator.share) {
+    try {
+      await navigator.share({ text: texto });
+    } catch (e) { /* cancelou */ }
+  } else {
+    await navigator.clipboard.writeText(texto).catch(() => {});
+    statusOnline("Convite copiado — cola no WhatsApp!");
   }
 }
 
 document.getElementById("btn-criar-sala").addEventListener("click", criarSala);
-document.getElementById("btn-entrar-sala").addEventListener("click", entrarSala);
+document.getElementById("btn-entrar-sala").addEventListener("click", () => entrarSala());
+document.getElementById("btn-convidar").addEventListener("click", convidarAmigo);
+document.getElementById("btn-copiar-codigo").addEventListener("click", async () => {
+  await navigator.clipboard.writeText(salaAtual || "").catch(() => {});
+  statusOnline("Código copiado!");
+});
 
 seletorModoEl.querySelectorAll("button").forEach((botao) => {
   botao.addEventListener("click", () => {
@@ -298,7 +362,9 @@ seletorModoEl.querySelectorAll("button").forEach((botao) => {
     clearTimeout(esperaBot);
     if (window.Online) Online.fechar();
     painelOnlineEl.style.display = modo === "online" ? "block" : "none";
-    statusOnline(modo === "online" ? "Crie uma sala ou entre com um código" : "");
+    mostrarEspera(false);
+    clearInterval(contagemBot);
+    statusOnline(modo === "online" ? "Crie uma sala ou entre com o código do amigo" : "");
 
     legendaEl.textContent = modo === "duo"
       ? "Duo: ❌ e ⭕ se revezam no mesmo celular"
@@ -315,3 +381,14 @@ botaoReiniciar.addEventListener("click", () => {
   criarTabuleiro();
 });
 criarTabuleiro();
+
+// veio por link de convite? entra direto na sala do amigo
+{
+  const codigoConvite = new URLSearchParams(location.search).get("sala");
+  if (codigoConvite) {
+    const botaoOnline = seletorModoEl.querySelector('[data-modo="online"]');
+    if (botaoOnline) botaoOnline.click();
+    document.getElementById("campo-sala").value = codigoConvite.toUpperCase();
+    setTimeout(() => entrarSala(codigoConvite), 400);
+  }
+}
