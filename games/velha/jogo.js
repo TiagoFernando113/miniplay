@@ -15,6 +15,18 @@ let casas = [];
 let vez = "❌";
 let fimDeJogo = false;
 
+// modo online
+let meuSimbolo = "❌";
+let salaConectada = false;
+let botAssumiu = false;
+let esperaBot = null;
+const painelOnlineEl = document.getElementById("painel-online");
+const statusOnlineEl = document.getElementById("status-online");
+
+function statusOnline(texto) {
+  statusOnlineEl.textContent = texto;
+}
+
 function criarTabuleiro() {
   tabuleiroEl.innerHTML = "";
   casas = Array(9).fill("");
@@ -33,18 +45,42 @@ function criarTabuleiro() {
 function toque(i) {
   if (fimDeJogo || casas[i]) return;
   if (modo === "bot" && vez !== "❌") return;
+  if (modo === "online") {
+    if (!salaConectada && !botAssumiu) return; // ainda sem adversário
+    if (vez !== meuSimbolo) return;
+  }
 
   Som.clique();
   marcar(i, vez);
+
+  if (modo === "online") {
+    Online.enviar({ t: "j", i });
+  }
+
   if (verificarFim(vez)) return;
 
   vez = vez === "❌" ? "⭕" : "❌";
 
   if (modo === "bot") {
     setTimeout(jogadaBot, 400);
-  } else {
+  } else if (modo === "online" && botAssumiu) {
+    setTimeout(() => jogadaBotComo(meuSimbolo === "❌" ? "⭕" : "❌"), 400);
+  } else if (modo === "duo") {
     mensagemEl.textContent = `Vez do ${vez}`;
+  } else if (modo === "online") {
+    mensagemEl.textContent = "Vez do adversário...";
   }
+}
+
+// jogada remota chegando do outro celular
+function jogadaRemota(i) {
+  if (fimDeJogo || casas[i]) return;
+  const dele = meuSimbolo === "❌" ? "⭕" : "❌";
+  marcar(i, dele);
+  Som.clique();
+  if (verificarFim(dele)) return;
+  vez = meuSimbolo;
+  mensagemEl.textContent = "Sua vez!";
 }
 
 function jogadaBot() {
@@ -74,29 +110,29 @@ function vencedorDe(tabuleiro) {
   return tabuleiro.every((v) => v) ? "empate" : null;
 }
 
-function minimax(tabuleiro, simbolo, profundidade) {
+function minimax(tabuleiro, simboloTurno, profundidade, simboloMax) {
   const resultado = vencedorDe(tabuleiro);
-  if (resultado === "⭕") return 10 - profundidade;
-  if (resultado === "❌") return profundidade - 10;
+  if (resultado === simboloMax) return 10 - profundidade;
   if (resultado === "empate") return 0;
+  if (resultado) return profundidade - 10;
 
   const valores = [];
   for (let i = 0; i < 9; i++) {
     if (tabuleiro[i]) continue;
-    tabuleiro[i] = simbolo;
-    valores.push(minimax(tabuleiro, simbolo === "⭕" ? "❌" : "⭕", profundidade + 1));
+    tabuleiro[i] = simboloTurno;
+    valores.push(minimax(tabuleiro, simboloTurno === "⭕" ? "❌" : "⭕", profundidade + 1, simboloMax));
     tabuleiro[i] = "";
   }
-  return simbolo === "⭕" ? Math.max(...valores) : Math.min(...valores);
+  return simboloTurno === simboloMax ? Math.max(...valores) : Math.min(...valores);
 }
 
-function melhorJogada() {
+function melhorJogadaPara(simbolo) {
   let melhor = -Infinity;
   let escolha = null;
   for (let i = 0; i < 9; i++) {
     if (casas[i]) continue;
-    casas[i] = "⭕";
-    const valor = minimax(casas, "❌", 0);
+    casas[i] = simbolo;
+    const valor = minimax(casas, simbolo === "⭕" ? "❌" : "⭕", 0, simbolo);
     casas[i] = "";
     if (valor > melhor) {
       melhor = valor;
@@ -104,6 +140,22 @@ function melhorJogada() {
     }
   }
   return escolha;
+}
+
+function melhorJogada() {
+  return melhorJogadaPara("⭕");
+}
+
+// bot substituto no online: joga o símbolo do adversário que caiu
+function jogadaBotComo(simbolo) {
+  if (fimDeJogo) return;
+  const escolha = melhorJogadaPara(simbolo);
+  if (escolha === null) return;
+  marcar(escolha, simbolo);
+  if (!verificarFim(simbolo)) {
+    vez = meuSimbolo;
+    mensagemEl.textContent = "Sua vez!";
+  }
 }
 
 function marcar(i, simbolo) {
@@ -167,18 +219,99 @@ function verificarFim(simbolo) {
   return false;
 }
 
+function aoMensagemOnline(p) {
+  if (p.t === "j") jogadaRemota(p.i);
+  else if (p.t === "r") {
+    criarTabuleiro();
+    mensagemEl.textContent = meuSimbolo === "❌" ? "Revanche! Você começa" : "Revanche! Adversário começa";
+  }
+}
+
+function aoPresencaOnline(jogadores) {
+  if (jogadores >= 2 && !salaConectada) {
+    salaConectada = true;
+    botAssumiu = false;
+    clearTimeout(esperaBot);
+    statusOnline(`Adversário conectado! Você é ${meuSimbolo}`);
+    Som.vitoria();
+    vibrar([40, 30, 40]);
+    mensagemEl.textContent = meuSimbolo === "❌" ? "Você começa!" : "Adversário começa...";
+  } else if (jogadores < 2 && salaConectada) {
+    salaConectada = false;
+    botAssumiu = true;
+    statusOnline("Adversário caiu — o bot assumiu o lugar dele!");
+    if (vez !== meuSimbolo && !fimDeJogo) {
+      setTimeout(() => jogadaBotComo(meuSimbolo === "❌" ? "⭕" : "❌"), 500);
+    }
+  }
+}
+
+async function criarSala() {
+  const codigo = Online.gerarCodigo();
+  meuSimbolo = "❌";
+  statusOnline("Criando sala...");
+  try {
+    await Online.abrir(codigo, aoMensagemOnline, aoPresencaOnline);
+    criarTabuleiro();
+    statusOnline(`Sala ${codigo} — passe o código pro seu amigo! (bot entra em 20s)`);
+    clearTimeout(esperaBot);
+    esperaBot = setTimeout(() => {
+      if (!salaConectada) {
+        botAssumiu = true;
+        statusOnline("Ninguém entrou — o bot vai jogar com você!");
+        mensagemEl.textContent = "Você começa!";
+      }
+    }, 20000);
+  } catch (e) {
+    statusOnline("Sem conexão — tente de novo");
+  }
+}
+
+async function entrarSala() {
+  const codigo = document.getElementById("campo-sala").value.trim().toUpperCase();
+  if (codigo.length !== 4) {
+    statusOnline("Código tem 4 letras/números");
+    return;
+  }
+  meuSimbolo = "⭕";
+  statusOnline("Entrando na sala " + codigo + "...");
+  try {
+    await Online.abrir(codigo, aoMensagemOnline, aoPresencaOnline);
+    criarTabuleiro();
+  } catch (e) {
+    statusOnline("Sem conexão — tente de novo");
+  }
+}
+
+document.getElementById("btn-criar-sala").addEventListener("click", criarSala);
+document.getElementById("btn-entrar-sala").addEventListener("click", entrarSala);
+
 seletorModoEl.querySelectorAll("button").forEach((botao) => {
   botao.addEventListener("click", () => {
     seletorModoEl.querySelectorAll("button").forEach((b) => b.classList.remove("ativo"));
     botao.classList.add("ativo");
     modo = botao.dataset.modo;
+
+    // limpa estado online ao trocar de modo
+    salaConectada = false;
+    botAssumiu = false;
+    clearTimeout(esperaBot);
+    if (window.Online) Online.fechar();
+    painelOnlineEl.style.display = modo === "online" ? "block" : "none";
+    statusOnline(modo === "online" ? "Crie uma sala ou entre com um código" : "");
+
     legendaEl.textContent = modo === "duo"
       ? "Duo: ❌ e ⭕ se revezam no mesmo celular"
+      : modo === "online"
+      ? "Online: cada um no seu celular (bot cobre ausências)"
       : "Você é ❌ — o bot é ⭕";
     Som.clique();
     criarTabuleiro();
   });
 });
 
-botaoReiniciar.addEventListener("click", criarTabuleiro);
+botaoReiniciar.addEventListener("click", () => {
+  if (modo === "online") Online.enviar({ t: "r" });
+  criarTabuleiro();
+});
 criarTabuleiro();

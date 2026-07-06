@@ -1,4 +1,4 @@
-const CACHE = "minigames-v43";
+const CACHE = "minigames-v44";
 
 const ARQUIVOS = [
   "./",
@@ -21,6 +21,8 @@ const ARQUIVOS = [
   "./js/missoes.js",
   "./js/palavras.js",
   "./js/nuvem.js",
+  "./js/online.js",
+  "./vendor/supabase.js",
   "./js/util.js",
   "./js/icones.js",
   "./js/musica.js",

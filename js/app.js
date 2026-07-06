@@ -1,4 +1,4 @@
-const APP_VERSAO = "v43";
+const APP_VERSAO = "v44";
 
 // mata o menu de toque longo (copiar link, abrir no navegador...) — cara de app
 window.addEventListener("contextmenu", (e) => e.preventDefault());

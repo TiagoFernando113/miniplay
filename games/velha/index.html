@@ -37,8 +37,19 @@
     <h1><span class="icone-titulo" data-icone="velha"></span> Jogo da Velha</h1>
 
     <div class="seletor" id="seletor-modo">
-      <button data-modo="bot" class="ativo">🤖 vs Bot</button>
-      <button data-modo="duo">👥 2 Jogadores</button>
+      <button data-modo="bot" class="ativo">vs Bot</button>
+      <button data-modo="duo">2 Jogadores</button>
+      <button data-modo="online">Online</button>
+    </div>
+
+    <div id="painel-online" style="display:none; margin-bottom:14px;">
+      <div style="display:flex; gap:8px; justify-content:center; margin-bottom:8px;">
+        <button class="btn" id="btn-criar-sala" style="font-size:0.9rem;">Criar sala</button>
+        <input type="text" id="campo-sala" maxlength="4" placeholder="CÓDIGO"
+          style="width:90px;text-transform:uppercase;text-align:center;background:var(--card-bg);color:var(--text);border:1px solid #444;border-radius:10px;font-size:1rem;font-weight:700;user-select:text;-webkit-user-select:text;" />
+        <button class="btn" id="btn-entrar-sala" style="font-size:0.9rem;">Entrar</button>
+      </div>
+      <p class="msg-pontos" id="status-online" style="margin:4px 0;"></p>
     </div>
 
     <p class="placar" id="legenda">Você é ❌ — o bot é ⭕</p>
@@ -55,6 +66,9 @@
   <script src="../../js/recordes.js"></script>
   <script src="../../js/conquistas.js"></script>
   <script src="../../js/missoes.js"></script>
+  <script src="../../js/nuvem.js"></script>
+  <script src="../../vendor/supabase.js"></script>
+  <script src="../../js/online.js"></script>
   <script src="../../js/app.js"></script>
   <script src="../../js/modal.js"></script>
   <script src="jogo.js"></script>
