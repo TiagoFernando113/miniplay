@@ -46,7 +46,7 @@ function aoMensagemAquario(p) {
 function aoPresencaAquario(qtd) {
   const chaves = Object.keys(Online.canal ? Online.canal.presenceState() : {}).sort();
   souHost = chaves.length > 0 && chaves[0] === meuId;
-  document.getElementById("btn-online").textContent = `🌐 ${qtd} online`;
+  document.getElementById("btn-lobby").textContent = onlineAtivo ? `🌐 ${qtd}` : "☰";
 
   if (souHost) {
     // bots preenchem as vagas; gente real entra, o bot MAIS FRACO sai
@@ -102,7 +102,7 @@ function sairAquario() {
   outros.clear();
   botsRemotos = [];
   if (window.Online) Online.fechar();
-  document.getElementById("btn-online").textContent = "🌐 Online";
+  document.getElementById("btn-lobby").textContent = "☰";
   novoJogo();
 }
 let proximaFusao = 0;
@@ -658,7 +658,7 @@ function perder(bot) {
     emoji: "😋",
     titulo: "Você foi engolido!",
     texto: `Maior tamanho desta partida: ${maiorDaPartida} • +${ganhos} pontos`,
-    aoJogarDeNovo: novoJogo,
+    aoJogarDeNovo: novoJogo, aoMenu: abrirLobby,
   }), 300);
 }
 
@@ -724,10 +724,29 @@ function ligarBotao(id, acao) {
 ligarBotao("btn-dividir", dividir);
 ligarBotao("btn-ejetar", ejetar);
 
-document.getElementById("btn-online").addEventListener("click", () => {
-  if (onlineAtivo) sairAquario();
-  else entrarAquario();
-});
+function abrirLobby() {
+  rodando = false;
+  onlineAtivo = false;
+  souHost = false;
+  outros.clear();
+  botsRemotos = [];
+  if (window.Online) Online.fechar();
+  Lobby.mostrar({
+    titulo: "Bolhas",
+    skinCat: "bolha",
+    temOnline: true,
+    previewHTML: () => {
+      const d = window.Cosmetico ? Cosmetico.dados("bolha") : "#4f8cff";
+      return `<svg viewBox="0 0 90 70"><circle cx="45" cy="35" r="28" fill="${d}" stroke="#fff" stroke-width="3"/><circle cx="34" cy="24" r="8" fill="rgba(255,255,255,0.45)"/></svg>`;
+    },
+    aoJogar: ({ modo }) => {
+      if (modo === "online") entrarAquario();
+      else { onlineAtivo = false; novoJogo(); }
+    },
+  });
+}
+
+document.getElementById("btn-lobby").addEventListener("click", abrirLobby);
 
 botaoReiniciar.addEventListener("click", () => {
   if (onlineAtivo) {

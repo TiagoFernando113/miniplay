@@ -19,6 +19,8 @@ let botsRemotos = [];
 let tempoEnvio = 0;
 let tempoEnvioBots = 0;
 let laco = 0;
+let turbo = false;
+let gastoTurbo = 0;
 
 function aleatorio(max) { return Math.random() * max; }
 
@@ -64,23 +66,41 @@ function novoJogo() {
   if (!laco) iniciarLaco();
 }
 
+let acumulado = 0;
+let ultimoT = 0;
 function iniciarLaco() {
   const meuLaco = ++laco;
-  const quadro = () => {
+  ultimoT = performance.now();
+  const quadro = (agora) => {
     if (meuLaco !== laco) return;
-    if (rodando && !document.hidden) passo();
+    acumulado += agora - ultimoT;
+    ultimoT = agora;
+    // roda a lógica a 60 passos/s fixos, não importa o refresh da tela
+    let passos = 0;
+    while (acumulado >= 16.7 && passos < 4) {
+      if (rodando && !document.hidden) passo();
+      acumulado -= 16.7;
+      passos++;
+    }
+    if (acumulado > 100) acumulado = 0;
     requestAnimationFrame(quadro);
   };
   requestAnimationFrame(quadro);
 }
 
+const VEL = 1.35; // base tranquila; turbo acelera
+
 function moverCobra(c, alvoAng) {
   // vira suavemente em direção ao alvo
   let dif = ((alvoAng - c.ang + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
-  c.ang += Math.max(-0.15, Math.min(0.15, dif));
-  const vel = 2.6;
-  c.x = (c.x + Math.cos(c.ang) * vel + MUNDO) % MUNDO;
-  c.y = (c.y + Math.sin(c.ang) * vel + MUNDO) % MUNDO;
+  c.ang += Math.max(-0.09, Math.min(0.09, dif));
+  const vel = (c.sou && turbo && c.tamanho > 10) ? VEL * 2.1 : VEL;
+  c.x += Math.cos(c.ang) * vel;
+  c.y += Math.sin(c.ang) * vel;
+  // parede sólida: marca quem encostou (não atravessa mais)
+  c.bateuParede = c.x < 6 || c.y < 6 || c.x > MUNDO - 6 || c.y > MUNDO - 6;
+  c.x = Math.max(6, Math.min(MUNDO - 6, c.x));
+  c.y = Math.max(6, Math.min(MUNDO - 6, c.y));
   c.corpo.unshift({ x: c.x, y: c.y });
   while (c.corpo.length > c.tamanho) c.corpo.pop();
   if (c.prot > 0) c.prot--;
@@ -107,11 +127,29 @@ function morrer(c) {
 }
 
 function passo() {
+  // ---- turbo: gasta tamanho aos poucos e cospe comida atrás ----
+  if (turbo && eu.tamanho > 10) {
+    gastoTurbo += 1;
+    if (gastoTurbo >= 8) {
+      gastoTurbo = 0;
+      eu.tamanho -= 1;
+      placarEl.textContent = String(Math.max(0, eu.tamanho - 8));
+      const cauda = eu.corpo[eu.corpo.length - 1];
+      if (cauda) comidas.push({ x: cauda.x, y: cauda.y, cor: corDaSkin()[0] });
+    }
+  }
+
   // ---- controle da minha cobra ----
   if (joystick && (joystick.dx || joystick.dy)) {
     moverCobra(eu, Math.atan2(joystick.dy, joystick.dx));
   } else {
     moverCobra(eu, eu.ang);
+  }
+  // bater na parede (fora da proteção) mata
+  if (eu.bateuParede && eu.prot <= 0) {
+    if (onlineAtivo) { fuiMorto("na parede"); return; }
+    perder();
+    return;
   }
 
   // ---- bots (só offline ou host) ----
@@ -124,8 +162,13 @@ function passo() {
         if (dd < dist) { dist = dd; alvo = f; }
       });
       let ang = alvo ? Math.atan2(alvo.y - b.y, alvo.x - b.x) : b.rumo;
-      // desvia das bordas do próprio mundo (wrap suave já ajuda)
+      // longe das bordas? mira o centro pra não bater
+      const margem = 140;
+      if (b.x < margem || b.x > MUNDO - margem || b.y < margem || b.y > MUNDO - margem) {
+        ang = Math.atan2(MUNDO / 2 - b.y, MUNDO / 2 - b.x);
+      }
       moverCobra(b, ang);
+      if (b.bateuParede) { morrer(b); bots[bots.indexOf(b)] = novoBot(bots.indexOf(b)); }
     });
   } else {
     bots = botsRemotos.map((b) => ({ ...b }));
@@ -247,7 +290,7 @@ function fuiMorto(por) {
   Modal.mostrar({
     emoji: "🐍", titulo: `Você foi pego por ${por}!`,
     texto: `Tamanho ${eu.tamanho} • +${ganhos} pontos — renasceu!`,
-    botao: "Continuar", aoJogarDeNovo: () => {},
+    botao: "Continuar", aoJogarDeNovo: () => {}, aoMenu: abrirLobby,
   });
 }
 
@@ -262,7 +305,7 @@ function perder() {
     emoji: rec ? "🏆" : "🐍",
     titulo: rec ? "Novo recorde!" : "Você bateu!",
     texto: `Tamanho ${eu.tamanho} • +${ganhos} pontos`,
-    aoJogarDeNovo: () => { novoJogo(); },
+    aoJogarDeNovo: () => { novoJogo(); }, aoMenu: abrirLobby,
   }), 300);
 }
 
@@ -397,6 +440,15 @@ function abrirLobby() {
     },
   });
 }
+
+const botaoTurbo = document.getElementById("btn-turbo");
+function ligaTurbo(e) { e.preventDefault(); turbo = true; botaoTurbo.classList.add("ativo"); }
+function desligaTurbo(e) { if (e) e.preventDefault(); turbo = false; botaoTurbo.classList.remove("ativo"); }
+botaoTurbo.addEventListener("touchstart", ligaTurbo, { passive: false });
+botaoTurbo.addEventListener("touchend", desligaTurbo, { passive: false });
+botaoTurbo.addEventListener("mousedown", ligaTurbo);
+botaoTurbo.addEventListener("mouseup", desligaTurbo);
+botaoTurbo.addEventListener("mouseleave", desligaTurbo);
 
 document.getElementById("btn-lobby").addEventListener("click", abrirLobby);
 configurarMelhor("cobrabatalha");

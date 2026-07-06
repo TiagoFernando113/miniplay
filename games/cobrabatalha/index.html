@@ -18,6 +18,20 @@
     <button class="hud-chip" id="btn-lobby">☰</button>
   </div>
 
+  <button id="btn-turbo">⚡<span>TURBO</span></button>
+  <style>
+    #btn-turbo {
+      position: fixed; bottom: 40px; right: 20px; z-index: 80;
+      width: 84px; height: 84px; border-radius: 50%;
+      border: 2px solid rgba(255,213,79,0.6); background: rgba(60,50,10,0.55);
+      color: #ffd54f; font-size: 1.6rem; font-weight: 800;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      touch-action: none; user-select: none;
+    }
+    #btn-turbo span { font-size: 0.6rem; letter-spacing: 1px; }
+    #btn-turbo.ativo { background: rgba(255,213,79,0.85); color: #222; transform: scale(0.94); }
+  </style>
+
   <script src="../../js/util.js"></script>
   <script src="../../js/pontos.js"></script>
   <script src="../../js/som.js"></script>

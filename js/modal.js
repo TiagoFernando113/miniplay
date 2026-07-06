@@ -1,5 +1,5 @@
 const Modal = {
-  mostrar({ emoji = "🎉", titulo, texto, botao = "Jogar de novo", aoJogarDeNovo, linkExtra }) {
+  mostrar({ emoji = "🎉", titulo, texto, botao = "Jogar de novo", aoJogarDeNovo, aoMenu, linkExtra }) {
     this.fechar();
 
     // toda tela de fim de jogo conta exatamente 1 partida nas missões e estatísticas
@@ -10,6 +10,12 @@ const Modal = {
     fundo.className = "modal-fundo";
     fundo.id = "modal-jogo";
 
+    // "menu do jogo" (reabre o lobby) quando o jogo oferece; senão vai pro app
+    const menuHtml = aoMenu
+      ? `<button class="modal-menu" id="modal-btn-menu" style="background:none;border:none;cursor:pointer;">Menu do jogo</button>
+         <a class="modal-menu" href="../../jogos.html" style="font-size:0.78rem;opacity:0.7;">Sair pra lista de jogos</a>`
+      : `<a class="modal-menu" href="../../jogos.html">Voltar aos jogos</a>`;
+
     fundo.innerHTML = `
       <div class="modal-caixa">
         <div class="modal-emoji">${emoji}</div>
@@ -17,7 +23,7 @@ const Modal = {
         <p>${texto}</p>
         <button class="btn" id="modal-btn-denovo">${botao}</button>
         ${linkExtra ? `<a class="modal-menu" style="color:var(--accent);" target="_blank" href="${linkExtra.href}">${linkExtra.texto}</a>` : ""}
-        <a class="modal-menu" href="../../index.html">Voltar ao menu</a>
+        ${menuHtml}
       </div>
     `;
 
@@ -28,6 +34,13 @@ const Modal = {
       this.fechar();
       if (aoJogarDeNovo) aoJogarDeNovo();
     });
+
+    if (aoMenu) {
+      document.getElementById("modal-btn-menu").addEventListener("click", () => {
+        this.fechar();
+        aoMenu();
+      });
+    }
   },
 
   fechar() {
