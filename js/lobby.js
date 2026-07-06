@@ -18,7 +18,7 @@ const Lobby = {
 
     fundo.innerHTML = `
       <div class="lobby-caixa">
-        <a class="lobby-voltar" href="../../index.html">←</a>
+        <a class="lobby-voltar" href="../../jogos.html">←</a>
         <h1 class="lobby-titulo">${cfg.titulo}</h1>
         <p class="lobby-pontos">⭐ <strong id="lobby-pontos">0</strong> pontos</p>
 

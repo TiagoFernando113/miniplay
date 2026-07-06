@@ -179,8 +179,9 @@ function passo() {
   comidas = comidas.filter((f) => {
     for (const c of cobras) {
       if (comeu(c.x, c.y, f)) {
-        c.tamanho += 2;
-        if (c === eu) { placarEl.textContent = String(eu.tamanho - 8); Som.clique(); }
+        // bots crescem devagar e têm teto; você cresce normal
+        if (c === eu) { c.tamanho += 2; placarEl.textContent = String(eu.tamanho - 8); Som.clique(); }
+        else if (c.tamanho < 45) { c.tamanho += 1; }
         return false;
       }
     }
@@ -307,6 +308,20 @@ function aoPresenca(qtd) {
   }
 }
 
+let avisoEl = null;
+let avisoTimer = null;
+function avisoRapido(txt) {
+  if (!avisoEl) {
+    avisoEl = document.createElement("div");
+    avisoEl.className = "aviso-jogo";
+    document.body.appendChild(avisoEl);
+  }
+  avisoEl.textContent = txt;
+  avisoEl.classList.add("visivel");
+  clearTimeout(avisoTimer);
+  avisoTimer = setTimeout(() => avisoEl.classList.remove("visivel"), 2200);
+}
+
 function fuiMorto(por) {
   const ganhos = Math.max((eu.tamanho - 8) * 2, 3);
   Pontos.add(ganhos);
@@ -316,16 +331,12 @@ function fuiMorto(por) {
   morrer(eu);
   Som.erro();
   vibrar(120);
-  // renasce na hora
+  avisoRapido(`Pego por ${por}! +${ganhos} pts — renasceu`);
+  // renasce na hora, sem interromper o jogo
   eu = novaCobra(aleatorio(MUNDO), aleatorio(MUNDO), corDaSkin()[0], Nuvem.apelido());
   eu.sou = true;
   eu.prot = 120;
   placarEl.textContent = "0";
-  Modal.mostrar({
-    emoji: "🐍", titulo: `Você foi pego por ${por}!`,
-    texto: `Tamanho ${eu.tamanho} • +${ganhos} pontos — renasceu!`,
-    botao: "Continuar", aoJogarDeNovo: () => {}, aoMenu: abrirLobby,
-  });
 }
 
 function perder() {
@@ -485,5 +496,6 @@ botaoTurbo.addEventListener("mouseup", desligaTurbo);
 botaoTurbo.addEventListener("mouseleave", desligaTurbo);
 
 document.getElementById("btn-lobby").addEventListener("click", abrirLobby);
+document.getElementById("btn-voltar").addEventListener("click", abrirLobby);
 configurarMelhor("cobrabatalha");
 abrirLobby();
