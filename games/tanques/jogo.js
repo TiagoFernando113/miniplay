@@ -38,6 +38,8 @@ const CORES = ["#ff6f6f", "#6fbfff", "#ffd54f", "#cf8fff", "#6fdf9f", "#ff9f4f",
 
 let jogador, tanques, formas, balas, particulas, rodando, pausadoUpgrade, laco = 0;
 let chefeVivo = null, proximoChefe = 6;
+let onlineAtivo = false, meuId = null, tEnvio = 0;
+let outros = new Map();
 let joystick = null;
 
 function corTanque() { return window.Cosmetico && Cosmetico.dados("bolha") ? Cosmetico.dados("bolha") : "#4faf4f"; }
@@ -256,10 +258,24 @@ function passo() {
         return false;
       }
     }
+    // jogadores reais online
+    if (onlineAtivo && b.dono === jogador) {
+      for (const o of outros.values()) {
+        if (!o.vivo) continue;
+        const ox = o.dx !== undefined ? o.dx : o.x, oy = o.dy !== undefined ? o.dy : o.y;
+        if (Math.hypot(b.x - ox, b.y - oy) < o.raio) {
+          explodir(b.x, b.y, o.cor, 3);
+          Online.enviar({ t: "dano", alvo: o.id, dano: b.dano, por: meuId });
+          jogador.score += 2;
+          return false;
+        }
+      }
+    }
     return b.vida > 0;
   });
 
   particulas = particulas.filter((p) => { p.x += p.vx; p.y += p.vy; p.vida--; return p.vida > 0; });
+  if (onlineAtivo) redeTanques();
 }
 
 function spawnChefe() {
@@ -478,6 +494,7 @@ function desenhar() {
   formas.forEach((f) => desenharForma(f, cx, cy));
   balas.forEach((b) => { const px = b.x - jogador.x + cx, py = b.y - jogador.y + cy; ctx.fillStyle = b.dono === jogador ? "#fff" : "#ff9f6f"; ctx.beginPath(); ctx.arc(px, py, 5, 0, 6.283); ctx.fill(); });
   tanques.forEach((t) => { if (t !== jogador) desenharTanque(t, cx, cy); });
+  if (onlineAtivo) outros.forEach((o) => { const t = { ...o, x: o.dx, y: o.dy }; desenharTanque(t, cx, cy); });
   desenharTanque(jogador, cx, cy);
   particulas.forEach((p) => { ctx.globalAlpha = p.vida / 18; ctx.fillStyle = p.cor; ctx.fillRect(p.x - jogador.x + cx - 2, p.y - jogador.y + cy - 2, 4, 4); ctx.globalAlpha = 1; });
 
@@ -503,9 +520,11 @@ function desenhar() {
   }
 
   // ranking dos mais fortes (top 6)
-  const rank = [...tanques].filter((t) => t.vivo).sort((a, b) => b.score - a.score).slice(0, 6);
+  const todos = onlineAtivo ? [...tanques, ...outros.values()] : tanques;
+  const rank = todos.filter((t) => t.vivo).sort((a, b) => b.score - a.score).slice(0, 6);
   ctx.textAlign = "right"; ctx.font = "bold 12px sans-serif";
-  rank.forEach((t, i) => { ctx.fillStyle = t.sou ? "#ffd54f" : "rgba(255,255,255,0.65)"; ctx.fillText(`${i + 1}º ${t.nome} — ${t.score}`, tela.width - 10, 74 + i * 17); });
+  if (onlineAtivo) { ctx.fillStyle = "#3fdf6f"; ctx.fillText(`${(window._qtdOnline || 1)} online`, tela.width - 10, 58); }
+  rank.forEach((t, i) => { ctx.fillStyle = t.sou ? "#ffd54f" : t.id ? "#ff9f4f" : "rgba(255,255,255,0.6)"; ctx.fillText(`${i + 1}º ${t.nome} — ${t.score}`, tela.width - 10, 74 + i * 17); });
 
   [joystick, mira].forEach((joy, i) => {
     if (!joy) return;
@@ -561,16 +580,66 @@ tela.addEventListener("mouseup", () => { mira = null; });
 
 function abrirLobby() {
   rodando = false;
+  onlineAtivo = false;
+  if (window.pararPresencaOnline) pararPresencaOnline();
+  if (window.Online) Online.fechar();
+  outros.clear();
   Lobby.mostrar({
     titulo: "Tanques",
     skinCat: "bolha",
-    temOnline: false,
+    temOnline: true,
     previewHTML: () => { const c = corTanque(); return `<svg viewBox="0 0 100 60"><rect x="48" y="26" width="40" height="9" rx="2" fill="#8a97a8" stroke="#5a6675"/><circle cx="46" cy="30" r="20" fill="${c}" stroke="#0d1420" stroke-width="3"/></svg>`; },
-    aoJogar: () => novoJogo(),
+    aoJogar: ({ modo }) => { if (modo === "online") entrarOnline(); else { onlineAtivo = false; novoJogo(); } },
+  });
+}
+
+async function entrarOnline() {
+  meuId = Nuvem.deviceId();
+  try {
+    await Online.abrir("TANQUES", aoMensagem, aoPresenca);
+    onlineAtivo = true;
+    if (window.iniciarPresencaOnline) iniciarPresencaOnline("tanques");
+    if (window.Nuvem) { Nuvem.registrarPush(); Nuvem.notificarOnline("tanques"); }
+    localStorage.setItem("reconectar-tanques", Date.now());
+    novoJogo();
+  } catch (e) { onlineAtivo = false; novoJogo(); }
+}
+
+function aoMensagem(p) {
+  if (p.t === "tank" && p.id !== meuId) {
+    const ant = outros.get(p.id);
+    outros.set(p.id, {
+      ...p, sou: false, vivo: p.vivo, raio: 22 + (p.nivel || 1) * 0.5,
+      classe: CLASSES[p.classeId] || CLASSES.basico,
+      dx: ant ? ant.dx : p.x, dy: ant ? ant.dy : p.y, ang: p.ang, ts: Date.now(),
+    });
+  } else if (p.t === "dano" && p.alvo === meuId && jogador && jogador.vivo && jogador.prot <= 0) {
+    jogador.vida -= p.dano;
+    if (jogador.vida <= 0) { jogador.vivo = false; morrer(); }
+  }
+}
+
+function aoPresenca(qtd) { window._qtdOnline = qtd; }
+
+function redeTanques() {
+  tEnvio += 16;
+  if (tEnvio >= 100 && jogador) {
+    tEnvio = 0;
+    Online.enviar({ t: "tank", id: meuId, x: Math.round(jogador.x), y: Math.round(jogador.y),
+      ang: +jogador.ang.toFixed(2), cor: jogador.cor, nome: jogador.nome, nivel: jogador.nivel,
+      classeId: jogador.classeId, vida: Math.round(jogador.vida), vidaMax: Math.round(jogador.vidaMax),
+      score: jogador.score, vivo: jogador.vivo, prot: jogador.prot });
+  }
+  const agora = Date.now();
+  outros.forEach((o, k) => {
+    if (agora - o.ts > 3500) { outros.delete(k); return; }
+    o.dx += (o.x - o.dx) * 0.25; o.dy += (o.y - o.dy) * 0.25;
   });
 }
 
 document.getElementById("btn-lobby").addEventListener("click", abrirLobby);
 document.getElementById("btn-voltar").addEventListener("click", abrirLobby);
 configurarMelhor("tanques");
-abrirLobby();
+// reconecta se saiu do online há pouco
+const _recT = parseInt(localStorage.getItem("reconectar-tanques") || "0", 10);
+if (_recT && Date.now() - _recT < 120000) entrarOnline(); else abrirLobby();
