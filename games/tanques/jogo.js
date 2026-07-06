@@ -1,7 +1,7 @@
 // Tanques — arena estilo diep.io: farme as formas pra subir de nível, evolua
 // de classe (gêmeo, sniper, metralhadora...), e mate os outros tanques (bots).
 // Ranking do mais forte na tela. Morreu = fim do run.
-const MUNDO = 2600;
+const MUNDO = 2000;
 const NUM_BOTS = 9;
 
 const tela = document.getElementById("tela");
@@ -63,14 +63,14 @@ function novaForma() {
     triangulo: { lados: 3, raio: 18, vida: 30, xp: 7, cor: "#ff6f6f", vel: 1.3, dano: 0.16 },
     penta: { lados: 5, raio: 25, vida: 80, xp: 18, cor: "#6f8fff", vel: 0.7, dano: 0.24 },
   }[tipo];
-  // nasce num anel ao redor do jogador (aparece vindo de fora da tela)
-  const a = Math.random() * Math.PI * 2, dist = 420 + Math.random() * 260;
-  let x = (jogador ? jogador.x : MUNDO / 2) + Math.cos(a) * dist;
-  let y = (jogador ? jogador.y : MUNDO / 2) + Math.sin(a) * dist;
-  x = Math.max(0, Math.min(MUNDO, x)); y = Math.max(0, Math.min(MUNDO, y));
+  // espalhada aleatoriamente pelo mapa (feito bolinha de XP), longe do jogador
+  let x, y, tent = 0;
+  do { x = Math.random() * MUNDO; y = Math.random() * MUNDO; tent++; }
+  while (tent < 12 && jogador && Math.hypot(jogador.x - x, jogador.y - y) < 340);
   return {
     x, y, lados: dados.lados, raio: dados.raio, vida: dados.vida, vidaMax: dados.vida,
-    xp: dados.xp, cor: dados.cor, vel: dados.vel, dano: dados.dano,
+    xp: dados.xp, cor: dados.cor, vel: dados.vel, dano: dados.dano, aggro: 210,
+    rumo: Math.random() * Math.PI * 2,
     ang: Math.random() * Math.PI * 2, giro: (Math.random() - 0.5) * 0.04,
   };
 }
@@ -88,7 +88,7 @@ function novoJogo() {
   jogador = novoTanque(MUNDO / 2, MUNDO / 2, corTanque(), Nuvem ? Nuvem.apelido() : "Você", true);
   tanques = [jogador];
   for (let i = 0; i < NUM_BOTS; i++) tanques.push(botLonge());
-  formas = Array.from({ length: 100 }, novaForma);
+  formas = Array.from({ length: 70 }, novaForma);
   balas = []; particulas = [];
   rodando = true; pausadoUpgrade = false; joystick = null;
   painelUp.style.display = "none"; painelUp.innerHTML = "";
@@ -200,18 +200,25 @@ function passo() {
     } else if (t.recarga > 0) t.recarga--;
   });
 
-  // ---- formas perseguem o jogador e mordem no contato ----
+  // ---- formas: paradas/vagando; atacam o tanque mais próximo só se ele chega perto ----
   formas.forEach((f) => {
     f.ang += f.giro;
-    const a = Math.atan2(jogador.y - f.y, jogador.x - f.x);
-    f.x += Math.cos(a) * f.vel; f.y += Math.sin(a) * f.vel;
-    // morde qualquer tanque que encostar
-    for (const t of tanques) {
-      if (!t.vivo || t.prot > 0) continue;
-      if (Math.hypot(f.x - t.x, f.y - t.y) < f.raio + t.raio) {
-        t.vida -= f.dano;
-        if (t.vida <= 0) matarTanque(t, null);
+    // acha o tanque mais próximo
+    let perto = null, dp = 1e9;
+    for (const t of tanques) { if (!t.vivo) continue; const d = Math.hypot(t.x - f.x, t.y - f.y); if (d < dp) { dp = d; perto = t; } }
+    if (perto && dp < f.aggro) {
+      // acordou: persegue e morde
+      const a = Math.atan2(perto.y - f.y, perto.x - f.x);
+      f.x += Math.cos(a) * f.vel; f.y += Math.sin(a) * f.vel;
+      if (dp < f.raio + perto.raio && perto.prot <= 0) {
+        perto.vida -= f.dano;
+        if (perto.vida <= 0) matarTanque(perto, null);
       }
+    } else {
+      // dormindo: vaga bem devagar
+      f.x += Math.cos(f.rumo) * 0.2; f.y += Math.sin(f.rumo) * 0.2;
+      if (Math.random() < 0.005) f.rumo = Math.random() * 6.283;
+      f.x = Math.max(0, Math.min(MUNDO, f.x)); f.y = Math.max(0, Math.min(MUNDO, f.y));
     }
   });
 
