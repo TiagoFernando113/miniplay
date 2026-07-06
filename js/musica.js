@@ -36,6 +36,7 @@ const ESTILOS_MUSICA = {
   passaro: { escala: ESCALAS.maiorFeliz, tempo: 200, ondaM: "square", ondaB: "triangle", baixo: [131, 165, 131, 110] },
   torre: { escala: ESCALAS.pentAlegre, tempo: 260, ondaM: "triangle", ondaB: "triangle", baixo: [110, 131, 110, 165] },
   hexagono: { escala: ESCALAS.tensa, tempo: 185, ondaM: "square", ondaB: "square", baixo: [110, 104, 110, 98] },
+  tanques: { escala: ESCALAS.menorSeria, tempo: 150, ondaM: "square", ondaB: "sawtooth", baixo: [82, 82, 98, 110] },
   cobrabatalha: { escala: ESCALAS.menorSeria, tempo: 165, ondaM: "square", ondaB: "sawtooth", baixo: [110, 104, 98, 104] },
   genius: null, // silêncio: o Genius é um jogo de OUVIR os tons
 };

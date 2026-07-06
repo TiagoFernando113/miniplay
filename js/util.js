@@ -145,6 +145,7 @@ const RANKING_JOGOS = {
   alvo: { nome: "Acerte o Alvo", rotulo: "acertos" },
   genius: { nome: "Genius", rotulo: "rodada" },
   quiz: { nome: "Quiz", rotulo: "/10 acertos" },
+  tanques: { nome: "Tanques", rotulo: "nível" },
 };
 const LIMITES_RANKING = {
   passaro: 1000, torre: 500, cobrabatalha: 800, cobrinha: 800, bolhas: 500,
