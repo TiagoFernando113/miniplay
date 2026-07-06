@@ -10,6 +10,13 @@
   <script src="js/tema.js"></script>
 </head>
 <body>
+  <script>
+    window.__deferredPrompt = null;
+    window.addEventListener("beforeinstallprompt", function (e) {
+      e.preventDefault();
+      window.__deferredPrompt = e;
+    });
+  </script>
   <header>
     <h1><span id="avatar">🙂</span> MiniPlay</h1>
     <p id="linha-streak">Escolha um jogo pra jogar</p>
