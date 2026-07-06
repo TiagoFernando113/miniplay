@@ -1,4 +1,4 @@
-const APP_VERSAO = "v69";
+const APP_VERSAO = "v70";
 
 // mata o menu de toque longo (copiar link...) — MENOS em campos de texto,
 // senão o jogador não consegue copiar/colar o código de backup!
@@ -22,10 +22,27 @@ setInterval(autoSalvarNuvem, 180000);
 
 if ("serviceWorker" in navigator) {
   const base = location.pathname.includes("/games/") ? "../../" : "./";
-  navigator.serviceWorker
-    .register(base + "sw.js", { scope: base })
-    .then((registro) => registro.update())
-    .catch(() => {});
+  let recarregando = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (recarregando) return;
+    recarregando = true;
+    location.reload(); // versão nova assumiu -> recarrega com os arquivos novos
+  });
+  navigator.serviceWorker.register(base + "sw.js", { scope: base }).then((registro) => {
+    registro.update();
+    // checa atualização de tempos em tempos e ao voltar pro app
+    setInterval(() => registro.update(), 60000);
+    document.addEventListener("visibilitychange", () => { if (!document.hidden) registro.update(); });
+    registro.addEventListener("updatefound", () => {
+      const novo = registro.installing;
+      if (!novo) return;
+      novo.addEventListener("statechange", () => {
+        if (novo.state === "installed" && navigator.serviceWorker.controller) {
+          novo.postMessage({ tipo: "ATUALIZAR" }); // ativa a versão nova
+        }
+      });
+    });
+  }).catch(() => {});
 }
 
 // menu, loja e conquistas: sai da tela cheia do jogo e destrava a rotação

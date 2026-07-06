@@ -190,9 +190,23 @@
       requestAnimationFrame(() => aviso.classList.add("visivel"));
       setTimeout(() => { aviso.classList.remove("visivel"); setTimeout(() => aviso.remove(), 400); }, 5000);
     }
+    function mostrarDestaqueOnline(cont) {
+      const el = document.getElementById("destaque-online");
+      const comGente = Object.keys(NOMES_ONLINE).filter((j) => (cont[j] || 0) > 0);
+      if (!comGente.length) { el.innerHTML = ""; return; }
+      el.innerHTML = comGente.map((j) =>
+        `<a href="${CAMINHO_ONLINE[j]}" style="text-decoration:none;">
+          <div class="missao" style="border:1px solid #3fdf6f;display:flex;align-items:center;gap:10px;">
+            <span style="color:#3fdf6f;font-size:1.1rem;">🟢</span>
+            <span style="font-weight:700;color:var(--text);">${NOMES_ONLINE[j]}</span>
+            <span style="margin-left:auto;color:#3fdf6f;font-weight:800;">${cont[j]} jogando — entrar!</span>
+          </div></a>`
+      ).join("");
+    }
     async function checarOnline() {
       if (!window.Nuvem) return;
       const cont = await Nuvem.contarOnline();
+      mostrarDestaqueOnline(cont);
       if (!primeiraChecagem) {
         Object.keys(NOMES_ONLINE).forEach((jogo) => {
           if ((cont[jogo] || 0) > (presencaAnterior[jogo] || 0)) avisarEntrada(jogo, cont[jogo]);

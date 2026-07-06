@@ -1,4 +1,4 @@
-const CACHE = "minigames-v69";
+const CACHE = "minigames-v70";
 
 const ARQUIVOS = [
   "./",
@@ -75,6 +75,10 @@ const ARQUIVOS = [
   "./games/cobrabatalha/index.html",
   "./games/cobrabatalha/jogo.js",
 ];
+
+self.addEventListener("message", (evento) => {
+  if (evento.data && evento.data.tipo === "ATUALIZAR") self.skipWaiting();
+});
 
 self.addEventListener("install", (evento) => {
   evento.waitUntil(
