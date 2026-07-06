@@ -23,6 +23,7 @@ const LISTA_CONQUISTAS = [
   { id: "voador", icone: "passaro", nome: "Ás do céu", desc: "Passe 20 canos no Pássaro", cond: (e) => (e.recordes.passaro || 0) >= 20 },
   { id: "arquiteto", icone: "torre", nome: "Arquiteto", desc: "Empilhe 25 andares na Torre", cond: (e) => (e.recordes.torre || 0) >= 25 },
   { id: "hexamestre", icone: "hexagono", nome: "Hexamestre", desc: "Faça 1000 no Hexágono", cond: (e) => (e.recordes.hexagono || 0) >= 1000 },
+  { id: "serpentao", icone: "cobrabatalha", nome: "Serpentão", desc: "Chegue a tamanho 50 na Cobra Batalha", cond: (e) => (e.recordes.cobrabatalha || 0) >= 50 },
 ];
 
 const Conquistas = {

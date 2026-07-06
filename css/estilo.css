@@ -685,3 +685,117 @@ button.hud-chip {
   vertical-align: -3px;
   margin-right: 2px;
 }
+
+/* ==== Lobby de jogo ==== */
+.lobby-fundo {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  z-index: 150;
+  overflow-y: auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.lobby-caixa {
+  width: 100%;
+  max-width: 460px;
+  padding: 16px 18px 40px;
+  text-align: center;
+  position: relative;
+}
+
+.lobby-voltar {
+  position: absolute;
+  top: 14px;
+  left: 12px;
+  color: var(--accent);
+  font-size: 1.6rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.lobby-titulo {
+  margin: 8px 0 16px;
+  font-size: 1.7rem;
+}
+
+.lobby-preview {
+  min-height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--card-bg);
+  border-radius: 16px;
+  margin-bottom: 18px;
+}
+
+.lobby-preview svg { width: 120px; height: 70px; }
+
+.lobby-sub {
+  color: var(--text-dim);
+  font-size: 0.82rem;
+  margin: 14px 0 8px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.lobby-skins {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.lobby-skin {
+  background: var(--card-bg);
+  border: 2px solid transparent;
+  border-radius: 12px;
+  padding: 8px 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.lobby-skin svg { width: 44px; height: 26px; }
+
+.lobby-skin.ativa { border-color: var(--accent); }
+.lobby-skin.bloqueada { opacity: 0.55; }
+
+.ls-nome {
+  font-size: 0.62rem;
+  color: var(--text-dim);
+  font-weight: 700;
+}
+
+.lobby-modos {
+  display: flex;
+  gap: 10px;
+}
+
+.lobby-modo {
+  flex: 1;
+  background: var(--card-bg);
+  border: 2px solid transparent;
+  border-radius: 14px;
+  padding: 14px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: var(--text);
+}
+
+.lobby-modo.ativo { border-color: var(--accent); }
+.lm-titulo { font-weight: 800; font-size: 1rem; }
+.lm-sub { font-size: 0.72rem; color: var(--text-dim); }
+
+.lobby-jogar {
+  width: 100%;
+  margin-top: 22px;
+  padding: 18px;
+  font-size: 1.3rem;
+  font-weight: 900;
+  letter-spacing: 2px;
+  box-shadow: 0 4px 16px rgba(79, 140, 255, 0.35);
+}

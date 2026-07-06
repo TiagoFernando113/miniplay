@@ -158,6 +158,12 @@ document.body = elementoJogo();
 // dicionário usado por forca e caça-palavras
 (0, eval)(fs.readFileSync(path.join(base, "palavras.js"), "utf8"));
 
+// stubs de módulos carregados só nas páginas de jogo (lobby, online, supabase)
+global.Lobby = { mostrar() {}, fechar() {} };
+global.Online = { abrir: async () => {}, enviar() {}, fechar() {}, gerarCodigo: () => "TEST", canal: null };
+global.Nuvem = { URL: "", CHAVE: "", deviceId: () => "dev", apelido: () => "Tester" };
+global.supabase = { createClient: () => ({ channel: () => ({}), removeChannel() {} }) };
+
 const pastaJogos = path.join(__dirname, "..", "games");
 for (const jogo of fs.readdirSync(pastaJogos).sort()) {
   const arquivo = path.join(pastaJogos, jogo, "jogo.js");

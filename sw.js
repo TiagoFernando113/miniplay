@@ -1,4 +1,4 @@
-const CACHE = "minigames-v48";
+const CACHE = "minigames-v49";
 
 const ARQUIVOS = [
   "./",
@@ -22,6 +22,7 @@ const ARQUIVOS = [
   "./js/palavras.js",
   "./js/nuvem.js",
   "./js/online.js",
+  "./js/lobby.js",
   "./vendor/supabase.js",
   "./js/util.js",
   "./js/icones.js",
@@ -71,6 +72,8 @@ const ARQUIVOS = [
   "./games/torre/jogo.js",
   "./games/hexagono/index.html",
   "./games/hexagono/jogo.js",
+  "./games/cobrabatalha/index.html",
+  "./games/cobrabatalha/jogo.js",
 ];
 
 self.addEventListener("install", (evento) => {
