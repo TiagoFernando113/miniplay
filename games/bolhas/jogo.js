@@ -12,6 +12,99 @@ let celulas = []; // suas bolhas (pode dividir em até 4)
 let bots, comidas, virus;
 let joystick = null;
 let maiorDaPartida = 0;
+
+// ---- aquário online (sala global BOLHAS) ----
+const VAGAS_SALA = 8;
+let onlineAtivo = false;
+let souHost = false;
+let meuId = null;
+let outros = new Map(); // jogadores reais: id -> {x,y,raio,cor,nome,ts}
+let botsRemotos = [];
+let tempoEnvio = 0;
+let tempoEnvioBots = 0;
+
+function avisoOnline(texto) {
+  mensagemEl.textContent = texto;
+  mensagemEl.classList.remove("escondida");
+  clearTimeout(avisoTemporizador);
+  avisoTemporizador = setTimeout(() => mensagemEl.classList.add("escondida"), 2500);
+}
+
+function aoMensagemAquario(p) {
+  if (p.t === "p" && p.id !== meuId) {
+    outros.set(p.id, { ...p, ts: Date.now() });
+  } else if (p.t === "bots" && !souHost) {
+    botsRemotos = p.lista;
+  } else if (p.t === "comi" && p.alvo === meuId) {
+    fuiComido(p.por || "alguém");
+  } else if (p.t === "comiBot" && souHost) {
+    const indice = bots.findIndex((b) => b.id === p.id);
+    if (indice >= 0) bots[indice] = novoBot(indice);
+  }
+}
+
+function aoPresencaAquario(qtd) {
+  const chaves = Object.keys(Online.canal ? Online.canal.presenceState() : {}).sort();
+  souHost = chaves.length > 0 && chaves[0] === meuId;
+  document.getElementById("btn-online").textContent = `🌐 ${qtd} online`;
+
+  if (souHost) {
+    // bots preenchem as vagas; gente real entra, o bot MAIS FRACO sai
+    const alvo = Math.max(0, VAGAS_SALA - qtd);
+    while (bots.length > alvo) {
+      let fraco = 0;
+      for (let i = 1; i < bots.length; i++) if (bots[i].raio < bots[fraco].raio) fraco = i;
+      bots.splice(fraco, 1);
+    }
+    while (bots.length < alvo) bots.push(novoBot(bots.length));
+  }
+}
+
+function fuiComido(porQuem) {
+  const ganhos = Math.max(Math.floor(maiorDaPartida / 2), 3);
+  Pontos.add(ganhos);
+  Recordes.salvar("bolhas", maiorDaPartida);
+  if (window.Missoes) Missoes.partida();
+  if (window.Stats) Stats.partida();
+  Som.erro();
+  vibrar(120);
+  avisoOnline(`Você foi comido por ${porQuem}! +${ganhos} pontos — renascendo...`);
+  // renasce pequeno, longe e protegido — a sala continua
+  celulas = [{
+    x: aleatorio(MUNDO),
+    y: aleatorio(MUNDO),
+    raio: 12,
+    ix: 0,
+    iy: 0,
+    it: 0,
+    prot: 90,
+  }];
+  maiorDaPartida = 12;
+}
+
+async function entrarAquario() {
+  meuId = Nuvem.deviceId();
+  avisoOnline("Conectando ao aquário global...");
+  try {
+    await Online.abrir("BOLHAS", aoMensagemAquario, aoPresencaAquario);
+    onlineAtivo = true;
+    novoJogo(); // todo mundo começa pequeno: justo
+    onlineAtivo = true; // (novoJogo não desliga o online)
+    avisoOnline("Você entrou no aquário! Jogadores reais têm nome em cima 🌐");
+  } catch (e) {
+    avisoOnline("Sem conexão — tenta de novo");
+  }
+}
+
+function sairAquario() {
+  onlineAtivo = false;
+  souHost = false;
+  outros.clear();
+  botsRemotos = [];
+  if (window.Online) Online.fechar();
+  document.getElementById("btn-online").textContent = "🌐 Online";
+  novoJogo();
+}
 let proximaFusao = 0;
 let relogio = null;
 let fimDeJogo = false;
@@ -35,14 +128,27 @@ function centro() {
 }
 
 function novoBot(i) {
-  // bots nascem proporcionais a você: sempre tem presa e sempre tem ameaça
+  // JUSTO: bot novo nunca nasce maior que você (0.4x a 0.9x), nasce longe
+  // e com 3s de proteção (não come nem é comido) — chega de morte do nada!
   const referencia = celulas.length ? raioTotal() : 14;
+  let x, y;
+  let tentativas = 0;
+  do {
+    x = aleatorio(MUNDO);
+    y = aleatorio(MUNDO);
+    tentativas++;
+  } while (
+    tentativas < 30 &&
+    celulas.some((c) => Math.hypot(c.x - x, c.y - y) < 320)
+  );
   return {
-    x: aleatorio(MUNDO),
-    y: aleatorio(MUNDO),
-    raio: Math.max(6, referencia * (0.5 + aleatorio(0.9))),
+    id: "bot-" + i + "-" + Math.floor(Math.random() * 1e6),
+    x,
+    y,
+    raio: Math.max(8, referencia * (0.4 + aleatorio(0.5))),
     cor: CORES_BOTS[i % CORES_BOTS.length],
     nome: "Bot " + (i + 1),
+    prot: 90, // ~3s de proteção
   };
 }
 
@@ -55,7 +161,7 @@ window.addEventListener("resize", redimensionar);
 
 function novoJogo() {
   redimensionar();
-  celulas = [{ x: MUNDO / 2, y: MUNDO / 2, raio: 12, ix: 0, iy: 0, it: 0 }];
+  celulas = [{ x: MUNDO / 2, y: MUNDO / 2, raio: 12, ix: 0, iy: 0, it: 0, prot: 60 }];
   bots = Array.from({ length: 6 }, (_, i) => novoBot(i));
   comidas = Array.from({ length: 90 }, () => novaComida());
   virus = Array.from({ length: 5 }, () => ({
@@ -94,6 +200,7 @@ function moverPara(bolha, x, y) {
 }
 
 function come(a, b) {
+  if ((a.prot && a.prot > 0) || (b.prot && b.prot > 0)) return false;
   return a.raio > b.raio * 1.15 && Math.hypot(a.x - b.x, a.y - b.y) < a.raio;
 }
 
@@ -161,6 +268,47 @@ function ejetar() {
 function passo() {
   if (fimDeJogo || document.hidden) return;
 
+  // proteção pós-nascimento vai acabando
+  for (const entidade of [...celulas, ...bots]) {
+    if (entidade.prot > 0) entidade.prot--;
+  }
+
+  // ---- rede: envia minha posição, expira quem sumiu, host transmite bots ----
+  if (onlineAtivo) {
+    tempoEnvio += 33;
+    if (tempoEnvio >= 120) {
+      tempoEnvio = 0;
+      const c = centro();
+      Online.enviar({
+        t: "p",
+        id: meuId,
+        x: Math.round(c.x),
+        y: Math.round(c.y),
+        raio: Math.round(raioTotal()),
+        cor: window.Cosmetico ? Cosmetico.dados("bolha") : "#4f8cff",
+        nome: Nuvem.apelido(),
+      });
+    }
+    const agora = Date.now();
+    outros.forEach((v, k) => {
+      if (agora - v.ts > 4000) outros.delete(k);
+    });
+    if (!souHost) bots = botsRemotos.map((b) => ({ ...b }));
+    if (souHost) {
+      tempoEnvioBots += 33;
+      if (tempoEnvioBots >= 200) {
+        tempoEnvioBots = 0;
+        Online.enviar({
+          t: "bots",
+          lista: bots.map((b) => ({
+            id: b.id, x: Math.round(b.x), y: Math.round(b.y),
+            raio: Math.round(b.raio), cor: b.cor, nome: b.nome, prot: b.prot || 0,
+          })),
+        });
+      }
+    }
+  }
+
   // movimento das suas bolhas (joystick + impulso do split)
   for (const celula of celulas) {
     if (celula.it > 0) {
@@ -181,6 +329,8 @@ function passo() {
   }
 
   // bots: perseguem presa menor mais próxima, fogem do maior próximo
+  // (no online, só o host pensa pelos bots)
+  if (!onlineAtivo || souHost)
   bots.forEach((bot) => {
     let perto = null;
     let distPerto = Infinity;
@@ -190,7 +340,8 @@ function passo() {
     let distAmeaca = 180;
     const alcanceCaca = alivio ? 190 : 250;
 
-    const todos = [...celulas, ...bots.filter((b) => b !== bot)];
+    const jogadoresReais = onlineAtivo ? [...outros.values()] : [];
+    const todos = [...celulas, ...jogadoresReais, ...bots.filter((b) => b !== bot)];
     todos.forEach((outro) => {
       const d = Math.hypot(outro.x - bot.x, outro.y - bot.y);
       if (outro.raio * 1.15 < bot.raio && d < distPerto) {
@@ -270,7 +421,12 @@ function passo() {
         crescer(celula, bot);
         Som.acerto();
         vibrar(30);
-        bots[bots.indexOf(bot)] = novoBot(bots.indexOf(bot));
+        if (onlineAtivo && !souHost) {
+          Online.enviar({ t: "comiBot", id: bot.id });
+          bots.splice(bots.indexOf(bot), 1);
+        } else {
+          bots[bots.indexOf(bot)] = novoBot(bots.indexOf(bot));
+        }
         botComido = true;
         break;
       }
@@ -284,8 +440,29 @@ function passo() {
         Som.erro();
         vibrar(80);
         if (celulas.length === 0) {
+          if (onlineAtivo) {
+            fuiComido(bot.nome);
+            return;
+          }
           perder();
           return;
+        }
+      }
+    }
+  }
+
+  // jogador real vs jogador real: quem é maior come
+  if (onlineAtivo) {
+    for (const [idOutro, outro] of [...outros]) {
+      for (const celula of celulas) {
+        if (come(celula, outro)) {
+          crescer(celula, outro);
+          Som.acerto();
+          vibrar(40);
+          avisoOnline(`Você comeu ${outro.nome}! 😋`);
+          Online.enviar({ t: "comi", alvo: idOutro, por: Nuvem.apelido() });
+          outros.delete(idOutro);
+          break;
         }
       }
     }
@@ -348,15 +525,37 @@ function desenhar() {
   });
 
   bots.forEach((b) => {
+    ctx.globalAlpha = b.prot > 0 ? 0.45 : 1;
     ctx.fillStyle = b.cor;
     ctx.beginPath();
     ctx.arc(b.x + cx, b.y + cy, b.raio, 0, Math.PI * 2);
     ctx.fill();
+    ctx.globalAlpha = 1;
     ctx.fillStyle = "#fff";
     ctx.font = `bold ${Math.max(10, Math.floor(b.raio * 0.6))}px sans-serif`;
     ctx.textAlign = "center";
     ctx.fillText(String(Math.floor(b.raio)), b.x + cx, b.y + cy + 4);
   });
+
+  // jogadores reais do aquário (nome em cima)
+  if (onlineAtivo) {
+    outros.forEach((j) => {
+      ctx.fillStyle = j.cor || "#ff9f4f";
+      ctx.beginPath();
+      ctx.arc(j.x + cx, j.y + cy, j.raio, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#ffd54f";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.fillStyle = "#ffd54f";
+      ctx.font = "bold 12px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(j.nome || "?", j.x + cx, j.y + cy - j.raio - 6);
+      ctx.fillStyle = "#fff";
+      ctx.font = `bold ${Math.max(10, Math.floor(j.raio * 0.6))}px sans-serif`;
+      ctx.fillText(String(Math.floor(j.raio)), j.x + cx, j.y + cy + 4);
+    });
+  }
 
   const corBolha = window.Cosmetico ? Cosmetico.dados("bolha") : "#4f8cff";
   celulas.forEach((celula) => {
@@ -377,6 +576,7 @@ function desenhar() {
   const ranking = [
     { nome: "Você", raio: raioTotal(), sou: true },
     ...bots.map((b) => ({ nome: b.nome, raio: b.raio })),
+    ...(onlineAtivo ? [...outros.values()].map((j) => ({ nome: j.nome, raio: j.raio })) : []),
   ].sort((a, b) => b.raio - a.raio);
 
   ctx.textAlign = "right";
@@ -503,7 +703,18 @@ function ligarBotao(id, acao) {
 ligarBotao("btn-dividir", dividir);
 ligarBotao("btn-ejetar", ejetar);
 
-botaoReiniciar.addEventListener("click", novoJogo);
+document.getElementById("btn-online").addEventListener("click", () => {
+  if (onlineAtivo) sairAquario();
+  else entrarAquario();
+});
+
+botaoReiniciar.addEventListener("click", () => {
+  if (onlineAtivo) {
+    avisoOnline("No aquário online não tem reiniciar — sobreviva! 🌊");
+    return;
+  }
+  novoJogo();
+});
 novoJogo();
 
 configurarMelhor("bolhas");
