@@ -572,25 +572,40 @@ function desenhar() {
     ctx.fillText(String(Math.floor(celula.raio)), celula.x + cx, celula.y + cy + 4);
   });
 
-  // placar ao vivo: quem é o maior do aquário
+  // faixa indicando modo online (fica bem claro que você está conectado)
+  if (onlineAtivo) {
+    ctx.strokeStyle = "#3fdf6f";
+    ctx.lineWidth = 4;
+    ctx.strokeRect(2, 2, tela.width - 4, tela.height - 4);
+    ctx.fillStyle = "#3fdf6f";
+    ctx.font = "bold 13px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("● AQUÁRIO ONLINE", tela.width / 2, 22);
+  }
+
+  // placar ao vivo: jogadores reais em destaque, bots apagados
   const ranking = [
-    { nome: "Você", raio: raioTotal(), sou: true },
-    ...bots.map((b) => ({ nome: b.nome, raio: b.raio })),
-    ...(onlineAtivo ? [...outros.values()].map((j) => ({ nome: j.nome, raio: j.raio })) : []),
-  ].sort((a, b) => b.raio - a.raio);
+    { nome: Nuvem && onlineAtivo ? Nuvem.apelido() : "Você", raio: raioTotal(), sou: true, real: true },
+    ...(onlineAtivo ? [...outros.values()].map((j) => ({ nome: j.nome, raio: j.raio, real: true })) : []),
+    ...bots.map((b) => ({ nome: b.nome, raio: b.raio, real: false })),
+  ].sort((a, b) => b.raio - a.raio).slice(0, 8);
 
   ctx.textAlign = "right";
   ctx.font = "bold 13px sans-serif";
+  const topoRank = onlineAtivo ? 40 : 64;
   ranking.forEach((r, i) => {
-    ctx.fillStyle = r.sou ? "#ffd54f" : "rgba(255,255,255,0.75)";
-    ctx.fillText(`${i + 1}º ${r.nome} — ${Math.floor(r.raio)}`, tela.width - 10, 64 + i * 18);
+    if (r.sou) ctx.fillStyle = "#ffd54f";
+    else if (r.real) ctx.fillStyle = "#ff9f4f"; // jogador real: laranja
+    else ctx.fillStyle = "rgba(255,255,255,0.4)"; // bot: apagado
+    const coroa = i === 0 ? "♛ " : `${i + 1}º `;
+    ctx.fillText(`${coroa}${r.nome} — ${Math.floor(r.raio)}`, tela.width - 10, topoRank + i * 18);
   });
 
-  // minimapa: visão geral do aquário
+  // minimapa: canto superior esquerdo, abaixo do HUD (longe do joystick)
   {
-    const M = 74;
+    const M = 70;
     const mx = 10;
-    const my = tela.height - M - 10;
+    const my = 52;
     const esc = M / MUNDO;
     ctx.fillStyle = "rgba(10, 16, 26, 0.7)";
     ctx.fillRect(mx, my, M, M);
@@ -605,8 +620,14 @@ function desenhar() {
       ctx.fillStyle = b.cor;
       ctx.fillRect(mx + b.x * esc - 2, my + b.y * esc - 2, 4, 4);
     });
+    if (onlineAtivo) {
+      outros.forEach((j) => {
+        ctx.fillStyle = "#ff9f4f";
+        ctx.fillRect(mx + j.x * esc - 2, my + j.y * esc - 2, 4, 4);
+      });
+    }
     celulas.forEach((celula) => {
-      ctx.fillStyle = "#ffd54f";
+      ctx.fillStyle = "#ffffff";
       ctx.fillRect(mx + celula.x * esc - 2.5, my + celula.y * esc - 2.5, 5, 5);
     });
   }
