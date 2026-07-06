@@ -39,6 +39,7 @@ const ICONES = {
   torre: _svg('<rect x="8" y="15" width="8" height="6"/><rect x="9" y="9" width="6" height="6"/><rect x="10" y="3" width="4" height="6"/><path d="M12 3V1"/>'),
   ranking: _svg('<rect x="3" y="10" width="5.5" height="11"/><rect x="9.25" y="5" width="5.5" height="16"/><rect x="15.5" y="13" width="5.5" height="8"/><path d="M12 2v1.5"/>'),
   raio: _svg('<path d="M13 2 5 13h5l-1 9 8-11h-5l1-9z"/>'),
+  baixar: _svg('<path d="M12 3v11M8 10l4 4 4-4"/><path d="M5 20h14"/>'),
   jogar: _svg('<circle cx="12" cy="12" r="10"/><path d="M10 8.5v7l6-3.5-6-3.5z" fill="currentColor"/>'),
   cadeado: _svg('<rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><circle cx="12" cy="15" r="1.4" fill="currentColor"/>'),
   broto: _svg('<path d="M12 21v-8"/><path d="M12 13c0-4-3-6-7-6 0 4 3 6 7 6z"/><path d="M12 10c0-3.5 2.5-5.5 6.5-5.5 0 4-2.5 5.5-6.5 5.5z"/>'),

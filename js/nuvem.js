@@ -112,6 +112,27 @@ const Nuvem = {
     } catch (e) { return {}; }
   },
 
+  async registrarInstalacao() {
+    try {
+      await fetch(this.URL + "/rest/v1/instalacoes", {
+        method: "POST",
+        headers: { ...this._cabecalhos(), Prefer: "resolution=ignore-duplicates" },
+        body: JSON.stringify({ device_id: this.deviceId() }),
+      });
+    } catch (e) {}
+  },
+
+  async contarInstalacoes() {
+    try {
+      const r = await fetch(this.URL + "/rest/v1/instalacoes?select=device_id", {
+        headers: { ...this._cabecalhos(), Prefer: "count=exact", Range: "0-0" },
+      });
+      const faixa = r.headers.get("content-range"); // ex: 0-0/123
+      if (faixa && faixa.includes("/")) return parseInt(faixa.split("/")[1], 10) || 0;
+      return 0;
+    } catch (e) { return 0; }
+  },
+
   _coletarSave() {
     const dados = {};
     for (let i = 0; i < localStorage.length; i++) {
