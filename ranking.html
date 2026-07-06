@@ -96,7 +96,7 @@
     function linha(pos, nome, valor, ehEu, rotulo) {
       return `<div class="linha-rank${ehEu ? " eu" : ""}">
         <span class="pos">${MEDALHAS[pos - 1] || pos + "º"}</span>
-        <span class="nome">${nome}</span>
+        <span class="nome">${escaparHtml(nome)}</span>
         <span class="pts">${valor}${rotulo ? " " + rotulo : ""}</span>
       </div>`;
     }

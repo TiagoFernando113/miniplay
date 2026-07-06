@@ -22,8 +22,12 @@ const Nuvem = {
     return id;
   },
 
+  _limparApelido(a) {
+    return String(a || "").replace(/[^\p{L}\p{N} _.-]/gu, "").slice(0, 16).trim();
+  },
+
   apelido() {
-    let apelido = localStorage.getItem("apelido");
+    let apelido = this._limparApelido(localStorage.getItem("apelido"));
     if (!apelido) {
       apelido = "Jogador" + Math.floor(1000 + Math.random() * 9000);
       localStorage.setItem("apelido", apelido);
@@ -67,6 +71,8 @@ const Nuvem = {
 
   // envia seu recorde de um jogo (só sobe se melhorou)
   async enviarRecorde(jogo, valor) {
+    const teto = (window.LIMITES_RANKING && LIMITES_RANKING[jogo]) || 1000000;
+    valor = Math.max(0, Math.min(teto, Math.floor(valor) || 0));
     try {
       await fetch(this.URL + "/rest/v1/recordes_jogos", {
         method: "POST",

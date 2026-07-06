@@ -1,5 +1,12 @@
 // Utilidades compartilhadas por todos os jogos (evita código repetido).
 
+// escapa texto de usuário antes de inserir em HTML (anti-XSS)
+function escaparHtml(s) {
+  return String(s == null ? "" : s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+
 function embaralhar(lista) {
   const copia = [...lista];
   for (let i = copia.length - 1; i > 0; i--) {
@@ -123,6 +130,11 @@ const RANKING_JOGOS = {
   genius: { nome: "Genius", rotulo: "rodada" },
   quiz: { nome: "Quiz", rotulo: "/10 acertos" },
 };
+const LIMITES_RANKING = {
+  passaro: 1000, torre: 500, cobrabatalha: 800, cobrinha: 800, bolhas: 500,
+  hexagono: 200000, blocos: 200000, p2048: 300000, doces: 200000,
+  alvo: 300, genius: 60, quiz: 10,
+};
 
 const JogoDaSemana = {
   atual() {
@@ -196,6 +208,8 @@ window.JOGOS_TODOS = JOGOS_TODOS;
 window.NOMES_JOGOS = NOMES_JOGOS;
 window.JogoDaSemana = JogoDaSemana;
 window.RANKING_JOGOS = RANKING_JOGOS;
+window.LIMITES_RANKING = LIMITES_RANKING;
+window.escaparHtml = escaparHtml;
 window.Nivel = Nivel;
 window.Ranking = Ranking;
 window.Retomar = Retomar;

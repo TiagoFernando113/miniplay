@@ -103,7 +103,7 @@
       });
 
       document.getElementById("entrar").addEventListener("click", () => {
-        const nome = document.getElementById("campo-nome").value.trim().slice(0, 16);
+        const nome = document.getElementById("campo-nome").value.replace(/[^\p{L}\p{N} _.-]/gu, "").trim().slice(0, 16);
         if (!nome) {
           document.getElementById("campo-nome").style.borderColor = "#ff6f6f";
           Som.erro();
@@ -128,7 +128,7 @@
     {
       const apelido = localStorage.getItem("apelido");
       document.getElementById("linha-streak").innerHTML =
-        (apelido ? `<strong>${apelido}</strong> · ` : "") +
+        (apelido ? `<strong>${escaparHtml(apelido)}</strong> · ` : "") +
         '<span class="icone-inline" data-icone="fogo" style="color:#ff9f4f;"></span> ' +
         `${diario.streak} dia(s) seguidos`;
     }

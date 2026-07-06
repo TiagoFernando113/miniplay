@@ -180,7 +180,7 @@
     const campoApelido = document.getElementById("campo-apelido");
     campoApelido.value = Nuvem.apelido();
     campoApelido.addEventListener("change", () => {
-      const novo = campoApelido.value.trim().slice(0, 16);
+      const novo = campoApelido.value.replace(/[^\p{L}\p{N} _.-]/gu, "").trim().slice(0, 16);
       if (novo) {
         localStorage.setItem("apelido", novo);
         Som.acerto();
