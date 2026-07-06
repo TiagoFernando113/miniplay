@@ -361,13 +361,43 @@ function atualizarObjetivo() {
 }
 
 function morrer() {
-  rodando = false;
   const pontos = jogador.nivel * 6 + Math.floor(jogador.score * 0.1);
   Pontos.add(pontos);
-  const rec = Recordes.salvar("tanques", jogador.nivel);
+  Recordes.salvar("tanques", jogador.nivel);
   if (window.Missoes) Missoes.partida();
   if (window.Stats) Stats.partida();
-  telaDeMorte(rec, pontos);
+  Som.erro(); vibrar(150);
+  telaRespawn(pontos);
+}
+
+let contagemMorte2 = null;
+function telaRespawn(pontos) {
+  const f = document.createElement("div");
+  f.className = "modal-fundo visivel"; f.id = "tela-morte";
+  f.innerHTML = `<div class="modal-caixa">
+    <div class="modal-emoji">💥</div>
+    <h2>Você foi destruído!</h2>
+    <p>Chegou ao nível ${jogador.nivel} (${jogador.classe.nome}) • +${pontos} pontos</p>
+    <button class="btn" id="m-renascer">Renascer agora</button>
+    <p style="color:var(--text-dim);font-size:0.85rem;margin:12px 0 0;">renascendo em <strong id="m-cont">4</strong>s...</p>
+    <button class="btn secundario" id="m-lobby" style="width:100%;margin-top:10px;">Sair pro menu</button>
+  </div>`;
+  document.body.appendChild(f);
+  const fechar = () => { clearInterval(contagemMorte2); f.remove(); };
+  f.querySelector("#m-renascer").addEventListener("click", () => { fechar(); renascer(); });
+  f.querySelector("#m-lobby").addEventListener("click", () => { fechar(); rodando = false; abrirLobby(); });
+  let r = 4;
+  contagemMorte2 = setInterval(() => { r--; const el = document.getElementById("m-cont"); if (el) el.textContent = r; if (r <= 0) { fechar(); renascer(); } }, 1000);
+}
+
+function renascer() {
+  let x, y, tent = 0;
+  do { x = Math.random() * MUNDO; y = Math.random() * MUNDO; tent++; }
+  while (tent < 20 && chefeVivo && Math.hypot(chefeVivo.x - x, chefeVivo.y - y) < 500);
+  const novo = novoTanque(x, y, corTanque(), Nuvem ? Nuvem.apelido() : "Você", true);
+  Object.assign(jogador, novo);
+  jogador.vivo = true; jogador.prot = 150;
+  atualizarHud();
 }
 
 let contagemMorte = null;
@@ -457,6 +487,20 @@ function desenhar() {
   ctx.fillStyle = jogador.vida > jogador.vidaMax * 0.3 ? "#6fdf6f" : "#ff6f6f"; ctx.fillRect(cx - bw / 2, tela.height - 28, bw * (jogador.vida / jogador.vidaMax), 10);
   ctx.fillStyle = "rgba(0,0,0,0.5)"; ctx.fillRect(cx - bw / 2, tela.height - 15, bw, 6);
   ctx.fillStyle = "#25c8e8"; ctx.fillRect(cx - bw / 2, tela.height - 15, bw * (jogador.xp / jogador.xpProx), 6);
+
+  // minimapa
+  {
+    const M = 94, mx = 12, my = 66, esc = M / MUNDO;
+    ctx.fillStyle = "rgba(10,16,26,0.65)"; ctx.fillRect(mx, my, M, M);
+    ctx.strokeStyle = "rgba(255,255,255,0.2)"; ctx.lineWidth = 1; ctx.strokeRect(mx, my, M, M);
+    formas.forEach((fo) => { ctx.fillStyle = "rgba(255,255,255,0.15)"; ctx.fillRect(mx + fo.x * esc, my + fo.y * esc, 1, 1); });
+    tanques.forEach((t) => {
+      if (!t.vivo) return;
+      ctx.fillStyle = t.sou ? "#ffd54f" : t.boss ? "#ff2f55" : "rgba(255,255,255,0.6)";
+      const s = t.boss ? 5 : 3;
+      ctx.fillRect(mx + t.x * esc - s / 2, my + t.y * esc - s / 2, s, s);
+    });
+  }
 
   // ranking dos mais fortes (top 6)
   const rank = [...tanques].filter((t) => t.vivo).sort((a, b) => b.score - a.score).slice(0, 6);
