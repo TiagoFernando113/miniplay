@@ -167,5 +167,18 @@
     });
     aplicarIcones();
   </script>
+  <script>
+    window.__appOK = window.__appOK || false;
+    setTimeout(function () {
+      if (!window.__appOK) {
+        document.body.innerHTML =
+          '<div style="padding:48px 24px;text-align:center;font-family:sans-serif;color:#f0f0f0;background:#121212;min-height:100vh;box-sizing:border-box">' +
+          '<div style="font-size:3rem">📲</div>' +
+          '<h2>Atualize seu navegador</h2>' +
+          '<p style="color:#a0a0a0;line-height:1.5">O MiniPlay precisa de um navegador mais recente.<br>' +
+          'Abra a Play Store, atualize o <b>Google Chrome</b> e tente de novo.</p></div>';
+      }
+    }, 3500);
+  </script>
 </body>
 </html>

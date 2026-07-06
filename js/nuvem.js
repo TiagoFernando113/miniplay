@@ -102,7 +102,7 @@ const Nuvem = {
   // quem está online agora (últimos 40s), agrupado por jogo
   async contarOnline() {
     try {
-      const desde = new Date(Date.now() - 40000).toISOString();
+      const desde = new Date(Date.now() - 70000).toISOString();
       const r = await fetch(this.URL + `/rest/v1/online_agora?atualizado_em=gt.${desde}&select=jogo`, { headers: this._cabecalhos() });
       if (!r.ok) return {};
       const linhas = await r.json();

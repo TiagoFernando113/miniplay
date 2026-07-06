@@ -1,4 +1,4 @@
-const APP_VERSAO = "v64";
+const APP_VERSAO = "v65";
 
 // mata o menu de toque longo (copiar link...) — MENOS em campos de texto,
 // senão o jogador não consegue copiar/colar o código de backup!
@@ -11,6 +11,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const el = document.getElementById("versao-app");
   if (el) el.textContent = APP_VERSAO;
 });
+
+// auto-save na nuvem: se o jogador ativou um código, salva sozinho
+function autoSalvarNuvem() {
+  const cod = localStorage.getItem("codigoNuvem");
+  if (cod && window.Nuvem) Nuvem.salvarNuvem(cod);
+}
+document.addEventListener("visibilitychange", () => { if (document.hidden) autoSalvarNuvem(); });
+setInterval(autoSalvarNuvem, 180000);
 
 if ("serviceWorker" in navigator) {
   const base = location.pathname.includes("/games/") ? "../../" : "./";

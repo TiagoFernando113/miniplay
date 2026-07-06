@@ -220,7 +220,7 @@ function iniciarPresencaOnline(jogo) {
   pararPresencaOnline();
   if (!window.Nuvem) return;
   Nuvem.baterPresenca(jogo);
-  _presencaTimer = setInterval(() => { if (!document.hidden) Nuvem.baterPresenca(jogo); }, 12000);
+  _presencaTimer = setInterval(() => { if (!document.hidden) Nuvem.baterPresenca(jogo); }, 9000);
 }
 function pararPresencaOnline() {
   if (_presencaTimer) { clearInterval(_presencaTimer); _presencaTimer = null; }
