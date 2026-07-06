@@ -1,4 +1,4 @@
-const CACHE = "minigames-v76";
+const CACHE = "minigames-v77";
 
 const ARQUIVOS = [
   "./",
@@ -75,6 +75,23 @@ const ARQUIVOS = [
   "./games/cobrabatalha/index.html",
   "./games/cobrabatalha/jogo.js",
 ];
+
+self.addEventListener("push", (evento) => {
+  let d = {};
+  try { d = evento.data.json(); } catch (e) {}
+  evento.waitUntil(self.registration.showNotification(d.title || "MiniPlay", {
+    body: d.body || "",
+    icon: "./icons/icone-192.png",
+    badge: "./icons/icone-192.png",
+    data: { url: d.url || "./" },
+  }));
+});
+
+self.addEventListener("notificationclick", (evento) => {
+  evento.notification.close();
+  const url = (evento.notification.data && evento.notification.data.url) || "./";
+  evento.waitUntil(clients.openWindow(url));
+});
 
 self.addEventListener("message", (evento) => {
   if (evento.data && evento.data.tipo === "ATUALIZAR") self.skipWaiting();

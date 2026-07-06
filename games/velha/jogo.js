@@ -280,6 +280,7 @@ async function criarSala() {
     await Online.abrir(codigo, aoMensagemOnline, aoPresencaOnline);
     salaAtual = codigo;
     if (window.iniciarPresencaOnline) iniciarPresencaOnline("velha");
+    if (window.Nuvem) { Nuvem.registrarPush(); Nuvem.notificarOnline("velha"); }
     criarTabuleiro();
     mostrarEspera(true);
     document.getElementById("codigo-grande").textContent = codigo;

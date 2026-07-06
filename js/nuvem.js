@@ -184,6 +184,50 @@ const Nuvem = {
       return await r.json();
     } catch (e) { return null; }
   },
+
+  // ---- notificações push ----
+  _vapidPublic: "BCpTVejUow9jkWIMtTEbzcdFKNR-7ryk7OHIsNefFjYnMzszlkf2kGCrPlod_kOBR-AWBFRXC4bdhh53WxMgJjc",
+
+  _b64ToUint8(base64) {
+    const pad = "=".repeat((4 - (base64.length % 4)) % 4);
+    const b = (base64 + pad).replace(/-/g, "+").replace(/_/g, "/");
+    const raw = atob(b);
+    const arr = new Uint8Array(raw.length);
+    for (let i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
+    return arr;
+  },
+
+  async registrarPush() {
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) return false;
+    try {
+      const perm = await Notification.requestPermission();
+      if (perm !== "granted") return false;
+      const reg = await navigator.serviceWorker.ready;
+      let sub = await reg.pushManager.getSubscription();
+      if (!sub) {
+        sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: this._b64ToUint8(this._vapidPublic),
+        });
+      }
+      await fetch(this.URL + "/rest/v1/push_subs", {
+        method: "POST",
+        headers: { ...this._cabecalhos(), Prefer: "resolution=merge-duplicates" },
+        body: JSON.stringify({ device_id: this.deviceId(), sub, atualizado_em: new Date().toISOString() }),
+      });
+      return true;
+    } catch (e) { return false; }
+  },
+
+  async notificarOnline(jogo) {
+    try {
+      await fetch(this.URL + "/functions/v1/notificar", {
+        method: "POST",
+        headers: { ...this._cabecalhos() },
+        body: JSON.stringify({ jogo, apelido: this.apelido(), exceto: this.deviceId() }),
+      });
+    } catch (e) {}
+  },
 };
 
 window.Nuvem = Nuvem;

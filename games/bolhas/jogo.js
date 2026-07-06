@@ -95,6 +95,7 @@ async function entrarAquario() {
     await Online.abrir("BOLHAS", aoMensagemAquario, aoPresencaAquario);
     onlineAtivo = true;
     localStorage.setItem("reconectar-bolhas", Date.now());
+    if (window.Nuvem) { Nuvem.registrarPush(); Nuvem.notificarOnline("bolhas"); }
     if (window.iniciarPresencaOnline) iniciarPresencaOnline("bolhas");
     novoJogo(); // todo mundo começa pequeno: justo
     onlineAtivo = true; // (novoJogo não desliga o online)

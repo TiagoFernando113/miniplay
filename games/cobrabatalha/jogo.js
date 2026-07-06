@@ -490,6 +490,7 @@ async function entrarOnline() {
     await Online.abrir("COBRAS", aoMensagem, aoPresenca);
     onlineAtivo = true;
     localStorage.setItem("reconectar-cobrabatalha", Date.now());
+    if (window.Nuvem) { Nuvem.registrarPush(); Nuvem.notificarOnline("cobrabatalha"); }
     if (window.iniciarPresencaOnline) iniciarPresencaOnline("cobrabatalha");
     novoJogo();
   } catch (e) {
