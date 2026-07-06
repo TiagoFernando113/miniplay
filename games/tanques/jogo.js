@@ -37,6 +37,7 @@ const NOMES_BOT = ["Rex", "Nova", "Zé", "Kira", "Bolt", "Duda", "Max", "Yuki", 
 const CORES = ["#ff6f6f", "#6fbfff", "#ffd54f", "#cf8fff", "#6fdf9f", "#ff9f4f", "#25c8e8", "#ff7fbf"];
 
 let jogador, tanques, formas, balas, particulas, rodando, pausadoUpgrade, laco = 0;
+let chefeVivo = null, proximoChefe = 6;
 let joystick = null;
 
 function corTanque() { return window.Cosmetico && Cosmetico.dados("bolha") ? Cosmetico.dados("bolha") : "#4faf4f"; }
@@ -59,9 +60,9 @@ function novaForma() {
   const r = Math.random();
   const tipo = r < 0.55 ? "quadrado" : r < 0.85 ? "triangulo" : "penta";
   const dados = {
-    quadrado: { lados: 4, raio: 15, vida: 18, xp: 3, cor: "#ffd54f", vel: 0.9, dano: 0.10 },
-    triangulo: { lados: 3, raio: 18, vida: 30, xp: 7, cor: "#ff6f6f", vel: 1.3, dano: 0.16 },
-    penta: { lados: 5, raio: 25, vida: 80, xp: 18, cor: "#6f8fff", vel: 0.7, dano: 0.24 },
+    quadrado: { lados: 4, raio: 15, vida: 18, xp: 3, cor: "#ffd54f", vel: 1.1, dano: 0.14 },
+    triangulo: { lados: 3, raio: 18, vida: 30, xp: 7, cor: "#ff6f6f", vel: 1.6, dano: 0.22 },
+    penta: { lados: 5, raio: 25, vida: 80, xp: 18, cor: "#6f8fff", vel: 0.9, dano: 0.34 },
   }[tipo];
   // espalhada aleatoriamente pelo mapa (feito bolinha de XP), longe do jogador
   let x, y, tent = 0;
@@ -80,7 +81,12 @@ function botLonge() {
   do { x = Math.random() * MUNDO; y = Math.random() * MUNDO; t++; }
   while (t < 20 && jogador && Math.hypot(jogador.x - x, jogador.y - y) < 400);
   const i = tanques ? tanques.length : 0;
-  return novoTanque(x, y, CORES[i % CORES.length], NOMES_BOT[i % NOMES_BOT.length], false);
+  const b = novoTanque(x, y, CORES[i % CORES.length], NOMES_BOT[i % NOMES_BOT.length], false);
+  const esc = 1 + (jogador ? jogador.nivel : 1) * 0.08;
+  b.vidaMax *= esc; b.vida = b.vidaMax; b.dano *= esc; b.score = Math.floor((jogador ? jogador.nivel : 1) * 6);
+  // dá uma classe conforme o nível do jogo
+  if (jogador && jogador.nivel > 6) { const cs = ["gemeo","metralhadora","triplo"]; b.classe = CLASSES[cs[i % cs.length]]; }
+  return b;
 }
 
 function novoJogo() {
@@ -90,7 +96,7 @@ function novoJogo() {
   for (let i = 0; i < NUM_BOTS; i++) tanques.push(botLonge());
   formas = Array.from({ length: 70 }, novaForma);
   balas = []; particulas = [];
-  rodando = true; pausadoUpgrade = false; joystick = null;
+  rodando = true; pausadoUpgrade = false; joystick = null; chefeVivo = null; proximoChefe = 6;
   painelUp.style.display = "none"; painelUp.innerHTML = "";
   atualizarHud();
   if (!laco) iniciarLaco();
@@ -166,7 +172,13 @@ function passo() {
     let alvoMira = null;
     if (alvo.tanque) alvoMira = alvo.tanque; else if (alvo.forma) alvoMira = alvo.forma;
 
-    if (!t.sou) {
+    if (t.boss) {
+      // chefe caça o jogador sem medo
+      const a = Math.atan2(jogador.y - t.y, jogador.x - t.x);
+      const d = Math.hypot(jogador.x - t.x, jogador.y - t.y);
+      if (d > t.raio + 40) { t.x += Math.cos(a) * t.velocidade; t.y += Math.sin(a) * t.velocidade; }
+      t.x = Math.max(0, Math.min(MUNDO, t.x)); t.y = Math.max(0, Math.min(MUNDO, t.y));
+    } else if (!t.sou) {
       // bot: decide andar
       let destino = alvo.forma;
       if (alvo.tanque) {
@@ -248,6 +260,19 @@ function passo() {
   particulas = particulas.filter((p) => { p.x += p.vx; p.y += p.vy; p.vida--; return p.vida > 0; });
 }
 
+function spawnChefe() {
+  const nv = jogador.nivel;
+  const ang = Math.random() * 6.283;
+  const b = novoTanque(jogador.x + Math.cos(ang) * 520, jogador.y + Math.sin(ang) * 520, "#ff2f55", "CHEFE", false);
+  b.boss = true; b.raio = 46; b.vidaMax = 500 + nv * 90; b.vida = b.vidaMax;
+  b.dano = 22 + nv * 3; b.velocidade = 2.4; b.velBala = 8; b.cadencia = 16;
+  b.classe = CLASSES.penta; b.score = 300 + nv * 20;
+  tanques.push(b); chefeVivo = b;
+  if (window.Missoes) Missoes.toast("O CHEFE apareceu! Derrote-o!");
+  Som.erro(); vibrar([60, 40, 60]);
+  atualizarObjetivo();
+}
+
 function darXp(t, q) {
   if (!t || !t.vivo) return;
   t.score += q; t.xp += q;
@@ -257,6 +282,7 @@ function darXp(t, q) {
     t.vidaMax += 8; t.vida += 8; t.dano *= 1.03;
     t.raio = Math.min(40, 22 + t.nivel * 0.5);
     subirNivel(t);
+    if (t.sou && !chefeVivo && t.nivel >= proximoChefe) { proximoChefe = t.nivel + 8; spawnChefe(); }
   }
   if (t.sou) atualizarHud();
 }
@@ -270,6 +296,12 @@ function matarTanque(t, autor) {
     darXp(autor, 40 + Math.floor(t.nivel * 8)); // matar tank = muito XP
   }
   if (t.sou) { Som.erro(); vibrar(150); morrer(); return; }
+  if (t.boss) {
+    chefeVivo = null;
+    if (autor && autor.sou) { autor.score += 500; if (window.Missoes) Missoes.toast("CHEFE derrotado! +500"); Som.vitoria(); }
+    atualizarObjetivo();
+    return;
+  }
   Som.acerto();
   // bot renasce fraco depois de um tempo (mantém a arena cheia)
   setTimeout(() => {
@@ -308,7 +340,12 @@ function subirNivel(t) {
   });
 }
 
-function atualizarHud() { nivelEl.textContent = jogador.nivel; ondaEl.textContent = jogador.classe.nome; placarEl.textContent = jogador.score; }
+function atualizarHud() { nivelEl.textContent = jogador.nivel; ondaEl.textContent = jogador.classe.nome; placarEl.textContent = jogador.score; atualizarObjetivo(); }
+function atualizarObjetivo() {
+  const el = document.getElementById("objetivo"); if (!el) return;
+  el.textContent = chefeVivo ? "DERROTE O CHEFE!" : `Objetivo: chegue no Nv ${proximoChefe} (Chefe)`;
+  el.style.color = chefeVivo ? "#ff5f6f" : "var(--text-dim)";
+}
 
 function morrer() {
   rodando = false;
