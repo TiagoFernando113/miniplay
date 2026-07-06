@@ -174,6 +174,35 @@
       painel.appendChild(linha);
     });
     aplicarIcones();
+
+    // aviso: alguém entrou num jogo online
+    const NOMES_ONLINE = { cobrabatalha: "Cobra Batalha", bolhas: "Bolhas", velha: "Jogo da Velha" };
+    const CAMINHO_ONLINE = { cobrabatalha: "games/cobrabatalha/index.html", bolhas: "games/bolhas/index.html", velha: "games/velha/index.html" };
+    let presencaAnterior = {};
+    let primeiraChecagem = true;
+    function avisarEntrada(jogo, n) {
+      const aviso = document.createElement("a");
+      aviso.href = CAMINHO_ONLINE[jogo];
+      aviso.className = "toast-conquista";
+      aviso.style.textDecoration = "none";
+      aviso.textContent = `🟢 ${n} jogando ${NOMES_ONLINE[jogo]} agora — toque pra entrar!`;
+      document.body.appendChild(aviso);
+      requestAnimationFrame(() => aviso.classList.add("visivel"));
+      setTimeout(() => { aviso.classList.remove("visivel"); setTimeout(() => aviso.remove(), 400); }, 5000);
+    }
+    async function checarOnline() {
+      if (!window.Nuvem) return;
+      const cont = await Nuvem.contarOnline();
+      if (!primeiraChecagem) {
+        Object.keys(NOMES_ONLINE).forEach((jogo) => {
+          if ((cont[jogo] || 0) > (presencaAnterior[jogo] || 0)) avisarEntrada(jogo, cont[jogo]);
+        });
+      }
+      presencaAnterior = cont;
+      primeiraChecagem = false;
+    }
+    checarOnline();
+    setInterval(checarOnline, 20000);
   </script>
   <script>
     window.__appOK = window.__appOK || false;

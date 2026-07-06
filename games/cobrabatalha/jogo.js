@@ -489,6 +489,7 @@ async function entrarOnline() {
   try {
     await Online.abrir("COBRAS", aoMensagem, aoPresenca);
     onlineAtivo = true;
+    localStorage.setItem("reconectar-cobrabatalha", Date.now());
     if (window.iniciarPresencaOnline) iniciarPresencaOnline("cobrabatalha");
     novoJogo();
   } catch (e) {
@@ -500,6 +501,7 @@ async function entrarOnline() {
 function abrirLobby() {
   rodando = false;
   onlineAtivo = false;
+  localStorage.removeItem("reconectar-cobrabatalha");
   if (window.pararPresencaOnline) pararPresencaOnline();
   if (window.Online) Online.fechar();
   Lobby.mostrar({
@@ -529,4 +531,8 @@ botaoTurbo.addEventListener("mouseleave", desligaTurbo);
 document.getElementById("btn-lobby").addEventListener("click", abrirLobby);
 document.getElementById("btn-voltar").addEventListener("click", abrirLobby);
 configurarMelhor("cobrabatalha");
+
+// voltou de um online recente? reconecta em vez de cair pro lobby
+const _rec = parseInt(localStorage.getItem("reconectar-cobrabatalha") || "0", 10);
+if (_rec && Date.now() - _rec < 120000) { entrarOnline(); }
 abrirLobby();

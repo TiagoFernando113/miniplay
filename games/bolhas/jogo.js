@@ -94,6 +94,7 @@ async function entrarAquario() {
   try {
     await Online.abrir("BOLHAS", aoMensagemAquario, aoPresencaAquario);
     onlineAtivo = true;
+    localStorage.setItem("reconectar-bolhas", Date.now());
     if (window.iniciarPresencaOnline) iniciarPresencaOnline("bolhas");
     novoJogo(); // todo mundo começa pequeno: justo
     onlineAtivo = true; // (novoJogo não desliga o online)
@@ -736,6 +737,7 @@ ligarBotao("btn-ejetar", ejetar);
 function abrirLobby() {
   rodando = false;
   onlineAtivo = false;
+  localStorage.removeItem("reconectar-bolhas");
   if (window.pararPresencaOnline) pararPresencaOnline();
   souHost = false;
   outros.clear();
