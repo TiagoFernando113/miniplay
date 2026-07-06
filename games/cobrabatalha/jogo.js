@@ -333,9 +333,10 @@ function fuiMorto(por) {
   vibrar(120);
   avisoRapido(`Pego por ${por}! +${ganhos} pts — renasceu`);
   // renasce na hora, sem interromper o jogo
-  eu = novaCobra(aleatorio(MUNDO), aleatorio(MUNDO), corDaSkin()[0], Nuvem.apelido());
+  eu = novaCobra(200 + aleatorio(MUNDO - 400), 200 + aleatorio(MUNDO - 400), corDaSkin()[0], Nuvem.apelido());
   eu.sou = true;
   eu.prot = 120;
+  eu.bateuParede = false;
   placarEl.textContent = "0";
 }
 
@@ -344,14 +345,42 @@ function perder() {
   const ganhos = Math.max((eu.tamanho - 8) * 2, 3);
   Pontos.add(ganhos);
   const rec = Recordes.salvar("cobrabatalha", eu.tamanho - 8);
+  if (window.Missoes) Missoes.partida();
+  if (window.Stats) Stats.partida();
   Som.erro();
   vibrar(120);
-  setTimeout(() => Modal.mostrar({
-    emoji: rec ? "🏆" : "🐍",
-    titulo: rec ? "Novo recorde!" : "Você bateu!",
-    texto: `Tamanho ${eu.tamanho} • +${ganhos} pontos`,
-    aoJogarDeNovo: () => { novoJogo(); }, aoMenu: abrirLobby,
-  }), 300);
+  telaDeMorte(rec, ganhos);
+}
+
+let contagemMorte = null;
+function telaDeMorte(recorde, ganhos) {
+  const fundo = document.createElement("div");
+  fundo.className = "modal-fundo visivel";
+  fundo.id = "tela-morte";
+  fundo.innerHTML = `
+    <div class="modal-caixa">
+      <div class="modal-emoji">${recorde ? "🏆" : "🐍"}</div>
+      <h2>${recorde ? "Novo recorde!" : "Você bateu!"}</h2>
+      <p>Tamanho ${eu.tamanho} • +${ganhos} pontos</p>
+      <button class="btn" id="morte-jogar">Jogar de novo</button>
+      <p style="color:var(--text-dim);font-size:0.85rem;margin:12px 0 0;">
+        voltando em <strong id="morte-contagem">10</strong>s...
+      </p>
+      <button class="modal-menu" id="morte-lobby" style="background:none;border:none;cursor:pointer;">Voltar pro lobby</button>
+    </div>`;
+  document.body.appendChild(fundo);
+
+  const fechar = () => { clearInterval(contagemMorte); fundo.remove(); };
+  document.getElementById("morte-jogar").addEventListener("click", () => { fechar(); novoJogo(); });
+  document.getElementById("morte-lobby").addEventListener("click", () => { fechar(); abrirLobby(); });
+
+  let resta = 10;
+  contagemMorte = setInterval(() => {
+    resta--;
+    const el = document.getElementById("morte-contagem");
+    if (el) el.textContent = resta;
+    if (resta <= 0) { fechar(); novoJogo(); } // entra sozinho
+  }, 1000);
 }
 
 function desenharCobra(c, cx, cy, souEu) {
