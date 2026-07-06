@@ -17,6 +17,13 @@
       font-weight: 600; font-size: 0.92rem;
     }
     .linha-rank .pos { width: 34px; text-align: center; font-weight: 800; color: var(--text-dim); }
+    .linha-rank .pos.p1 { color: #ffd54f; }
+    .linha-rank .pos.p2 { color: #cfd6de; }
+    .linha-rank .pos.p3 { color: #e0955f; }
+    .enf svg { width: 14px; height: 14px; vertical-align: -2px; }
+    .enf-pres svg { color: #7fdfff; }
+    .enf-streak { color: #ff9f4f; font-weight: 800; font-size: 0.78rem; }
+    .enf-streak svg { color: #ff9f4f; }
     .linha-rank .nome { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .linha-rank .pts { color: var(--accent); font-weight: 800; }
     .linha-rank.eu { border: 2px solid var(--accent); background: linear-gradient(90deg, var(--card-bg), rgba(79,140,255,0.15)); }
@@ -94,8 +101,9 @@
     });
 
     function linha(pos, nome, valor, ehEu, rotulo, sufixo) {
+      const corPos = pos <= 3 ? " p" + pos : "";
       return `<div class="linha-rank${ehEu ? " eu" : ""}">
-        <span class="pos">${pos}º</span>
+        <span class="pos${corPos}">${pos}º</span>
         <span class="nome">${escaparHtml(nome)}${sufixo || ""}</span>
         <span class="pts">${valor}${rotulo ? " " + rotulo : ""}</span>
       </div>`;
@@ -125,24 +133,22 @@
         Nuvem.enviarPontuacao(Ranking.pontosDaSemana()); // não trava a exibição
         const online = await Nuvem.buscarRanking();
         const enfeite = (r) =>
-          (r.prestigio ? ' <span style="color:#7fdfff;font-weight:800">◆</span>' : "") +
-          (r.streak >= 2 ? ` <span style="color:#ff9f4f;font-size:0.78rem;font-weight:800">${r.streak}d</span>` : "");
+          (r.prestigio ? ` <span class="enf enf-pres">${ICONES.gema}</span>` : "") +
+          (r.streak >= 2 ? ` <span class="enf enf-streak">${ICONES.fogo}${r.streak}</span>` : "");
         const lista = online ? online.map((r) => ({
           nome: (r.device_id === meuId ? r.apelido + " (você)" : r.apelido),
           valor: r.pontos, eu: r.device_id === meuId, suf: enfeite(r),
         })) : [];
-        if (atual !== "geral") return; // trocou de aba enquanto carregava
+        if (atual !== "geral") return;
         if (online) {
-          const bots = Ranking.lista().filter((b) => !b.eu).map((b) => ({ nome: b.nome, valor: b.pontos, bot: true }));
-          while (lista.length < 12 && bots.length) lista.push(bots.shift());
           lista.sort((a, b) => b.valor - a.valor);
-          const html = lista.slice(0, 20).map((j, i) => linha(i + 1, j.nome + (j.bot ? " (bot)" : ""), j.valor, j.eu, "pts", j.suf)).join("");
+          const html = lista.slice(0, 30).map((j, i) => linha(i + 1, j.nome, j.valor, j.eu, "pts", j.suf)).join("")
+            || '<p style="text-align:center;color:var(--text-dim);">Ninguém no ranking ainda.</p>';
           listaEl.innerHTML = html;
           salvarCache("geral", html, "");
-          avisoEl.textContent = "🌐 Ranking online — bots completam a lista enquanto a comunidade cresce.";
+          avisoEl.textContent = "Ranking mundial por pontos totais.";
         } else if (!cache.geral) {
-          listaEl.innerHTML = Ranking.lista().map((j, i) => linha(i + 1, j.nome, j.pontos, j.sou, "pts")).join("");
-          avisoEl.textContent = "Sem conexão — ranking de treino com bots.";
+          listaEl.innerHTML = '<p style="text-align:center;color:var(--text-dim);">Sem conexão — abra com internet.</p>';
         }
         aplicarIcones();
         return;
