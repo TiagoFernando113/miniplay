@@ -163,8 +163,8 @@ function passo() {
     if (t.prot > 0) t.prot--;
     if (t.regen && t.vida < t.vidaMax) t.vida = Math.min(t.vidaMax, t.vida + t.regen);
     const alvo = alvoDe(t);
-    let mira = null;
-    if (alvo.tanque) mira = alvo.tanque; else if (alvo.forma) mira = alvo.forma;
+    let alvoMira = null;
+    if (alvo.tanque) alvoMira = alvo.tanque; else if (alvo.forma) alvoMira = alvo.forma;
 
     if (!t.sou) {
       // bot: decide andar
@@ -188,9 +188,13 @@ function passo() {
       t.x = Math.max(0, Math.min(MUNDO, t.x)); t.y = Math.max(0, Math.min(MUNDO, t.y));
     }
 
-    // mira e atira
-    if (mira) {
-      t.ang = Math.atan2(mira.y - t.y, mira.x - t.x);
+    // mira: jogador com joystick direito mira à mão e atira sempre; bots e auto usam alvo
+    if (t.sou && mira && (mira.dx || mira.dy)) {
+      t.ang = Math.atan2(mira.dy, mira.dx);
+      t.recarga--;
+      if (t.recarga <= 0 && t.prot <= 0) { atirar(t, t.ang); t.recarga = t.cadencia * t.classe.cad; }
+    } else if (alvoMira) {
+      t.ang = Math.atan2(alvoMira.y - t.y, alvoMira.x - t.x);
       t.recarga--;
       if (t.recarga <= 0 && t.prot <= 0) { atirar(t, t.ang); t.recarga = t.cadencia * t.classe.cad; }
     } else if (t.recarga > 0) t.recarga--;
@@ -402,31 +406,57 @@ function desenhar() {
   ctx.textAlign = "right"; ctx.font = "bold 12px sans-serif";
   rank.forEach((t, i) => { ctx.fillStyle = t.sou ? "#ffd54f" : "rgba(255,255,255,0.65)"; ctx.fillText(`${i + 1}º ${t.nome} — ${t.score}`, tela.width - 10, 74 + i * 17); });
 
-  if (joystick) {
-    ctx.strokeStyle = "rgba(255,255,255,0.35)"; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.arc(joystick.bx, joystick.by, 46, 0, 6.283); ctx.stroke();
-    ctx.fillStyle = "rgba(255,255,255,0.45)"; ctx.beginPath(); ctx.arc(joystick.kx, joystick.ky, 20, 0, 6.283); ctx.fill();
-  }
+  [joystick, mira].forEach((joy, i) => {
+    if (!joy) return;
+    ctx.strokeStyle = i ? "rgba(255,150,80,0.5)" : "rgba(255,255,255,0.35)"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(joy.bx, joy.by, 46, 0, 6.283); ctx.stroke();
+    ctx.fillStyle = i ? "rgba(255,150,80,0.55)" : "rgba(255,255,255,0.45)";
+    ctx.beginPath(); ctx.arc(joy.kx, joy.ky, 20, 0, 6.283); ctx.fill();
+  });
 }
 
-// joystick
-function pos(e) { const r = tela.getBoundingClientRect(); const t = e.touches?.[0] || e.changedTouches?.[0] || e; return { x: t.clientX - r.left, y: t.clientY - r.top }; }
-function abrir(e) { e.preventDefault(); const p = pos(e); joystick = { bx: p.x, by: p.y, kx: p.x, ky: p.y, dx: 0, dy: 0 }; }
-function mover(e) {
-  if (!joystick) return; e.preventDefault();
-  const p = pos(e); let dx = p.x - joystick.bx, dy = p.y - joystick.by;
-  const d = Math.hypot(dx, dy), R = 46;
+// controle twin-stick: metade esquerda anda, metade direita mira e atira
+let mira = null; // {bx,by,kx,ky,dx,dy}
+function fazerJoy(bx, by) { return { bx, by, kx: bx, ky: by, dx: 0, dy: 0 }; }
+function moverJoy(joy, x, y) {
+  let dx = x - joy.bx, dy = y - joy.by; const d = Math.hypot(dx, dy), R = 46;
   if (d > R) { dx = dx / d * R; dy = dy / d * R; }
-  joystick.kx = joystick.bx + dx; joystick.ky = joystick.by + dy;
-  joystick.dx = d > 8 ? dx : 0; joystick.dy = d > 8 ? dy : 0;
+  joy.kx = joy.bx + dx; joy.ky = joy.by + dy;
+  joy.dx = d > 8 ? dx : 0; joy.dy = d > 8 ? dy : 0;
 }
-function fechar(e) { e.preventDefault(); joystick = null; }
-tela.addEventListener("touchstart", abrir, { passive: false });
-tela.addEventListener("touchmove", mover, { passive: false });
-tela.addEventListener("touchend", fechar, { passive: false });
-tela.addEventListener("mousedown", abrir);
-tela.addEventListener("mousemove", (e) => { if (e.buttons) mover(e); });
-tela.addEventListener("mouseup", fechar);
+const toques = {}; // id -> "mov" | "mira"
+tela.addEventListener("touchstart", (e) => {
+  e.preventDefault();
+  const r = tela.getBoundingClientRect();
+  for (const t of e.changedTouches) {
+    const x = t.clientX - r.left, y = t.clientY - r.top;
+    if (x < tela.width / 2) { joystick = fazerJoy(x, y); toques[t.identifier] = "mov"; }
+    else { mira = fazerJoy(x, y); toques[t.identifier] = "mira"; }
+  }
+}, { passive: false });
+tela.addEventListener("touchmove", (e) => {
+  e.preventDefault();
+  const r = tela.getBoundingClientRect();
+  for (const t of e.changedTouches) {
+    const x = t.clientX - r.left, y = t.clientY - r.top;
+    if (toques[t.identifier] === "mov" && joystick) moverJoy(joystick, x, y);
+    else if (toques[t.identifier] === "mira" && mira) moverJoy(mira, x, y);
+  }
+}, { passive: false });
+function soltar(e) {
+  e.preventDefault();
+  for (const t of e.changedTouches) {
+    if (toques[t.identifier] === "mov") joystick = null;
+    else if (toques[t.identifier] === "mira") mira = null;
+    delete toques[t.identifier];
+  }
+}
+tela.addEventListener("touchend", soltar, { passive: false });
+tela.addEventListener("touchcancel", soltar, { passive: false });
+// mouse (PC): esquerdo anda até o clique, aponta e atira pro cursor
+tela.addEventListener("mousedown", (e) => { const r = tela.getBoundingClientRect(); mira = fazerJoy(tela.width / 2, tela.height / 2); moverJoy(mira, e.clientX - r.left, e.clientY - r.top); });
+tela.addEventListener("mousemove", (e) => { if (mira) { const r = tela.getBoundingClientRect(); moverJoy(mira, e.clientX - r.left, e.clientY - r.top); } });
+tela.addEventListener("mouseup", () => { mira = null; });
 
 function abrirLobby() {
   rodando = false;
