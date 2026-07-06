@@ -82,13 +82,29 @@ const Retomar = {
   },
 };
 
+// dialog de confirmação estilizado (substitui o confirm() do navegador)
+function mostrarConfirmacao(texto, aoSim) {
+  const f = document.createElement("div");
+  f.className = "modal-fundo visivel";
+  f.style.zIndex = "400";
+  f.innerHTML = `<div class="modal-caixa">
+    <p style="color:var(--text);font-weight:600;margin:8px 0 18px;">${texto}</p>
+    <button class="btn" id="conf-sim">Sair</button>
+    <button class="modal-menu" id="conf-nao" style="background:none;border:none;cursor:pointer;margin-top:12px;">Continuar jogando</button>
+  </div>`;
+  document.body.appendChild(f);
+  f.querySelector("#conf-sim").addEventListener("click", () => { f.remove(); aoSim(); });
+  f.querySelector("#conf-nao").addEventListener("click", () => f.remove());
+}
+
 // Confirmação ao sair no meio de uma partida ativa
 function confirmarSaida(estaAtiva) {
-  document.querySelectorAll('a[href$="index.html"]').forEach((link) => {
+  document.querySelectorAll('a[href$="index.html"], a[href$="jogos.html"]').forEach((link) => {
+    const destino = link.getAttribute("href");
     link.addEventListener("click", (e) => {
-      if (estaAtiva() && !confirm("Sair da partida em andamento?")) {
-        e.preventDefault();
-      }
+      if (!estaAtiva()) return;
+      e.preventDefault();
+      mostrarConfirmacao("Sair da partida em andamento?", () => { location.href = destino; });
     });
   });
 }
@@ -228,3 +244,4 @@ function pararPresencaOnline() {
 window.iniciarPresencaOnline = iniciarPresencaOnline;
 window.pararPresencaOnline = pararPresencaOnline;
 window.confirmarSaida = confirmarSaida;
+window.mostrarConfirmacao = mostrarConfirmacao;

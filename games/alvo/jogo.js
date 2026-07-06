@@ -109,8 +109,8 @@ function alternarPausa() {
   if (!rodando) return;
   pausado = !pausado;
   atualizarBotaoPausa();
-  mensagemEl.textContent = pausado ? "⏸️ Pausado" : "Vai!";
-  if (!pausado) agendarProximaToupeira();
+  mensagemEl.textContent = pausado ? "Pausado" : "Vai!";
+  if (!pausado) { moverToupeira(); agendarProximaToupeira(); } // reposiciona: sem mira na pausa
 }
 
 function atualizarBotaoPausa() {

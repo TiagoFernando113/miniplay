@@ -12,8 +12,8 @@ const Modal = {
 
     // "menu do jogo" (reabre o lobby) quando o jogo oferece; senão vai pro app
     const menuHtml = aoMenu
-      ? `<button class="modal-menu" id="modal-btn-menu" style="background:none;border:none;cursor:pointer;">Menu do jogo</button>
-         <a class="modal-menu" href="../../jogos.html" style="font-size:0.78rem;opacity:0.7;">Sair pra lista de jogos</a>`
+      ? `<button class="btn secundario" id="modal-btn-menu" style="width:100%;margin-top:10px;">Menu / trocar skin</button>
+         <a class="modal-menu" href="../../jogos.html" style="font-size:0.78rem;opacity:0.7;margin-top:10px;">Sair pra lista de jogos</a>`
       : `<a class="modal-menu" href="../../jogos.html">Voltar aos jogos</a>`;
 
     fundo.innerHTML = `

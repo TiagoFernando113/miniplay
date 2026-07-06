@@ -603,7 +603,7 @@ function desenhar() {
 
   ctx.textAlign = "right";
   ctx.font = "bold 13px sans-serif";
-  const topoRank = onlineAtivo ? 40 : 64;
+  const topoRank = 74;
   ranking.forEach((r, i) => {
     if (r.sou) ctx.fillStyle = "#ffd54f";
     else if (r.real) ctx.fillStyle = "#ff9f4f"; // jogador real: laranja

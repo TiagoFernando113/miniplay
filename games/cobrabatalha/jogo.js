@@ -436,8 +436,6 @@ function desenhar() {
   if (onlineAtivo) {
     ctx.strokeStyle = "#3fdf6f"; ctx.lineWidth = 4;
     ctx.strokeRect(2, 2, tela.width - 4, tela.height - 4);
-    ctx.fillStyle = "#3fdf6f"; ctx.font = "bold 13px sans-serif"; ctx.textAlign = "center";
-    ctx.fillText("● ARENA ONLINE", tela.width / 2, 22);
   }
 
   // ranking
@@ -449,7 +447,7 @@ function desenhar() {
   ctx.textAlign = "right"; ctx.font = "bold 12px sans-serif";
   rank.forEach((r, i) => {
     ctx.fillStyle = r.sou ? "#ffd54f" : r.real ? "#ff9f4f" : "rgba(255,255,255,0.4)";
-    ctx.fillText(`${i === 0 ? "♛" : i + 1 + "º"} ${r.nome} — ${r.t}`, tela.width - 10, (onlineAtivo ? 40 : 62) + i * 17);
+    ctx.fillText(`${i === 0 ? "♛" : i + 1 + "º"} ${r.nome} — ${r.t}`, tela.width - 10, 74 + i * 17);
   });
 
   // joystick
