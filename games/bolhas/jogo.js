@@ -32,7 +32,13 @@ function avisoOnline(texto) {
 
 function aoMensagemAquario(p) {
   if (p.t === "p" && p.id !== meuId) {
-    outros.set(p.id, { ...p, ts: Date.now() });
+    const antigo = outros.get(p.id);
+    outros.set(p.id, {
+      ...p,
+      dx: antigo ? antigo.dx : p.x, // posição exibida (interpola até x,y)
+      dy: antigo ? antigo.dy : p.y,
+      ts: Date.now(),
+    });
   } else if (p.t === "bots" && !souHost) {
     botsRemotos = p.lista;
   } else if (p.t === "comi" && p.alvo === meuId) {
@@ -540,9 +546,11 @@ function desenhar() {
   // jogadores reais do aquário (nome em cima)
   if (onlineAtivo) {
     outros.forEach((j) => {
+      const jx = j.dx !== undefined ? j.dx : j.x;
+      const jy = j.dy !== undefined ? j.dy : j.y;
       ctx.fillStyle = j.cor || "#ff9f4f";
       ctx.beginPath();
-      ctx.arc(j.x + cx, j.y + cy, j.raio, 0, Math.PI * 2);
+      ctx.arc(jx + cx, jy + cy, j.raio, 0, Math.PI * 2);
       ctx.fill();
       ctx.strokeStyle = "#ffd54f";
       ctx.lineWidth = 2;
@@ -550,10 +558,10 @@ function desenhar() {
       ctx.fillStyle = "#ffd54f";
       ctx.font = "bold 12px sans-serif";
       ctx.textAlign = "center";
-      ctx.fillText(j.nome || "?", j.x + cx, j.y + cy - j.raio - 6);
+      ctx.fillText(j.nome || "?", jx + cx, jy + cy - j.raio - 6);
       ctx.fillStyle = "#fff";
       ctx.font = `bold ${Math.max(10, Math.floor(j.raio * 0.6))}px sans-serif`;
-      ctx.fillText(String(Math.floor(j.raio)), j.x + cx, j.y + cy + 4);
+      ctx.fillText(String(Math.floor(j.raio)), jx + cx, jy + cy + 4);
     });
   }
 

@@ -220,6 +220,7 @@ function passo() {
 
   // ---- rede ----
   if (onlineAtivo) redeOnline();
+  if (onlineAtivo) suavizarRemotos();
 
   desenhar();
 }
@@ -249,12 +250,45 @@ function redeOnline() {
 
 function aoMensagem(p) {
   if (p.t === "c" && p.id !== meuId) {
-    outros.set(p.id, { ...p, ts: Date.now() });
+    const antigo = outros.get(p.id);
+    // guarda o corpo atual como ponto de partida e o novo como alvo (interpolação)
+    outros.set(p.id, {
+      ...p,
+      corpoAtual: antigo && antigo.corpoAtual ? antigo.corpoAtual : p.corpo,
+      corpoAlvo: p.corpo,
+      ts: Date.now(),
+    });
   } else if (p.t === "bots" && !souHost) {
-    botsRemotos = p.lista.map((b) => ({ ...b, tamanho: b.corpo.length * 3 }));
+    // funde os alvos: cada bot remoto interpola até a nova posição
+    const mapaAntigo = new Map(botsRemotos.map((b) => [b.id, b]));
+    botsRemotos = p.lista.map((b) => {
+      const ant = mapaAntigo.get(b.id);
+      return { ...b, tamanho: b.corpo.length * 3, corpoAtual: ant ? ant.corpoAtual : b.corpo, corpoAlvo: b.corpo };
+    });
   } else if (p.t === "matou" && p.alvo === meuId) {
     fuiMorto(p.por);
   }
+}
+
+// desliza os corpos remotos suavemente até o alvo recebido (mata o "pulo")
+function suavizarRemotos() {
+  const lerp = (lista) => {
+    lista.forEach((o) => {
+      if (!o.corpoAlvo) return;
+      if (!o.corpoAtual || o.corpoAtual.length !== o.corpoAlvo.length) {
+        o.corpoAtual = o.corpoAlvo.map((s) => ({ ...s }));
+      }
+      for (let i = 0; i < o.corpoAlvo.length; i++) {
+        o.corpoAtual[i].x += (o.corpoAlvo[i].x - o.corpoAtual[i].x) * 0.25;
+        o.corpoAtual[i].y += (o.corpoAlvo[i].y - o.corpoAtual[i].y) * 0.25;
+      }
+      o.corpo = o.corpoAtual;
+      o.x = o.corpoAtual[0].x;
+      o.y = o.corpoAtual[0].y;
+    });
+  };
+  if (onlineAtivo) lerp([...outros.values()]);
+  if (onlineAtivo && !souHost) lerp(botsRemotos);
 }
 
 function aoPresenca(qtd) {
@@ -355,7 +389,7 @@ function desenhar() {
   });
 
   bots.forEach((b) => desenharCobra(b, cx, cy, false));
-  if (onlineAtivo) outros.forEach((o) => { if (o.corpo) { o.ang = 0; desenharCobra(o, cx, cy, false); } });
+  if (onlineAtivo) outros.forEach((o) => { if (o.corpo && o.corpo.length) { o.ang = 0; desenharCobra(o, cx, cy, false); } });
   desenharCobra(eu, cx, cy, true);
 
   // faixa online
