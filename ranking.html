@@ -70,11 +70,11 @@
     const abasEl = document.getElementById("abas");
     const avisoEl = document.getElementById("aviso");
     const subEl = document.getElementById("subtitulo");
-    const MEDALHAS = ["🥇", "🥈", "🥉"];
+    const MEDALHAS = [];
     const meuId = Nuvem.deviceId();
 
     // abas: Geral (pontos da semana) + um por jogo rankeado
-    const CATEGORIAS = [{ id: "geral", nome: "🏆 Geral (semana)" }].concat(
+    const CATEGORIAS = [{ id: "geral", nome: "Geral (total)" }].concat(
       Object.entries(RANKING_JOGOS).map(([id, j]) => ({ id, nome: j.nome }))
     );
     let atual = "geral";
@@ -93,10 +93,10 @@
       abasEl.appendChild(b);
     });
 
-    function linha(pos, nome, valor, ehEu, rotulo) {
+    function linha(pos, nome, valor, ehEu, rotulo, sufixo) {
       return `<div class="linha-rank${ehEu ? " eu" : ""}">
-        <span class="pos">${MEDALHAS[pos - 1] || pos + "º"}</span>
-        <span class="nome">${escaparHtml(nome)}</span>
+        <span class="pos">${pos}º</span>
+        <span class="nome">${escaparHtml(nome)}${sufixo || ""}</span>
         <span class="pts">${valor}${rotulo ? " " + rotulo : ""}</span>
       </div>`;
     }
@@ -121,25 +121,27 @@
       }
 
       if (atual === "geral") {
-        subEl.textContent = "Pontos ganhos nos últimos 7 dias";
+        subEl.textContent = "Pontos totais acumulados";
         Nuvem.enviarPontuacao(Ranking.pontosDaSemana()); // não trava a exibição
         const online = await Nuvem.buscarRanking();
-        const enfeite = (r) => (r.prestigio ? " 💠" : "") + (r.streak >= 2 ? ` 🔥${r.streak}` : "");
+        const enfeite = (r) =>
+          (r.prestigio ? ' <span style="color:#7fdfff;font-weight:800">◆</span>' : "") +
+          (r.streak >= 2 ? ` <span style="color:#ff9f4f;font-size:0.78rem;font-weight:800">${r.streak}d</span>` : "");
         const lista = online ? online.map((r) => ({
-          nome: (r.device_id === meuId ? r.apelido + " (você)" : r.apelido) + enfeite(r),
-          valor: r.pontos, eu: r.device_id === meuId,
+          nome: (r.device_id === meuId ? r.apelido + " (você)" : r.apelido),
+          valor: r.pontos, eu: r.device_id === meuId, suf: enfeite(r),
         })) : [];
         if (atual !== "geral") return; // trocou de aba enquanto carregava
         if (online) {
           const bots = Ranking.lista().filter((b) => !b.eu).map((b) => ({ nome: b.nome, valor: b.pontos, bot: true }));
           while (lista.length < 12 && bots.length) lista.push(bots.shift());
           lista.sort((a, b) => b.valor - a.valor);
-          const html = lista.slice(0, 20).map((j, i) => linha(i + 1, j.nome + (j.bot ? " ⟨bot⟩" : ""), j.valor, j.eu, "⭐")).join("");
+          const html = lista.slice(0, 20).map((j, i) => linha(i + 1, j.nome + (j.bot ? " (bot)" : ""), j.valor, j.eu, "pts", j.suf)).join("");
           listaEl.innerHTML = html;
           salvarCache("geral", html, "");
           avisoEl.textContent = "🌐 Ranking online — bots completam a lista enquanto a comunidade cresce.";
         } else if (!cache.geral) {
-          listaEl.innerHTML = Ranking.lista().map((j, i) => linha(i + 1, j.nome, j.pontos, j.sou, "⭐")).join("");
+          listaEl.innerHTML = Ranking.lista().map((j, i) => linha(i + 1, j.nome, j.pontos, j.sou, "pts")).join("");
           avisoEl.textContent = "Sem conexão — ranking de treino com bots.";
         }
         aplicarIcones();

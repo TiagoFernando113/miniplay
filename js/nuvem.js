@@ -43,7 +43,7 @@ const Nuvem = {
         headers: { ...this._cabecalhos(), Prefer: "resolution=merge-duplicates" },
         body: JSON.stringify({
           device_id: this.deviceId(),
-          semana: semanaDoAno(),
+          semana: 210000,
           apelido: this.apelido(),
           pontos,
           streak: this._streakLocal(),
@@ -68,7 +68,7 @@ const Nuvem = {
   async buscarRanking() {
     try {
       const resposta = await fetch(
-        this.URL + `/rest/v1/ranking_semanal?semana=eq.${semanaDoAno()}&select=device_id,apelido,pontos,streak,prestigio&order=pontos.desc&limit=50`,
+        this.URL + `/rest/v1/ranking_semanal?semana=eq.210000&select=device_id,apelido,pontos,streak,prestigio&order=pontos.desc&limit=50`,
         { headers: this._cabecalhos() }
       );
       if (!resposta.ok) return null;

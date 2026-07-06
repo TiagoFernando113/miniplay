@@ -127,14 +127,14 @@
         vibrar([40, 30, 40]);
         setTimeout(() => location.reload(), 400);
         // já garante o nome no ranking online
-        if (window.Nuvem) Nuvem.enviarPontuacao(Ranking.pontosDaSemana());
+        if (window.Nuvem) Nuvem.enviarPontuacao(Pontos.acumulado());
 
     // lembrete de sequência: ainda não jogou hoje e tem sequência ativa
     {
       const hojeStr = new Date().toISOString().slice(0, 10);
       const jaJogouHoje = (Stats.dados().porDia[hojeStr] || 0) > 0;
       if (diario.streak >= 2 && !jaJogouHoje) {
-        setTimeout(() => Missoes.toast(`🔥 Sequência de ${diario.streak} dias — jogue hoje pra manter!`), 1400);
+        setTimeout(() => Missoes.toast(`Sequência de ${diario.streak} dias — jogue hoje pra manter!`), 1400);
       }
     }
       });
@@ -194,7 +194,7 @@
       aviso.href = CAMINHO_ONLINE[jogo];
       aviso.className = "toast-conquista";
       aviso.style.textDecoration = "none";
-      aviso.textContent = `🟢 ${n} jogando ${NOMES_ONLINE[jogo]} agora — toque pra entrar!`;
+      aviso.textContent = `${n} jogando ${NOMES_ONLINE[jogo]} agora — toque pra entrar!`;
       document.body.appendChild(aviso);
       requestAnimationFrame(() => aviso.classList.add("visivel"));
       setTimeout(() => { aviso.classList.remove("visivel"); setTimeout(() => aviso.remove(), 400); }, 5000);
@@ -206,7 +206,7 @@
       el.innerHTML = comGente.map((j) =>
         `<a href="${CAMINHO_ONLINE[j]}" style="text-decoration:none;">
           <div class="missao" style="border:1px solid #3fdf6f;display:flex;align-items:center;gap:10px;">
-            <span style="color:#3fdf6f;font-size:1.1rem;">🟢</span>
+            <span style="width:9px;height:9px;border-radius:50%;background:#3fdf6f;display:inline-block;"></span>
             <span style="font-weight:700;color:var(--text);">${NOMES_ONLINE[j]}</span>
             <span style="margin-left:auto;color:#3fdf6f;font-weight:800;">${cont[j]} jogando — entrar!</span>
           </div></a>`
