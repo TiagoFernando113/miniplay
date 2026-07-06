@@ -179,12 +179,14 @@ function passo() {
       if (d > t.raio + 40) { t.x += Math.cos(a) * t.velocidade; t.y += Math.sin(a) * t.velocidade; }
       t.x = Math.max(0, Math.min(MUNDO, t.x)); t.y = Math.max(0, Math.min(MUNDO, t.y));
     } else if (!t.sou) {
-      // bot: decide andar
+      // bot age igual jogador: farma formas, briga com tanks, encara o chefe
       let destino = alvo.forma;
-      if (alvo.tanque) {
-        const maisFraco = alvo.tanque.score <= t.score;
-        destino = maisFraco ? alvo.tanque : null; // foge do mais forte
-        if (!maisFraco) { // afasta
+      if (chefeVivo && Math.hypot(chefeVivo.x - t.x, chefeVivo.y - t.y) < 520) {
+        destino = chefeVivo; // vai pra cima do chefe
+      } else if (alvo.tanque) {
+        const maisFraco = alvo.tanque.score <= t.score * 1.3;
+        destino = maisFraco ? alvo.tanque : null; // foge só de quem é bem mais forte
+        if (!maisFraco) {
           const a = Math.atan2(t.y - alvo.tanque.y, t.x - alvo.tanque.x);
           t.x += Math.cos(a) * t.velocidade; t.y += Math.sin(a) * t.velocidade;
         }
@@ -298,7 +300,13 @@ function matarTanque(t, autor) {
   if (t.sou) { Som.erro(); vibrar(150); morrer(); return; }
   if (t.boss) {
     chefeVivo = null;
-    if (autor && autor.sou) { autor.score += 500; if (window.Missoes) Missoes.toast("CHEFE derrotado! +500"); Som.vitoria(); }
+    if (autor && autor.vivo) {
+      autor.score += 500;
+      autor.vidaMax += 120; autor.vida = autor.vidaMax; autor.dano *= 1.4;
+      darXp(autor, 300); // sobe vários níveis de uma vez
+      if (autor.sou) { if (window.Missoes) Missoes.toast("CHEFE derrotado! +500"); Som.vitoria(); }
+      else if (window.Missoes) Missoes.toast(`${autor.nome} matou o chefe e ficou monstro!`);
+    }
     atualizarObjetivo();
     return;
   }
@@ -313,7 +321,12 @@ function matarTanque(t, autor) {
 }
 
 function subirNivel(t) {
-  if (!t.sou) return;
+  if (!t.sou) {
+    // bot evolui de classe sozinho nos níveis-chave
+    if (t.nivel === 5) t.classe = CLASSES[["gemeo","metralhadora","sniper"][Math.floor(Math.random()*3)]];
+    else if (t.nivel === 12) t.classe = CLASSES[["triplo","destruidor","penta"][Math.floor(Math.random()*3)]];
+    return;
+  }
   Som.vitoria(); vibrar(50);
   atualizarHud();
   // evolução de classe nos níveis-chave (se ainda não pegou)
