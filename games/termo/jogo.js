@@ -1,20 +1,41 @@
 // Termo — adivinhe a palavra de 5 letras em 6 tentativas (estilo Wordle).
-const PALAVRAS = ("terra praia carro banco pente livro globo campo verde amigo festa navio pinto pluma dente gente ponte forte norte sorte molho bolha rocha ficha bicho porta corpo tampa lampa mundo fundo lindo linha ganho sonho tenho vinho bruxo caixa peixe feixe touro couro moura poeta breve leite noite fonte monte conto vento canto tinta ponta manta multa falta salto pulso pasta massa nossa posse fosse dobro sobra cobra lobra pobre nobre livre alegre febre lebre sabre tigre magro sagra louco pouco touca bolsa polpa selva salva calva palco talco marco parte carta letra pedra sebra zebra vidro litro nitro sonar lunar solar polar gerar girar morar cavar levar lavar nadar" ).split(" ");
+// Cada palavra tem um TEMA (dica) mostrado no topo.
+const TEMAS_PALAVRAS = {
+  "Animal": ["zebra", "tigre", "cobra", "pomba", "gato", "raposa", "burro", "porco", "sapos", "onças", "mosca", "vespa", "gansa", "focas", "corvo", "peixe"].filter((p) => /^[a-z]{5}$/.test(p)),
+  "Natureza": ["praia", "terra", "campo", "rocha", "matas", "rios", "nuvem", "chuva", "vento", "folha", "pedra", "mares", "areia", "raios"].filter((p) => /^[a-z]{5}$/.test(p)),
+  "Objeto": ["livro", "carro", "navio", "banco", "caixa", "porta", "pente", "mesas", "vidro", "faca", "chave", "lampa", "sacos", "copos", "garfo"].filter((p) => /^[a-z]{5}$/.test(p)),
+  "Comida": ["arroz", "feijao", "pizza", "bolos", "carne", "leite", "queijo", "mango", "uvas", "melao", "sopas", "molho", "acuca"].filter((p) => /^[a-z]{5}$/.test(p)),
+  "Corpo": ["braco", "perna", "dente", "unhas", "barba", "testa", "peito", "costa", "ombro", "pulso", "labio"].filter((p) => /^[a-z]{5}$/.test(p)),
+  "Sentimento": ["amigo", "sorte", "medos", "raiva", "calma", "força", "sonho", "feliz", "amor", "ódios"].filter((p) => /^[a-z]{5}$/.test(p)),
+  "Ação": ["girar", "morar", "cavar", "levar", "nadar", "pular", "voar", "correr", "comer", "beber", "dança", "canto"].filter((p) => /^[a-z]{5}$/.test(p)),
+};
+const LISTA_TEMAS = Object.keys(TEMAS_PALAVRAS);
 
 const gradeEl = document.getElementById("grade");
 const tecladoEl = document.getElementById("teclado");
 const melhorEl = document.getElementById("melhor");
+const nivelEl = document.getElementById("nivel");
+const temaEl = document.getElementById("tema");
 
-let alvo, linha, coluna, tentativa, terminado;
+let alvo, linha, coluna, tentativa, terminado, nivel;
 const LINHAS = 6;
 const estadoTecla = {};
 
 function novoJogo() {
-  alvo = PALAVRAS[Math.floor(Math.random() * PALAVRAS.length)].toUpperCase();
+  nivel = 1;
+  iniciarNivel();
+}
+
+function iniciarNivel() {
+  const tema = LISTA_TEMAS[Math.floor(Math.random() * LISTA_TEMAS.length)];
+  const palavras = TEMAS_PALAVRAS[tema];
+  alvo = palavras[Math.floor(Math.random() * palavras.length)].toUpperCase();
   linha = 0; coluna = 0; tentativa = ""; terminado = false;
   Object.keys(estadoTecla).forEach((k) => delete estadoTecla[k]);
   desenharGrade();
   desenharTeclado();
+  nivelEl.textContent = nivel;
+  temaEl.textContent = "Tema: " + tema;
   melhorEl.textContent = Recordes.get("termo") || 0;
 }
 
@@ -80,15 +101,21 @@ function conferir() {
 function ganhar() {
   terminado = true; Som.vitoria();
   Pontos.add(20 - linha * 2);
-  const v = (Recordes.get("termo") || 0) + 1; Recordes.salvar("termo", v);
-  if (window.Nuvem) Nuvem.enviarRecorde("termo", v);
-  melhorEl.textContent = v;
-  setTimeout(() => Modal.mostrar({ emoji: "🏆", titulo: "Acertou!", texto: `${alvo} em ${linha + 1} tentativas`, aoJogarDeNovo: novoJogo }), 400);
+  if (nivel > (Recordes.get("termo") || 0)) { Recordes.salvar("termo", nivel); if (window.Nuvem) Nuvem.enviarRecorde("termo", nivel); }
+  melhorEl.textContent = Recordes.get("termo") || 0;
+  setTimeout(() => Modal.mostrar({
+    emoji: "🏆", titulo: `Nível ${nivel} concluído!`,
+    texto: `${alvo} em ${linha + 1} tentativas`, botao: `Nível ${nivel + 1} →`,
+    aoJogarDeNovo: () => { nivel++; iniciarNivel(); },
+  }), 400);
 }
 
 function perder() {
   terminado = true; Som.erro();
-  setTimeout(() => Modal.mostrar({ emoji: "😢", titulo: "Não foi dessa vez!", texto: `A palavra era ${alvo}`, aoJogarDeNovo: novoJogo }), 400);
+  setTimeout(() => Modal.mostrar({
+    emoji: "🧩", titulo: `Fim! Você chegou ao nível ${nivel}`,
+    texto: `A palavra era ${alvo}`, aoJogarDeNovo: novoJogo,
+  }), 400);
 }
 
 window.addEventListener("keydown", (e) => {

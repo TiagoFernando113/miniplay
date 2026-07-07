@@ -160,7 +160,7 @@ const RANKING_JOGOS = {
   conta: { nome: "Conta Rápida", rotulo: "certas" },
   labirinto: { nome: "Labirinto 3D", rotulo: "nível" },
   tiro3d: { nome: "Tiro 3D", rotulo: "abates" },
-  termo: { nome: "Termo", rotulo: "vitórias" },
+  termo: { nome: "Termo", rotulo: "nível" },
   ligue4Vitorias: { nome: "Ligue 4", rotulo: "vitórias" },
   ninjafrutas: { nome: "Ninja Frutas", rotulo: "cortes" },
 };

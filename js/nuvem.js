@@ -48,6 +48,7 @@ const Nuvem = {
           pontos,
           streak: this._streakLocal(),
           prestigio: this._temPrestigio(),
+          titulo: this._tituloLocal(),
           atualizado_em: new Date().toISOString(),
         }),
       });
@@ -64,11 +65,14 @@ const Nuvem = {
   _temPrestigio() {
     return !!(window.Cosmetico && Cosmetico.possui("trofeu", "trofeu"));
   },
+  _tituloLocal() {
+    return (window.Cosmetico ? String(Cosmetico.dados("titulo") || "") : "").slice(0, 20);
+  },
 
   async buscarRanking() {
     try {
       const resposta = await fetch(
-        this.URL + `/rest/v1/ranking_semanal?semana=eq.210000&select=device_id,apelido,pontos,streak,prestigio&order=pontos.desc&limit=500`,
+        this.URL + `/rest/v1/ranking_semanal?semana=eq.210000&select=device_id,apelido,pontos,streak,prestigio,titulo&order=pontos.desc&limit=500`,
         { headers: this._cabecalhos() }
       );
       if (!resposta.ok) return null;

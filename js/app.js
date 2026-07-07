@@ -1,4 +1,4 @@
-const APP_VERSAO = "v97";
+const APP_VERSAO = "v98";
 
 // mata o menu de toque longo (copiar link...) — MENOS em campos de texto,
 // senão o jogador não consegue copiar/colar o código de backup!

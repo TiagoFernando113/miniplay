@@ -184,8 +184,12 @@
           <rect x="1" y="1" width="26" height="34" rx="4" fill="var(--card-bg)" stroke="var(--accent)" stroke-width="1.6"/>
           <text x="14" y="24" text-anchor="middle" font-size="15" font-weight="bold" fill="var(--accent)">${d}</text></svg></span>`;
       }
+      if (cat === "titulo") {
+        return `<span class="icone"><span style="display:inline-block;padding:4px 10px;border-radius:8px;background:${d ? "var(--accent)" : "#333"};color:#fff;font-size:0.72rem;font-weight:800;">${d || "nenhum"}</span></span>`;
+      }
       if (cat === "moldura") {
-        const anel = id === "ouro" ? "#ffd54f" : id === "neon" ? "#00ff9f" : "transparent";
+        const cores = { ouro: "#ffd54f", neon: "#00ff9f", prata: "#cfd6de", fogo: "#ff7f3f", gelo: "#7fdfff", rosa: "#ff6fa5", arcoiris: "#b56fff" };
+        const anel = cores[id] || "transparent";
         return `<span class="icone"><svg viewBox="0 0 36 36" style="width:36px;height:36px;">
           <circle cx="18" cy="18" r="16" fill="none" stroke="${anel}" stroke-width="2.5"/>
           <circle cx="18" cy="18" r="11" fill="#f0c8a0"/>

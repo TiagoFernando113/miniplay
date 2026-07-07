@@ -136,7 +136,7 @@
           (r.prestigio ? ` <span class="enf enf-pres">${ICONES.gema}</span>` : "") +
           (r.streak >= 2 ? ` <span class="enf enf-streak">${ICONES.fogo}${r.streak}</span>` : "");
         const lista = online ? online.map((r) => ({
-          nome: (r.device_id === meuId ? r.apelido + " (você)" : r.apelido),
+          nome: (r.titulo ? r.titulo + " " : "") + (r.device_id === meuId ? r.apelido + " (você)" : r.apelido),
           valor: r.pontos, eu: r.device_id === meuId, suf: enfeite(r),
         })) : [];
         if (atual !== "geral") return;
