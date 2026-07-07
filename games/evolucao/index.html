@@ -39,6 +39,7 @@
   <div class="evo-topo">
     <div class="evo-dna"><span id="dna">0</span> DNA</div>
     <div class="evo-ps"><span id="ps">0</span>/s · <span class="evo-era">Era <span id="era">1</span>: <span id="era-nome">Célula</span></span></div>
+    <div class="evo-ps" style="color:#b56fff;">Genes: <strong id="genes">0</strong> <span id="genes-bonus"></span></div>
     <div class="evo-modo">
       <button data-modo="1" class="ativo">Comprar 1</button>
       <button data-modo="10">×10</button>
@@ -47,7 +48,12 @@
   </div>
   <div class="evo-criatura"><button id="criatura"></button></div>
   <div class="evo-evoluir" id="painel-evoluir"></div>
+  <div class="evo-modo" style="max-width:480px;margin:0 auto;padding:0 12px;">
+    <button id="aba-org" class="ativo" style="flex:1;">Organismos</button>
+    <button id="aba-mel" style="flex:1;">Melhorias</button>
+  </div>
   <div class="evo-lista" id="lista"></div>
+  <div class="evo-lista" id="lista-melhorias" style="display:none;"></div>
   <script src="../../js/util.js"></script>
   <script src="../../js/pontos.js"></script>
   <script src="../../js/som.js"></script>
