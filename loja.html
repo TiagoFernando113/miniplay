@@ -49,16 +49,21 @@
       }, 2500);
     }
 
-    // destaque da semana: um item sorteado com 30% de desconto
+    // ofertas do dia: 2 itens com 30% de desconto, trocam todo dia
     const TODOS_ITENS = [];
     for (const [id, t] of Object.entries(TEMAS)) if (t.preco > 0) TODOS_ITENS.push("tema:" + id);
     for (const [id, a] of Object.entries(AVATARES)) if (a.preco > 0) TODOS_ITENS.push("avatar:" + id);
     for (const [cat, c] of Object.entries(COSMETICOS))
       for (const [id, item] of Object.entries(c.itens)) if (item.preco > 0) TODOS_ITENS.push(cat + ":" + id);
-    const DESTAQUE = TODOS_ITENS[semanaDoAno() % TODOS_ITENS.length];
+    const SEM = semanaDoAno(); // 2 destaques por semana (iguais pra todos)
+    const N = TODOS_ITENS.length;
+    let i1 = ((SEM % N) + N) % N;
+    let i2 = ((SEM * 7 + 3) % N + N) % N;
+    if (i2 === i1) i2 = (i2 + 1) % N;
+    const DESTAQUES = [TODOS_ITENS[i1], TODOS_ITENS[i2]];
 
     function precoFinal(chaveItem, precoBase) {
-      return chaveItem === DESTAQUE ? Math.round(precoBase * 0.7) : precoBase;
+      return DESTAQUES.includes(chaveItem) ? Math.round(precoBase * 0.7) : precoBase;
     }
 
     function montarSecao(elemento, itens, dono, cat) {
@@ -69,7 +74,7 @@
       for (const [id, item] of Object.entries(itens)) {
         const chaveItem = cat + ":" + id;
         const preco = precoFinal(chaveItem, item.preco);
-        const emDestaque = chaveItem === DESTAQUE && !comprados.includes(id);
+        const emDestaque = DESTAQUES.includes(chaveItem) && !comprados.includes(id);
         const card = document.createElement("div");
         card.className = "item-card";
 
@@ -224,15 +229,16 @@
 
     desenharLoja();
 
-    // banner do destaque
+    // banner dos destaques (2 da semana)
     {
-      const [catD, idD] = DESTAQUE.split(":");
-      let nomeD = "";
-      if (catD === "tema") nomeD = "Tema " + TEMAS[idD].nome;
-      else if (catD === "avatar") nomeD = "Avatar " + AVATARES[idD].nome;
-      else nomeD = COSMETICOS[catD].itens[idD].nome;
+      const nomeDe = (chave) => {
+        const [catD, idD] = chave.split(":");
+        if (catD === "tema") return "Tema " + TEMAS[idD].nome;
+        if (catD === "avatar") return "Avatar " + AVATARES[idD].nome;
+        return COSMETICOS[catD].itens[idD].nome;
+      };
       document.getElementById("banner-destaque").innerHTML =
-        `<div class="missao" style="border:1px solid #cf8f2f;text-align:center;font-weight:700;">🔖 Destaque da semana: ${nomeD} — 30% OFF!</div>`;
+        `<div class="missao" style="border:1px solid #cf8f2f;text-align:center;font-weight:700;">🔖 Ofertas da semana: ${nomeDe(DESTAQUES[0])} e ${nomeDe(DESTAQUES[1])} — 30% OFF!</div>`;
     }
   </script>
 </body>
