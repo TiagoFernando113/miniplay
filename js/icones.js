@@ -50,6 +50,11 @@ const ICONES = {
   presente: _svg('<rect x="4" y="10" width="16" height="10" rx="1.5"/><path d="M4 10h16M12 10v10M12 10s-4.5.5-5.5-2c-.8-2 2-3.5 3.5-2 1.3 1.3 2 4 2 4zM12 10s4.5.5 5.5-2c.8-2-2-3.5-3.5-2-1.3 1.3-2 4-2 4z"/>'),
   gema: _svg('<path d="M7 3h10l4 6-9 12L3 9l4-6z"/><path d="M3 9h18M7 3l5 6 5-6M12 9v12" stroke-width="1.2"/>'),
   tanques: _svg('<rect x="3" y="11" width="12" height="8" rx="2"/><path d="M13 15h8M6 19v2M12 19v2"/><circle cx="9" cy="9" r="2"/>'),
+  pingue: _svg("<circle cx=\"6\" cy=\"6\" r=\"3\"/><circle cx=\"18\" cy=\"18\" r=\"3\"/><rect x=\"10\" y=\"3\" width=\"4\" height=\"8\" rx=\"1\"/><rect x=\"10\" y=\"13\" width=\"4\" height=\"8\" rx=\"1\"/>"),
+  quebrablocos: _svg("<rect x=\"3\" y=\"4\" width=\"6\" height=\"4\" rx=\"1\"/><rect x=\"11\" y=\"4\" width=\"6\" height=\"4\" rx=\"1\"/><rect x=\"9\" y=\"17\" width=\"8\" height=\"3\" rx=\"1\"/><circle cx=\"13\" cy=\"12\" r=\"2\"/>"),
+  corredor: _svg("<circle cx=\"13\" cy=\"5\" r=\"2.2\"/><path d=\"M13 8l-3 5 3 2 3-3M10 13l-4 6M13 15l2 5\"/>"),
+  coletar: _svg("<path d=\"M5 10h14l-2 9H7z\"/><path d=\"M8 10l2-5M16 10l-2-5\" stroke-width=\"1.4\"/>"),
+  reacao: _svg("<path d=\"M13 2L4 14h7l-1 8 9-12h-7z\"/>"),
   cobrabatalha: _svg('<path d="M4 6h6a3 3 0 0 1 0 6H8a3 3 0 0 0 0 6h8" /><circle cx="18" cy="18" r="2" fill="currentColor"/><path d="M20 5l2-2M22 7l1.5-.5" stroke-width="1.3"/>'),
 };
 
