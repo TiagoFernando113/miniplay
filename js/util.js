@@ -164,6 +164,7 @@ const RANKING_JOGOS = {
   ligue4Vitorias: { nome: "Ligue 4", rotulo: "vitórias" },
   ninjafrutas: { nome: "Ninja Frutas", rotulo: "cortes" },
   evolucao: { nome: "Evolução", rotulo: "era" },
+  fluxo: { nome: "Fluxo", rotulo: "nível" },
 };
 const LIMITES_RANKING = {
   passaro: 1000, torre: 500, cobrabatalha: 800, cobrinha: 800, bolhas: 500,

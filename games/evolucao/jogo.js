@@ -223,7 +223,7 @@ window.addEventListener("pagehide", salvar);
 // animação do bônus
 const estilo = document.createElement("style");
 estilo.textContent = "@keyframes pulsa{from{transform:scale(1)}to{transform:scale(1.15)}}";
-document.head.appendChild(estilo);
+if (document.head) document.head.appendChild(estilo);
 
 carregar();
 render();

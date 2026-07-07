@@ -63,6 +63,7 @@ const ICONES = {
   termo: _svg("<rect x=\"3\" y=\"4\" width=\"5\" height=\"5\" rx=\"1\"/><rect x=\"9.5\" y=\"4\" width=\"5\" height=\"5\" rx=\"1\" fill=\"currentColor\"/><rect x=\"16\" y=\"4\" width=\"5\" height=\"5\" rx=\"1\"/><rect x=\"3\" y=\"10.5\" width=\"5\" height=\"5\" rx=\"1\"/><rect x=\"9.5\" y=\"10.5\" width=\"5\" height=\"5\" rx=\"1\"/>"),
   ligue4: _svg("<rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\"/><circle cx=\"8\" cy=\"15\" r=\"2\" fill=\"currentColor\"/><circle cx=\"13\" cy=\"15\" r=\"2\" fill=\"currentColor\"/><circle cx=\"13\" cy=\"10\" r=\"2\"/>"),
   ninjafrutas: _svg("<circle cx=\"9\" cy=\"14\" r=\"5\"/><path d=\"M9 9V5M9 5l3-2\"/><path d=\"M14 5l6 6\" stroke-width=\"1.6\"/>"),
+  fluxo: _svg("<circle cx=\"5\" cy=\"5\" r=\"2.5\"/><circle cx=\"19\" cy=\"19\" r=\"2.5\"/><circle cx=\"19\" cy=\"5\" r=\"2.5\" fill=\"currentColor\"/><circle cx=\"5\" cy=\"19\" r=\"2.5\" fill=\"currentColor\"/><path d=\"M5 7v6a2 2 0 0 0 2 2h5\" stroke-width=\"1.6\"/>"),
   evolucao: _svg("<path d=\"M8 3c8 4 8 14 0 18M16 3c-8 4-8 14 0 18\" stroke-width=\"1.6\"/><path d=\"M9 6h6M8.5 9h7M8.5 12h7M9 15h6\" stroke-width=\"1.3\"/>"),
   tiro3d: _svg("<circle cx=\"12\" cy=\"12\" r=\"8\"/><path d=\"M12 2v4M12 18v4M2 12h4M18 12h4\"/><circle cx=\"12\" cy=\"12\" r=\"2\" fill=\"currentColor\"/>"),
   labirinto: _svg("<path d=\"M3 3h18v18H3z\"/><path d=\"M3 8h10M8 8v8M13 3v10M13 13h5M18 13v8M8 16h5\" stroke-width=\"1.6\"/>"),
