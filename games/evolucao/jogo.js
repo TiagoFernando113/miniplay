@@ -254,6 +254,104 @@ function trocarAba(qual) {
 $("aba-mel").addEventListener("click", () => trocarAba("mel"));
 $("aba-pla").addEventListener("click", () => trocarAba("pla"));
 
+
+// ===== Planeta vivo (canvas): terreno + seres que evoluem com o jogo =====
+let mundoCanvas, mundoCtx, terreno, tile, mCols, mLins, offCanvas, offCtx, entidades = [];
+let semente = Math.random() * 100;
+
+function ehTerra(c, r) {
+  if (c < 0 || r < 0 || c >= mCols || r >= mLins) return false;
+  const dx = (c - mCols / 2) / (mCols * 0.44), dy = (r - mLins / 2) / (mLins * 0.46);
+  const d = Math.sqrt(dx * dx + dy * dy);
+  const n = 0.16 * Math.sin(c * 0.6 + semente) + 0.16 * Math.cos(r * 0.85 + semente * 1.7) + 0.1 * Math.sin((c + r) * 0.4);
+  return d + n < 0.95;
+}
+function terraNoPix(x, y) { return ehTerra(Math.floor(x / tile), Math.floor(y / tile)); }
+
+function setupMundo() {
+  try {
+    mundoCanvas = document.getElementById("mundo");
+    if (!mundoCanvas || !mundoCanvas.getContext) return;
+    mundoCtx = mundoCanvas.getContext("2d");
+    const L = mundoCanvas.clientWidth || 340, A = 190;
+    mundoCanvas.width = L; mundoCanvas.height = A;
+    tile = 10; mCols = Math.ceil(L / tile); mLins = Math.ceil(A / tile);
+    offCanvas = document.createElement("canvas"); offCanvas.width = L; offCanvas.height = A;
+    offCtx = offCanvas.getContext("2d");
+    // desenha o terreno uma vez
+    for (let r = 0; r < mLins; r++) for (let c = 0; c < mCols; c++) {
+      const terra = ehTerra(c, r);
+      let cor;
+      if (terra) {
+        const praia = !ehTerra(c + 1, r) || !ehTerra(c - 1, r) || !ehTerra(c, r + 1) || !ehTerra(c, r - 1);
+        cor = praia ? "#c8b078" : ((c + r) % 3 === 0 ? "#3a8f4a" : "#42a054");
+      } else {
+        cor = ((c + r) % 4 === 0) ? "#123a5a" : "#0f3050";
+      }
+      offCtx.fillStyle = cor; offCtx.fillRect(c * tile, r * tile, tile + 1, tile + 1);
+    }
+    entidades = [];
+  } catch (e) {}
+}
+
+function novaEnt(tipo, naAgua) {
+  let x, y, t = 0;
+  do { x = Math.random() * (mundoCanvas.width - 8) + 4; y = Math.random() * (mundoCanvas.height - 8) + 4; t++; }
+  while (t < 40 && (naAgua ? terraNoPix(x, y) : !terraNoPix(x, y)));
+  return { tipo, x, y, ang: Math.random() * 6.28, vel: 0.2 + Math.random() * 0.4, naAgua, f: Math.random() * 6 };
+}
+
+function alvos() {
+  const d = estado.dna, era = estado.era;
+  return {
+    celula: Math.min(16, 3 + Math.floor(Math.log10(1 + d))),
+    peixe: Math.min(22, nivelPla("cardume") * 2 + (era >= 1 ? 3 : 0) + Math.floor(q("peixe") / 20)),
+    planta: Math.min(26, nivelPla("planta") * 2 + nivelPla("gado") + (era >= 2 ? 2 : 0)),
+    bicho: Math.min(14, (era >= 2 ? 3 : 0) + nivelPla("gado") + Math.floor(q("dino") / 30)),
+    humano: Math.min(28, Math.floor(Math.sqrt(estado.pop || 0)) + (era >= 5 ? 3 : 0)),
+    aldeia: Math.min(10, nivelPla("aldeia")),
+  };
+}
+
+function sincronizarMundo() {
+  if (!mundoCanvas) return;
+  const alvo = alvos();
+  for (const tipo in alvo) {
+    const atual = entidades.filter((e) => e.tipo === tipo).length;
+    const naAgua = tipo === "celula" || tipo === "peixe";
+    const estatico = tipo === "planta" || tipo === "aldeia";
+    if (atual < alvo[tipo]) for (let i = 0; i < alvo[tipo] - atual; i++) { const e = novaEnt(tipo, naAgua); e.estatico = estatico; entidades.push(e); }
+    else if (atual > alvo[tipo]) { let rem = atual - alvo[tipo]; entidades = entidades.filter((e) => { if (e.tipo === tipo && rem > 0) { rem--; return false; } return true; }); }
+  }
+}
+
+function animarMundo(dt) {
+  if (!mundoCanvas) return;
+  const p = dt * 60;
+  entidades.forEach((e) => {
+    e.f += 0.1 * p;
+    if (e.estatico) return;
+    const nx = e.x + Math.cos(e.ang) * e.vel * p, ny = e.y + Math.sin(e.ang) * e.vel * p;
+    const ok = nx > 3 && ny > 3 && nx < mundoCanvas.width - 3 && ny < mundoCanvas.height - 3 && (e.naAgua ? !terraNoPix(nx, ny) : terraNoPix(nx, ny));
+    if (ok) { e.x = nx; e.y = ny; } else e.ang += 2 + Math.random();
+    if (Math.random() < 0.02) e.ang += (Math.random() - 0.5);
+  });
+}
+
+function desenharMundo() {
+  if (!mundoCtx) return;
+  mundoCtx.drawImage(offCanvas, 0, 0);
+  entidades.forEach((e) => {
+    const x = e.x, y = e.y;
+    if (e.tipo === "celula") { mundoCtx.fillStyle = "#7fffd0"; mundoCtx.beginPath(); mundoCtx.arc(x, y, 1.6, 0, 6.28); mundoCtx.fill(); }
+    else if (e.tipo === "peixe") { mundoCtx.save(); mundoCtx.translate(x, y); mundoCtx.rotate(e.ang); mundoCtx.fillStyle = "#e8a040"; mundoCtx.beginPath(); mundoCtx.ellipse(0, 0, 4, 2, 0, 0, 6.28); mundoCtx.fill(); mundoCtx.beginPath(); mundoCtx.moveTo(-4, 0); mundoCtx.lineTo(-7, -2); mundoCtx.lineTo(-7, 2); mundoCtx.fill(); mundoCtx.restore(); }
+    else if (e.tipo === "planta") { mundoCtx.fillStyle = "#6a4a2a"; mundoCtx.fillRect(x - 1, y, 2, 4); mundoCtx.fillStyle = "#2f8f3f"; mundoCtx.beginPath(); mundoCtx.moveTo(x, y - 7); mundoCtx.lineTo(x - 5, y + 1); mundoCtx.lineTo(x + 5, y + 1); mundoCtx.fill(); }
+    else if (e.tipo === "bicho") { mundoCtx.fillStyle = "#b06a3a"; mundoCtx.beginPath(); mundoCtx.arc(x, y, 2.4, 0, 6.28); mundoCtx.fill(); }
+    else if (e.tipo === "humano") { mundoCtx.fillStyle = "#ffd0a0"; mundoCtx.beginPath(); mundoCtx.arc(x, y - 2, 1.4, 0, 6.28); mundoCtx.fill(); mundoCtx.strokeStyle = "#4f8cff"; mundoCtx.lineWidth = 1.6; mundoCtx.beginPath(); mundoCtx.moveTo(x, y - 1); mundoCtx.lineTo(x, y + 2); mundoCtx.stroke(); }
+    else if (e.tipo === "aldeia") { mundoCtx.fillStyle = "#8a5a30"; mundoCtx.fillRect(x - 4, y - 2, 8, 6); mundoCtx.fillStyle = "#5a3818"; mundoCtx.beginPath(); mundoCtx.moveTo(x - 5, y - 2); mundoCtx.lineTo(x, y - 8); mundoCtx.lineTo(x + 5, y - 2); mundoCtx.fill(); }
+  });
+}
+
 function simularPlaneta(dt) {
   const teto = tetoPop();
   const alvo = Math.min(teto, comidaPorSeg() / 0.5); // cada comida/s sustenta 2 pessoas
@@ -268,6 +366,8 @@ function iniciar() {
     if (meu !== laco) return;
     const dt = Math.min(0.5, (agora - ultimo) / 1000); ultimo = agora;
     simularPlaneta(dt);
+    animarMundo(dt);
+    desenharMundo();
     ganhar(producaoPorSeg() * dt);
     dnaEl.textContent = formatar(estado.dna);
     requestAnimationFrame(passo);
@@ -286,6 +386,10 @@ const estilo = document.createElement("style");
 estilo.textContent = "@keyframes pulsa{from{transform:scale(1)}to{transform:scale(1.15)}}";
 if (document.head) document.head.appendChild(estilo);
 
+setupMundo();
+window.addEventListener("resize", () => { setupMundo(); sincronizarMundo(); });
 carregar();
 render();
+sincronizarMundo();
+setInterval(sincronizarMundo, 1500);
 iniciar();
