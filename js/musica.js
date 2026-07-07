@@ -48,6 +48,7 @@ const ESTILOS_MUSICA = {
   coletar: { escala: ESCALAS.maiorAlegre, tempo: 132, ondaM: "triangle", ondaB: "sine", baixo: [131,110,98,110] },
   reacao: { escala: ESCALAS.maiorAlegre, tempo: 120, ondaM: "sine", ondaB: "sine", baixo: [110,110,110,110] },
   tanques: { escala: ESCALAS.menorSeria, tempo: 150, ondaM: "square", ondaB: "sawtooth", baixo: [82, 82, 98, 110] },
+  tiro3d: { escala: ESCALAS.tensa, tempo: 150, ondaM: "sawtooth", ondaB: "square", baixo: [82, 82, 87, 73] },
   labirinto: { escala: ESCALAS.misteriosa, tempo: 300, ondaM: "sine", ondaB: "triangle", baixo: [87, 87, 73, 82] },
   cobrabatalha: { escala: ESCALAS.menorSeria, tempo: 165, ondaM: "square", ondaB: "sawtooth", baixo: [110, 104, 98, 104] },
   genius: null, // silêncio: o Genius é um jogo de OUVIR os tons

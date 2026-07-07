@@ -52,17 +52,25 @@ function novoJogo(nv) {
 
 function iniciar() {
   const meu = ++laco;
-  const passo = () => { if (meu !== laco) return; if (rodando && !document.hidden) atualizar(); render(); requestAnimationFrame(passo); };
+  let ultimo = performance.now();
+  const passo = (agora) => {
+    if (meu !== laco) return;
+    const fator = Math.min(3, (agora - ultimo) / 16.67); ultimo = agora;
+    if (rodando && !document.hidden) atualizar(fator);
+    render();
+    requestAnimationFrame(passo);
+  };
   requestAnimationFrame(passo);
 }
 
 function bloqueado(x, y) { const c = mapa[Math.floor(y)] && mapa[Math.floor(y)][Math.floor(x)]; return c === 1; }
 
-function atualizar() {
+function atualizar(fator) {
+  fator = fator || 1;
   if (joyMove && (joyMove.dx || joyMove.dy)) {
     const frente = -joyMove.dy / 46, lado = joyMove.dx / 46;
     const cos = Math.cos(jogador.ang), sin = Math.sin(jogador.ang);
-    const vel = 0.06;
+    const vel = 0.035 * fator;
     const nx = jogador.x + (cos * frente - sin * lado) * vel;
     const ny = jogador.y + (sin * frente + cos * lado) * vel;
     if (!bloqueado(nx, jogador.y)) jogador.x = nx;
@@ -163,7 +171,7 @@ tela.addEventListener("touchmove", (e) => {
   for (const t of e.changedTouches) {
     const x = t.clientX - r.left, y = t.clientY - r.top;
     if (toques[t.identifier] === "move" && joyMove) moveJoy(joyMove, x, y);
-    else if (toques[t.identifier] === "olhar") { jogador.ang += (x - olharX) * 0.006; olharX = x; }
+    else if (toques[t.identifier] === "olhar") { jogador.ang += (x - olharX) * 0.004; olharX = x; }
   }
 }, { passive: false });
 function soltar(e) {

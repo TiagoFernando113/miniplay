@@ -1,4 +1,4 @@
-const CACHE = "minigames-v94";
+const CACHE = "minigames-v95";
 
 const ARQUIVOS = [
   "./",
@@ -81,6 +81,8 @@ const ARQUIVOS = [
   "./games/conta/jogo.js",
   "./games/labirinto/index.html",
   "./games/labirinto/jogo.js",
+  "./games/tiro3d/index.html",
+  "./games/tiro3d/jogo.js",
   "./games/basquete/index.html",
   "./games/basquete/jogo.js",
   "./games/hanoi/index.html",
