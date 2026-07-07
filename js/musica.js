@@ -11,6 +11,7 @@ const ESCALAS = {
   tensa: [262, 277, 311, 349, 392, 415, 466, 523],
   aquatica: [196, 220, 262, 294, 330, 392, 440],
   marcial: [196, 247, 294, 330, 392, 494, 587],
+  maiorAlegre: [262, 294, 330, 349, 392, 440, 494, 523, 587, 659],
 };
 
 // estilo por jogo: [escala, ritmo(ms), onda melodia, onda baixo, notas do baixo]
@@ -47,8 +48,21 @@ const ESTILOS_MUSICA = {
   coletar: { escala: ESCALAS.maiorAlegre, tempo: 132, ondaM: "triangle", ondaB: "sine", baixo: [131,110,98,110] },
   reacao: { escala: ESCALAS.maiorAlegre, tempo: 120, ondaM: "sine", ondaB: "sine", baixo: [110,110,110,110] },
   tanques: { escala: ESCALAS.menorSeria, tempo: 150, ondaM: "square", ondaB: "sawtooth", baixo: [82, 82, 98, 110] },
+  labirinto: { escala: ESCALAS.misteriosa, tempo: 300, ondaM: "sine", ondaB: "triangle", baixo: [87, 87, 73, 82] },
   cobrabatalha: { escala: ESCALAS.menorSeria, tempo: 165, ondaM: "square", ondaB: "sawtooth", baixo: [110, 104, 98, 104] },
   genius: null, // silêncio: o Genius é um jogo de OUVIR os tons
+};
+
+
+// melodias reais que dão graça (loop). 0 = pausa.
+const MELODIAS = {
+  // Für Elise (abertura) — combina com o Piano
+  piano: [659,622,659,622,659,494,587,523,440,0,262,330,440,494,0,330,415,494,523,0,330,659,622,659,622,659,494,587,523,440,0,262,330,440,494,0,330,523,494,440,0],
+  // Ode à Alegria (Beethoven) — alegre e universal
+  quiz: [330,330,349,392,392,349,330,294,262,262,294,330,330,294,294,0,330,330,349,392,392,349,330,294,262,262,294,330,294,262,262,0],
+  "2048": [330,330,349,392,392,349,330,294,262,262,294,330,330,294,294,0],
+  memoria: [392,440,392,330,392,440,494,440,392,330,262,330,392,330,294,0],
+  velha: [523,392,440,523,494,440,392,349,392,440,494,523,440,392,330,0],
 };
 
 const Musica = {
@@ -69,26 +83,25 @@ const Musica = {
 
     this.tocando = true;
     this.passo = 0;
-    this.posicaoMelodia = Math.floor(estilo.escala.length / 2);
+    this.iMel = 0;
+    const jogo = (location.pathname.match(/games\/([^/]+)/) || [])[1];
+    const melodia = MELODIAS[jogo];
+    // padrão melódico agradável pela escala (sobe e desce, não é aleatório)
+    const PADRAO = [0, 2, 4, 2, 3, 1, 4, 5, 4, 2, 3, 1, 2, 0, 2, 4];
 
     this.temporizador = setInterval(() => {
-      if (Config.get().musica === false) {
-        this.parar();
-        return;
-      }
+      if (Config.get().musica === false) { this.parar(); return; }
       const t = this.passo;
 
       if (t % 4 === 0) {
-        this._nota(estilo.baixo[(t / 4) % estilo.baixo.length], 0.42, estilo.ondaB, 0.05);
+        this._nota(estilo.baixo[(t / 4) % estilo.baixo.length], 0.42, estilo.ondaB, 0.06);
       }
 
-      // melodia: caminhada aleatória suave pela escala do jogo
-      this.posicaoMelodia = Math.max(
-        0,
-        Math.min(estilo.escala.length - 1, this.posicaoMelodia + (Math.floor(Math.random() * 3) - 1))
-      );
       if (t % 2 === 0) {
-        this._nota(estilo.escala[this.posicaoMelodia], 0.18, estilo.ondaM, 0.022);
+        let freq;
+        if (melodia) { freq = melodia[this.iMel % melodia.length]; this.iMel++; }
+        else { const grau = PADRAO[(t / 2) % PADRAO.length]; freq = estilo.escala[Math.min(estilo.escala.length - 1, grau)]; }
+        if (freq) this._nota(freq, melodia ? 0.26 : 0.2, estilo.ondaM, 0.032);
       }
 
       this.passo++;

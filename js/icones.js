@@ -60,6 +60,7 @@ const ICONES = {
   hanoi: _svg("<path d=\"M3 20h18\"/><path d=\"M12 4v14\"/><rect x=\"8\" y=\"15\" width=\"8\" height=\"3\" rx=\"1\"/><rect x=\"9\" y=\"11\" width=\"6\" height=\"3\" rx=\"1\"/><rect x=\"10\" y=\"7\" width=\"4\" height=\"3\" rx=\"1\"/>"),
   basquete: _svg("<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M3 12h18M12 3v18M5 5c4 3 4 11 0 14M19 5c-4 3-4 11 0 14\" stroke-width=\"1.2\"/>"),
   conta: _svg("<rect x=\"4\" y=\"3\" width=\"16\" height=\"18\" rx=\"2\"/><path d=\"M8 8h8M8 12h3M13 12h3M8 16h3M13 16h3\"/>"),
+  labirinto: _svg("<path d=\"M3 3h18v18H3z\"/><path d=\"M3 8h10M8 8v8M13 3v10M13 13h5M18 13v8M8 16h5\" stroke-width=\"1.6\"/>"),
   cobrabatalha: _svg('<path d="M4 6h6a3 3 0 0 1 0 6H8a3 3 0 0 0 0 6h8" /><circle cx="18" cy="18" r="2" fill="currentColor"/><path d="M20 5l2-2M22 7l1.5-.5" stroke-width="1.3"/>'),
 };
 

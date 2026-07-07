@@ -1,4 +1,4 @@
-const APP_VERSAO = "v93";
+const APP_VERSAO = "v94";
 
 // mata o menu de toque longo (copiar link...) — MENOS em campos de texto,
 // senão o jogador não consegue copiar/colar o código de backup!
@@ -90,18 +90,23 @@ if (location.pathname.includes("/games/")) {
   }
 
   if (ehJogo && !instalado) {
-    document.addEventListener("touchend", async () => {
+    // tenta tela cheia só UMA vez por entrada (não a cada toque — isso causava
+    // resize/engasgo "dash"). Re-arma só se o jogador sair da tela cheia.
+    let fsArmado = true;
+    const tentarFS = async () => {
+      if (!fsArmado || document.fullscreenElement) return;
+      fsArmado = false;
       try {
-        if (!document.fullscreenElement) {
-          await document.documentElement.requestFullscreen();
-          if (querPaisagem && screen.orientation && screen.orientation.lock) {
-            screen.orientation.lock("landscape").catch(() => {});
-          }
+        await document.documentElement.requestFullscreen();
+        if (querPaisagem && screen.orientation && screen.orientation.lock) {
+          screen.orientation.lock("landscape").catch(() => {});
         }
       } catch (e) {
         /* navegador não deixou — segue normal */
       }
-    });
+    };
+    document.addEventListener("touchend", tentarFS);
+    document.addEventListener("fullscreenchange", () => { if (!document.fullscreenElement) fsArmado = true; });
   }
 }
 
