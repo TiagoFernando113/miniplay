@@ -82,7 +82,7 @@ function somaPla(tipo) { let s = 0; PLANETA.forEach((b) => { if (b.tipo === tipo
 function energiaPla() { return 1 + somaPla("energia"); }
 function comidaPorSeg() { return somaPla("comida") * energiaPla(); }
 function tetoPop() { return somaPla("popteto"); }
-function multPlaneta() { return 1 + Math.log10(1 + estado.ciencia) * 0.4 + estado.pop * 0.004; }
+function multPlaneta() { return 1 + Math.log10(1 + estado.ciencia) * 0.5 + Math.sqrt(estado.pop || 0) * 0.02; }
 
 function producaoPorSeg() {
   let p = 0;
@@ -180,6 +180,7 @@ function render() {
   { const ap = $("aba-pla"); if (ap) { ap.style.opacity = q("humano") >= 1 ? "1" : "0.45"; ap.textContent = q("humano") >= 1 ? "Planeta" : "Planeta (trav.)"; } }
   genesEl.textContent = estado.genes;
   genesBonusEl.textContent = estado.genes > 0 ? `(+${(estado.genes * 3)}% produção)` : "";
+  { const lp = $("linha-planeta"), mp = multPlaneta(); if (lp) { if (mp > 1.001) { lp.style.display = "block"; $("planeta-mult").textContent = "×" + mp.toFixed(2); } else lp.style.display = "none"; } }
   criaturaEl.innerHTML = svgDe(estado.era % 8);
 
   const gg = genesGanhos();
@@ -198,6 +199,7 @@ function render() {
   // organismos
   listaEl.innerHTML = "";
   GERADORES.forEach((g, idx) => {
+    if ((ORG_ERA[g.id] || 0) > estado.era + 1) return; // respeita a era (só libera até a próxima)
     const desbloq = idx === 0 || q(GERADORES[idx - 1].id) > 0;
     if (!desbloq && q(g.id) === 0) return;
     const n = nDoModo(g), c = custo(g, n);
