@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Evolução</title>
+  <link rel="stylesheet" href="../../css/estilo.css" />
+  <link rel="manifest" href="../../manifest.json" />
+  <meta name="theme-color" content="#121212" />
+  <script src="../../js/tema.js"></script>
+  <style>
+    .evo-topo { position: sticky; top: 0; background: var(--bg); z-index: 5; padding: 8px 12px; text-align: center; border-bottom: 1px solid var(--card-bg); }
+    .evo-dna { font-size: 1.8rem; font-weight: 900; color: var(--accent); }
+    .evo-ps { color: var(--text-dim); font-weight: 700; font-size: 0.85rem; }
+    .evo-era { color: #ffd54f; font-weight: 800; font-size: 0.8rem; }
+    .evo-criatura { display: flex; justify-content: center; padding: 10px; }
+    .evo-criatura button { background: none; border: none; cursor: pointer; transition: transform 0.08s; }
+    .evo-criatura button:active { transform: scale(0.92); }
+    .evo-criatura svg { width: 120px; height: 120px; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4)); }
+    .evo-evoluir { max-width: 480px; margin: 4px auto; padding: 0 12px; }
+    .evo-evoluir .btn { width: 100%; background: linear-gradient(90deg,#b56fff,#ff6fa5); }
+    .evo-lista { max-width: 480px; margin: 0 auto; padding: 6px 12px 40px; display: flex; flex-direction: column; gap: 8px; }
+    .evo-item { display: flex; align-items: center; gap: 10px; background: var(--card-bg); border-radius: 12px; padding: 10px 12px; }
+    .evo-item.bloq { opacity: 0.45; }
+    .evo-item .ic { width: 40px; height: 40px; flex: 0 0 40px; display: flex; align-items: center; justify-content: center; }
+    .evo-item .meio { flex: 1; text-align: left; min-width: 0; }
+    .evo-item .nome { font-weight: 800; }
+    .evo-item .sub { font-size: 0.72rem; color: var(--text-dim); }
+    .evo-item .comprar { border: none; border-radius: 10px; background: var(--accent); color: #fff; font-weight: 800; padding: 10px 12px; font-size: 0.8rem; min-width: 92px; }
+    .evo-item .comprar:disabled { background: #3a3a44; color: #888; }
+    .evo-qtd { background: #12203a; color: #7fbfff; border-radius: 8px; padding: 2px 8px; font-weight: 800; font-size: 0.8rem; }
+    .evo-modo { display: flex; gap: 6px; justify-content: center; margin-top: 6px; }
+    .evo-modo button { background: var(--card-bg); border: 1px solid #333; color: var(--text-dim); border-radius: 8px; padding: 4px 12px; font-weight: 700; }
+    .evo-modo button.ativo { background: var(--accent); color: #fff; border-color: var(--accent); }
+  </style>
+</head>
+<body>
+  <a class="voltar" href="../../index.html">← voltar</a>
+  <div class="evo-topo">
+    <div class="evo-dna"><span id="dna">0</span> DNA</div>
+    <div class="evo-ps"><span id="ps">0</span>/s · <span class="evo-era">Era <span id="era">1</span>: <span id="era-nome">Célula</span></span></div>
+    <div class="evo-modo">
+      <button data-modo="1" class="ativo">Comprar 1</button>
+      <button data-modo="10">×10</button>
+      <button data-modo="max">Máx</button>
+    </div>
+  </div>
+  <div class="evo-criatura"><button id="criatura"></button></div>
+  <div class="evo-evoluir" id="painel-evoluir"></div>
+  <div class="evo-lista" id="lista"></div>
+  <script src="../../js/util.js"></script>
+  <script src="../../js/pontos.js"></script>
+  <script src="../../js/som.js"></script>
+  <script src="../../js/musica.js"></script>
+  <script src="../../js/recordes.js"></script>
+  <script src="../../js/conquistas.js"></script>
+  <script src="../../js/missoes.js"></script>
+  <script src="../../js/nuvem.js"></script>
+  <script src="../../js/app.js"></script>
+  <script src="../../js/modal.js"></script>
+  <script src="jogo.js"></script>
+</body>
+</html>

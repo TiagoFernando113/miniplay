@@ -51,6 +51,7 @@ const ESTILOS_MUSICA = {
   termo: { escala: ESCALAS.maiorFeliz, tempo: 260, ondaM: "sine", ondaB: "triangle", baixo: [131,110,131,98] },
   ligue4: { escala: ESCALAS.maiorFeliz, tempo: 240, ondaM: "triangle", ondaB: "triangle", baixo: [131,131,110,131] },
   ninjafrutas: { escala: ESCALAS.maiorAlegre, tempo: 150, ondaM: "square", ondaB: "sawtooth", baixo: [110,123,110,98] },
+  evolucao: { escala: ESCALAS.aquatica, tempo: 320, ondaM: "sine", ondaB: "sine", baixo: [98, 87, 110, 98] },
   tiro3d: { escala: ESCALAS.tensa, tempo: 150, ondaM: "sawtooth", ondaB: "square", baixo: [82, 82, 87, 73] },
   labirinto: { escala: ESCALAS.misteriosa, tempo: 300, ondaM: "sine", ondaB: "triangle", baixo: [87, 87, 73, 82] },
   cobrabatalha: { escala: ESCALAS.menorSeria, tempo: 165, ondaM: "square", ondaB: "sawtooth", baixo: [110, 104, 98, 104] },
