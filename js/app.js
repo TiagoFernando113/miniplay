@@ -1,4 +1,4 @@
-const APP_VERSAO = "v91";
+const APP_VERSAO = "v92";
 
 // mata o menu de toque longo (copiar link...) — MENOS em campos de texto,
 // senão o jogador não consegue copiar/colar o código de backup!
@@ -67,6 +67,16 @@ if (!location.pathname.includes("/games/")) {
 
 // Jogos: sempre em tela cheia. Se sair (voltar do Android, girar etc.),
 // o próximo toque recoloca. Jogos de ação entram deitados, a menos que a
+// registra o jogo recém-aberto na lista de "jogar novamente"
+if (location.pathname.includes("/games/")) {
+  try {
+    const slug = location.pathname.split("/games/")[1].split("/")[0];
+    let recentes = JSON.parse(localStorage.getItem("recentes") || "[]");
+    recentes = [slug, ...recentes.filter((s) => s !== slug)].slice(0, 6);
+    localStorage.setItem("recentes", JSON.stringify(recentes));
+  } catch (e) {}
+}
+
 // chave "girar" esteja desligada nos Ajustes (pra jogar deitado na cama).
 {
   const ehJogo = location.pathname.includes("/games/");

@@ -8,6 +8,24 @@
   <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#121212" />
   <script src="js/tema.js"></script>
+  <style>
+    .secao-titulo {
+      max-width: 640px; margin: 22px auto 8px; padding: 0 16px;
+      display: flex; align-items: center; gap: 8px;
+      font-size: 1rem; font-weight: 800; color: var(--text);
+    }
+    .secao-titulo .tag {
+      font-size: 0.62rem; font-weight: 800; padding: 2px 8px; border-radius: 8px;
+      background: var(--accent); color: #fff; text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .secao-titulo .tag.online { background: #2fb85f; }
+    .secao-titulo .tag.semana { background: #ffd54f; color: #222; }
+    .card-jogo .badge-online, .card-jogo .selo-x2, .card-jogo .selo-novo {
+      position: absolute; font-size: 0.6rem; font-weight: 800; padding: 2px 7px; border-radius: 8px; z-index: 2;
+    }
+    .card-jogo .selo-x2 { top: 6px; right: 8px; background: #ffd54f; color: #222; }
+    .card-jogo .selo-novo { top: 6px; left: 8px; background: #ff6f6f; color: #fff; }
+  </style>
 </head>
 <body>
   <a class="voltar" href="index.html">← voltar</a>
@@ -17,148 +35,7 @@
     <p class="pontos-hub"><span class="icone-inline" data-icone="estrela"></span> Pontos: <strong id="pontos-totais">0</strong></p>
   </header>
 
-  <main class="grid-jogos">
-    <a class="card-jogo" style="--i:0" href="games/memoria/index.html" data-recorde="memoria" data-rotulo="melhor: {v} jogadas">
-      <span class="icone" data-icone="memoria"></span>
-      <span class="nome">Jogo da Memória</span>
-      <span class="recorde-card"></span>
-    </a>
-    <a class="card-jogo" style="--i:1" href="games/velha/index.html" data-recorde="velhaVitorias" data-rotulo="{v} vitórias">
-      <span class="icone" data-icone="velha"></span>
-      <span class="nome">Jogo da Velha</span>
-      <span class="recorde-card"></span>
-    </a>
-    <a class="card-jogo" style="--i:2" href="games/2048/index.html" data-recorde="p2048" data-rotulo="recorde: {v}">
-      <span class="icone" data-icone="2048"></span>
-      <span class="nome">2048</span>
-      <span class="recorde-card"></span>
-    </a>
-    <a class="card-jogo" style="--i:3" href="games/cobrinha/index.html" data-recorde="cobrinha" data-rotulo="recorde: {v}">
-      <span class="icone" data-icone="cobrinha"></span>
-      <span class="nome">Cobrinha</span>
-      <span class="recorde-card"></span>
-    </a>
-    <a class="card-jogo" style="--i:4" href="games/genius/index.html" data-recorde="genius" data-rotulo="rodada {v}">
-      <span class="icone" data-icone="genius"></span>
-      <span class="nome">Genius</span>
-      <span class="recorde-card"></span>
-    </a>
-    <a class="card-jogo" style="--i:5" href="games/alvo/index.html" data-recorde="alvo" data-rotulo="recorde: {v}">
-      <span class="icone" data-icone="alvo"></span>
-      <span class="nome">Acerte o Alvo</span>
-      <span class="recorde-card"></span>
-    </a>
-    <a class="card-jogo" style="--i:6" href="games/blocos/index.html" data-recorde="blocos" data-rotulo="recorde: {v}">
-      <span class="icone" data-icone="blocos"></span>
-      <span class="nome">Blocos</span>
-      <span class="recorde-card"></span>
-    </a>
-    <a class="card-jogo" style="--i:7" href="games/doces/index.html" data-recorde="docesNivel" data-rotulo="nível {v}">
-      <span class="icone" data-icone="doces"></span>
-      <span class="nome">Doces</span>
-      <span class="recorde-card"></span>
-    </a>
-    <a class="card-jogo" style="--i:8" href="games/conquista/index.html" data-recorde="conquistaNivel" data-rotulo="nível {v}">
-      <span class="icone" data-icone="conquista"></span>
-      <span class="nome">Conquista</span>
-      <span class="recorde-card"></span>
-    </a>
-    <a class="card-jogo" style="--i:9" href="games/bolhas/index.html" data-recorde="bolhas" data-rotulo="tamanho {v}">
-      <span class="icone" data-icone="bolhas"></span>
-      <span class="nome">Bolhas</span>
-      <span class="recorde-card"></span>
-    </a>
-    <a class="card-jogo" style="--i:10" href="games/territorio/index.html" data-recorde="territorioVitorias" data-rotulo="{v} vitórias">
-      <span class="icone" data-icone="territorio"></span>
-      <span class="nome">Território</span>
-      <span class="recorde-card"></span>
-    </a>
-    <a class="card-jogo" style="--i:11" href="games/naval/index.html" data-recorde="navalVitorias" data-rotulo="{v} vitórias">
-      <span class="icone" data-icone="naval"></span>
-      <span class="nome">Batalha Naval</span>
-      <span class="recorde-card"></span>
-    </a>
-    <a class="card-jogo" style="--i:12" href="games/quiz/index.html" data-recorde="quiz" data-rotulo="melhor: {v}/10">
-      <span class="icone" data-icone="quiz"></span>
-      <span class="nome">Quiz</span>
-      <span class="recorde-card"></span>
-    </a>
-    <a class="card-jogo" style="--i:13" href="games/ppt/index.html" data-recorde="pptVitorias" data-rotulo="{v} vitórias">
-      <span class="icone" data-icone="ppt"></span>
-      <span class="nome">Pedra-Papel-Tesoura</span>
-      <span class="recorde-card"></span>
-    </a>
-    <a class="card-jogo" style="--i:14" href="games/forca/index.html" data-recorde="forcaNivel" data-rotulo="nível {v}">
-      <span class="icone" data-icone="forca"></span>
-      <span class="nome">Forca</span>
-      <span class="recorde-card"></span>
-    </a>
-    <a class="card-jogo" style="--i:15" href="games/campo/index.html" data-recorde="campoNivel" data-rotulo="nível {v}">
-      <span class="icone" data-icone="campo"></span>
-      <span class="nome">Campo Minado</span>
-      <span class="recorde-card"></span>
-    </a>
-    <a class="card-jogo" style="--i:16" href="games/puzzle15/index.html" data-recorde="puzzle15" data-rotulo="melhor: {v} mov.">
-      <span class="icone" data-icone="puzzle15"></span>
-      <span class="nome">Puzzle 15</span>
-      <span class="recorde-card"></span>
-    </a>
-    <a class="card-jogo" style="--i:17" href="games/cacapalavras/index.html" data-recorde="cacaNivel" data-rotulo="nível {v}">
-      <span class="icone" data-icone="cacapalavras"></span>
-      <span class="nome">Caça-Palavras</span>
-      <span class="recorde-card"></span>
-    </a>
-    <a class="card-jogo" style="--i:18" href="games/passaro/index.html" data-recorde="passaro" data-rotulo="recorde: {v}">
-      <span class="icone" data-icone="passaro"></span>
-      <span class="nome">Pássaro</span>
-      <span class="recorde-card"></span>
-    </a>
-    <a class="card-jogo" style="--i:19" href="games/torre/index.html" data-recorde="torre" data-rotulo="{v} andares">
-      <span class="icone" data-icone="torre"></span>
-      <span class="nome">Torre</span>
-      <span class="recorde-card"></span>
-    </a>
-    <a class="card-jogo" style="--i:20" href="games/hexagono/index.html" data-recorde="hexagono" data-rotulo="recorde: {v}">
-      <span class="icone" data-icone="hexagono"></span>
-      <span class="nome">Hexágono</span>
-      <span class="recorde-card"></span>
-    </a>
-    <a class="card-jogo" style="--i:21" href="games/cobrabatalha/index.html" data-recorde="cobrabatalha" data-rotulo="tamanho {v}">
-      <span class="icone" data-icone="cobrabatalha"></span>
-      <span class="nome">Cobra Batalha 🌐</span>
-      <span class="recorde-card"></span>
-    </a>
-    <a class="card-jogo" style="--i:22" href="games/tanques/index.html" data-recorde="tanques" data-rotulo="nível {v}">
-      <span class="icone" data-icone="tanques"></span>
-      <span class="nome">Tanques</span>
-      <span class="recorde-card"></span>
-    </a>
-    <a class="card-jogo" style="--i:23" href="games/pingue/index.html" data-recorde="pingueVitorias" data-rotulo="{v} vitórias">
-      <span class="icone" data-icone="pingue"></span>
-      <span class="nome">Pingue-Pongue</span>
-      <span class="recorde-card"></span>
-    </a>
-    <a class="card-jogo" style="--i:24" href="games/quebrablocos/index.html" data-recorde="quebrablocos" data-rotulo="recorde: {v}">
-      <span class="icone" data-icone="quebrablocos"></span>
-      <span class="nome">Quebra-Blocos</span>
-      <span class="recorde-card"></span>
-    </a>
-    <a class="card-jogo" style="--i:25" href="games/corredor/index.html" data-recorde="corredor" data-rotulo="{v} m">
-      <span class="icone" data-icone="corredor"></span>
-      <span class="nome">Corredor</span>
-      <span class="recorde-card"></span>
-    </a>
-    <a class="card-jogo" style="--i:26" href="games/coletar/index.html" data-recorde="coletar" data-rotulo="recorde: {v}">
-      <span class="icone" data-icone="coletar"></span>
-      <span class="nome">Coletar</span>
-      <span class="recorde-card"></span>
-    </a>
-    <a class="card-jogo" style="--i:27" href="games/reacao/index.html" data-recorde="reacao" data-rotulo="{v} ms">
-      <span class="icone" data-icone="reacao"></span>
-      <span class="nome">Reação</span>
-      <span class="recorde-card"></span>
-    </a>
-  </main>
+  <div id="secoes"></div>
 
   <script src="js/icones.js"></script>
   <script src="js/util.js"></script>
@@ -171,54 +48,82 @@
   <script src="js/nuvem.js"></script>
   <script src="js/app.js"></script>
   <script>
-    // recordes nos cards
-    document.querySelectorAll("[data-recorde]").forEach((card) => {
-      const valor = Recordes.get(card.dataset.recorde);
-      if (valor !== undefined) {
-        card.querySelector(".recorde-card").textContent =
-          "🏆 " + card.dataset.rotulo.replace("{v}", valor);
-      }
-    });
+    // catálogo de jogos (novos: nova:true; online: online:true)
+    const JOGOS = [
+      { s: "cobrabatalha", n: "Cobra Batalha", rec: "cobrabatalha", rot: "tamanho {v}", online: true, nova: true },
+      { s: "tanques", n: "Tanques", rec: "tanques", rot: "nível {v}", online: true, nova: true },
+      { s: "bolhas", n: "Bolhas", rec: "bolhas", rot: "tamanho {v}", online: true },
+      { s: "velha", n: "Jogo da Velha", rec: "velhaVitorias", rot: "{v} vitórias", online: true },
+      { s: "pingue", n: "Pingue-Pongue", rec: "pingueVitorias", rot: "{v} vitórias", nova: true },
+      { s: "quebrablocos", n: "Quebra-Blocos", rec: "quebrablocos", rot: "recorde {v}", nova: true },
+      { s: "corredor", n: "Corredor", rec: "corredor", rot: "{v} m", nova: true },
+      { s: "coletar", n: "Coletar", rec: "coletar", rot: "recorde {v}", nova: true },
+      { s: "reacao", n: "Reação", rec: "reacao", rot: "{v} ms", nova: true },
+      { s: "passaro", n: "Pássaro", rec: "passaro", rot: "recorde {v}" },
+      { s: "torre", n: "Torre", rec: "torre", rot: "{v} andares" },
+      { s: "hexagono", n: "Hexágono", rec: "hexagono", rot: "recorde {v}" },
+      { s: "2048", n: "2048", rec: "p2048", rot: "recorde {v}" },
+      { s: "cobrinha", n: "Cobrinha", rec: "cobrinha", rot: "recorde {v}" },
+      { s: "blocos", n: "Blocos", rec: "blocos", rot: "recorde {v}" },
+      { s: "doces", n: "Doces", rec: "docesNivel", rot: "nível {v}" },
+      { s: "memoria", n: "Jogo da Memória", rec: "memoria", rot: "{v} jogadas" },
+      { s: "genius", n: "Genius", rec: "genius", rot: "rodada {v}" },
+      { s: "alvo", n: "Acerte o Alvo", rec: "alvo", rot: "recorde {v}" },
+      { s: "conquista", n: "Conquista", rec: "conquistaNivel", rot: "nível {v}" },
+      { s: "territorio", n: "Território", rec: "territorioVitorias", rot: "{v} vitórias" },
+      { s: "naval", n: "Batalha Naval", rec: "navalVitorias", rot: "{v} vitórias" },
+      { s: "quiz", n: "Quiz", rec: "quiz", rot: "{v}/10" },
+      { s: "ppt", n: "Pedra-Papel-Tesoura", rec: "pptVitorias", rot: "{v} vitórias" },
+      { s: "forca", n: "Forca", rec: "forcaNivel", rot: "nível {v}" },
+      { s: "campo", n: "Campo Minado", rec: "campoNivel", rot: "nível {v}" },
+      { s: "puzzle15", n: "Puzzle 15", rec: "puzzle15", rot: "{v} mov." },
+      { s: "cacapalavras", n: "Caça-Palavras", rec: "cacaNivel", rot: "nível {v}" },
+    ];
+    const PORSLUG = {}; JOGOS.forEach((j) => (PORSLUG[j.s] = j));
+    const secoesEl = document.getElementById("secoes");
 
-    // selo ×2 no Jogo da Semana
-    const cardSemana = document.querySelector(`a[href*="games/${JogoDaSemana.atual()}/"]`);
-    if (cardSemana) {
-      const selo = document.createElement("span");
-      selo.textContent = "×2";
-      selo.style.cssText = "position:absolute;top:6px;right:8px;background:#ffd54f;color:#222;font-size:0.7rem;font-weight:800;padding:1px 7px;border-radius:8px;";
-      cardSemana.style.position = "relative";
-      cardSemana.style.border = "1px solid #ffd54f";
-      cardSemana.appendChild(selo);
-      // jogo da semana sempre em primeiro na lista
-      cardSemana.style.setProperty("--i", "0");
-      cardSemana.parentElement.prepend(cardSemana);
+    function cardHTML(j, i, selo) {
+      const rv = Recordes.get(j.rec);
+      const recTxt = rv !== undefined ? "🏆 " + j.rot.replace("{v}", rv) : "";
+      return `<a class="card-jogo" style="--i:${i};position:relative;" href="games/${j.s}/index.html">
+        ${selo || ""}
+        <span class="icone" data-icone="${j.s}"></span>
+        <span class="nome">${j.n}</span>
+        <span class="recorde-card">${recTxt}</span>
+      </a>`;
     }
 
-    aplicarIcones();
+    function secao(titulo, tag, tagClasse, jogos, seloDe) {
+      if (!jogos.length) return "";
+      const cards = jogos.map((j, i) => cardHTML(j, i, seloDe ? seloDe(j) : (j.nova ? '<span class="selo-novo">NOVO</span>' : ""))).join("");
+      return `<div class="secao-titulo">${titulo}${tag ? `<span class="tag ${tagClasse || ""}">${tag}</span>` : ""}</div><main class="grid-jogos">${cards}</main>`;
+    }
 
-    // presença online ao vivo: badge de quem está jogando agora
-    async function atualizarPresenca() {
-      if (!window.Nuvem) return;
-      const cont = await Nuvem.contarOnline();
-      const mapa = { cobrabatalha: "cobrabatalha", bolhas: "bolhas", velha: "velha" };
-      Object.entries(mapa).forEach(([jogo]) => {
-        const card = document.querySelector(`a[href*="games/${jogo}/"]`);
-        if (!card) return;
-        let badge = card.querySelector(".badge-online");
-        const n = cont[jogo] || 0;
-        if (n > 0) {
-          if (!badge) {
-            badge = document.createElement("span");
-            badge.className = "badge-online";
-            card.style.position = "relative";
-            card.appendChild(badge);
-          }
-          badge.textContent = `${n} jogando`;
-        } else if (badge) { badge.remove(); }
+    function render(presenca) {
+      presenca = presenca || {};
+      const semana = PORSLUG[JogoDaSemana.atual()];
+      const recentes = JSON.parse(localStorage.getItem("recentes") || "[]").map((s) => PORSLUG[s]).filter(Boolean).slice(0, 4);
+      const online = JOGOS.filter((j) => j.online);
+
+      let html = "";
+      if (semana) html += secao("Jogo da semana", "×2 pontos", "semana", [semana], () => '<span class="selo-x2">×2</span>');
+      html += secao("Jogar online", "com amigos", "online", online, (j) => {
+        const n = presenca[j.s] || 0;
+        return n > 0 ? `<span class="badge-online">${n} jogando</span>` : (j.nova ? '<span class="selo-novo">NOVO</span>' : "");
       });
+      if (recentes.length) html += secao("Jogar novamente", "", "", recentes);
+      html += secao("Todos os jogos", JOGOS.length + " jogos", "", JOGOS);
+      secoesEl.innerHTML = html;
+      aplicarIcones();
     }
-    atualizarPresenca();
-    setInterval(atualizarPresenca, 15000);
+
+    render();
+    async function atualizar() {
+      if (!window.Nuvem) return;
+      try { render(await Nuvem.contarOnline()); } catch (e) {}
+    }
+    atualizar();
+    setInterval(atualizar, 15000);
   </script>
 </body>
 </html>
