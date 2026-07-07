@@ -40,10 +40,14 @@ const painelEvo = document.getElementById("painel-evoluir");
 
 function formatar(n) {
   if (n < 1000) return Math.floor(n).toString();
-  const suf = ["", "K", "M", "B", "T", "Qa", "Qi", "Sx", "Sp", "Oc", "No", "Dc"];
+  const suf = ["", "K", "M", "B", "T", "Qa", "Qi", "Sx", "Sp", "Oc", "No", "Dc", "Ud", "Dd", "Td", "Qd", "Qq"];
   const i = Math.floor(Math.log10(n) / 3);
-  return (n / Math.pow(1000, i)).toFixed(2) + suf[Math.min(i, suf.length - 1)];
+  if (i >= suf.length) return n.toExponential(2).replace("e+", "e"); // gigante = científico
+  return (n / Math.pow(1000, i)).toFixed(2) + suf[i];
 }
+
+function nomeEra(i) { return ERAS[i] || "Era " + (i + 1); }
+function marco(qtd) { return Math.pow(2, Math.floor(qtd / 25)); } // x2 a cada 25 organismos
 
 function carregar() {
   try { estado = JSON.parse(localStorage.getItem("evolucaoSave")); } catch (e) {}
@@ -59,7 +63,7 @@ function salvar() { estado.ultimo = Date.now(); localStorage.setItem("evolucaoSa
 
 function producaoPorSeg() {
   let p = 0;
-  GERADORES.forEach((g) => (p += g.prod * estado.qtds[g.id]));
+  GERADORES.forEach((g) => (p += g.prod * estado.qtds[g.id] * marco(estado.qtds[g.id])));
   return p * estado.mult;
 }
 
@@ -87,7 +91,7 @@ function comprar(g) {
 }
 
 function custoEvolucao() { return 1e6 * Math.pow(15, estado.era); }
-function podeEvoluir() { return estado.dna >= custoEvolucao() && estado.era < ERAS.length - 1; }
+function podeEvoluir() { return estado.dna >= custoEvolucao(); }
 
 function evoluir() {
   if (!podeEvoluir()) return;
@@ -96,11 +100,11 @@ function evoluir() {
   estado.dna = 0;
   GERADORES.forEach((g) => (estado.qtds[g.id] = 0));
   Som.vitoria(); vibrar([60, 40, 60]);
-  Pontos.add(estado.era * 20);
-  const rec = Recordes.salvar("evolucao", estado.era + 1);
+  Pontos.add(Math.min(500, estado.era * 20));
+  Recordes.salvar("evolucao", estado.era + 1);
   if (window.Nuvem) Nuvem.enviarRecorde("evolucao", estado.era + 1);
   salvar(); render();
-  Modal.mostrar({ emoji: "🧬", titulo: `Evoluiu para a Era ${estado.era + 1}!`, texto: `${ERAS[estado.era]} — produção ×3 permanente!`, botao: "Continuar", aoJogarDeNovo: () => {} });
+  Modal.mostrar({ emoji: "🧬", titulo: `Era ${estado.era + 1}: ${nomeEra(estado.era)}!`, texto: `Produção ×3 permanente! Multiplicador atual: ×${formatar(estado.mult)}`, botao: "Continuar", aoJogarDeNovo: () => {} });
 }
 
 function avisar(txt) {
@@ -115,12 +119,12 @@ function render() {
   dnaEl.textContent = formatar(estado.dna);
   psEl.textContent = formatar(producaoPorSeg());
   eraEl.textContent = estado.era + 1;
-  eraNomeEl.textContent = ERAS[estado.era];
-  criaturaEl.innerHTML = svgDe(estado.era);
+  eraNomeEl.textContent = nomeEra(estado.era);
+  criaturaEl.innerHTML = svgDe(estado.era % 8);
 
   painelEvo.innerHTML = podeEvoluir()
-    ? `<button class="btn" id="btn-evoluir">🧬 Evoluir para ${ERAS[estado.era + 1]} (×3 pra sempre)</button>`
-    : (estado.era < ERAS.length - 1 ? `<div style="text-align:center;color:var(--text-dim);font-size:0.8rem;">Evoluir em ${formatar(custoEvolucao())} DNA</div>` : "");
+    ? `<button class="btn" id="btn-evoluir">Evoluir para ${nomeEra(estado.era + 1)} (×3 pra sempre)</button>`
+    : `<div style="text-align:center;color:var(--text-dim);font-size:0.8rem;">Evoluir em ${formatar(custoEvolucao())} DNA · mult atual ×${formatar(estado.mult)}</div>`;
   const be = document.getElementById("btn-evoluir");
   if (be) be.addEventListener("click", evoluir);
 
@@ -135,7 +139,7 @@ function render() {
       <div class="ic">${svgDe(Math.min(idx, 7))}</div>
       <div class="meio">
         <div class="nome">${g.nome} <span class="evo-qtd">${estado.qtds[g.id]}</span></div>
-        <div class="sub">produz ${formatar(g.prod * estado.mult)}/s cada</div>
+        <div class="sub">${formatar(g.prod * estado.mult * marco(estado.qtds[g.id]))}/s cada · bônus ×${marco(estado.qtds[g.id])} (próximo aos ${(Math.floor(estado.qtds[g.id] / 25) + 1) * 25})</div>
       </div>
       <button class="comprar" ${estado.dna < c ? "disabled" : ""}>+${n === "max" ? "" : n}<br>${formatar(c)}</button>`;
     item.querySelector(".comprar").addEventListener("click", () => comprar(g));
