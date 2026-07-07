@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Conta Rápida</title>
+  <link rel="stylesheet" href="../../css/estilo.css" />
+  <link rel="manifest" href="../../manifest.json" />
+  <meta name="theme-color" content="#121212" />
+  <script src="../../js/tema.js"></script>
+  <style>
+    .conta-tela { max-width: 460px; margin: 0 auto; padding: 12px 18px 40px; text-align: center; }
+    .conta-barra { height: 8px; background: var(--card-bg); border-radius: 6px; overflow: hidden; margin: 10px 0 18px; }
+    .conta-barra > div { height: 100%; background: var(--accent); width: 100%; transition: width 0.1s linear; }
+    .conta-pergunta { font-size: 3rem; font-weight: 900; margin: 24px 0; }
+    .conta-ops { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .conta-op {
+      background: var(--card-bg); border: 2px solid transparent; border-radius: 16px;
+      padding: 22px; font-size: 1.6rem; font-weight: 800; color: var(--text);
+    }
+    .conta-op.certo { border-color: #6fdf6f; }
+    .conta-op.errado { border-color: #ff6f6f; }
+    .conta-info { display: flex; justify-content: space-between; font-weight: 700; color: var(--text-dim); }
+  </style>
+</head>
+<body>
+  <a class="voltar" href="../../index.html">← voltar</a>
+  <div class="conta-tela">
+    <div class="conta-info"><span>Acertos: <strong id="placar">0</strong></span><span>🏆 <strong id="melhor">0</strong></span></div>
+    <div class="conta-barra"><div id="tempo-barra"></div></div>
+    <div class="conta-pergunta" id="pergunta">3 + 4</div>
+    <div class="conta-ops" id="ops"></div>
+  </div>
+  <script src="../../js/util.js"></script>
+  <script src="../../js/pontos.js"></script>
+  <script src="../../js/som.js"></script>
+  <script src="../../js/musica.js"></script>
+  <script src="../../js/recordes.js"></script>
+  <script src="../../js/conquistas.js"></script>
+  <script src="../../js/missoes.js"></script>
+  <script src="../../js/nuvem.js"></script>
+  <script src="../../js/app.js"></script>
+  <script src="../../js/modal.js"></script>
+  <script src="jogo.js"></script>
+</body>
+</html>

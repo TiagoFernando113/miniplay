@@ -55,6 +55,11 @@ const ICONES = {
   corredor: _svg("<circle cx=\"13\" cy=\"5\" r=\"2.2\"/><path d=\"M13 8l-3 5 3 2 3-3M10 13l-4 6M13 15l2 5\"/>"),
   coletar: _svg("<path d=\"M5 10h14l-2 9H7z\"/><path d=\"M8 10l2-5M16 10l-2-5\" stroke-width=\"1.4\"/>"),
   reacao: _svg("<path d=\"M13 2L4 14h7l-1 8 9-12h-7z\"/>"),
+  piano: _svg("<rect x=\"4\" y=\"3\" width=\"16\" height=\"18\" rx=\"2\"/><rect x=\"7\" y=\"3\" width=\"2\" height=\"9\" fill=\"currentColor\"/><rect x=\"12\" y=\"3\" width=\"2\" height=\"9\" fill=\"currentColor\"/><rect x=\"16\" y=\"3\" width=\"2\" height=\"9\" fill=\"currentColor\"/>"),
+  atravessar: _svg("<circle cx=\"12\" cy=\"6\" r=\"2.5\"/><path d=\"M12 9v6M9 20h6\"/><path d=\"M3 12h4M17 12h4\" stroke-width=\"1.4\"/>"),
+  hanoi: _svg("<path d=\"M3 20h18\"/><path d=\"M12 4v14\"/><rect x=\"8\" y=\"15\" width=\"8\" height=\"3\" rx=\"1\"/><rect x=\"9\" y=\"11\" width=\"6\" height=\"3\" rx=\"1\"/><rect x=\"10\" y=\"7\" width=\"4\" height=\"3\" rx=\"1\"/>"),
+  basquete: _svg("<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M3 12h18M12 3v18M5 5c4 3 4 11 0 14M19 5c-4 3-4 11 0 14\" stroke-width=\"1.2\"/>"),
+  conta: _svg("<rect x=\"4\" y=\"3\" width=\"16\" height=\"18\" rx=\"2\"/><path d=\"M8 8h8M8 12h3M13 12h3M8 16h3M13 16h3\"/>"),
   cobrabatalha: _svg('<path d="M4 6h6a3 3 0 0 1 0 6H8a3 3 0 0 0 0 6h8" /><circle cx="18" cy="18" r="2" fill="currentColor"/><path d="M20 5l2-2M22 7l1.5-.5" stroke-width="1.3"/>'),
 };
 
