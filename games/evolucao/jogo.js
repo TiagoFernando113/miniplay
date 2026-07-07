@@ -35,12 +35,12 @@ const MELHORIAS = [
 ];
 
 const PLANETA = [
-  { id: "cardume", nome: "Cardume de Peixes", desc: "Pescadores → +comida", base: 8e4, tipo: "comida", val: 2 },
-  { id: "planta", nome: "Plantação", desc: "Colheita → +comida", base: 4e5, tipo: "comida", val: 5 },
-  { id: "aldeia", nome: "Aldeia", desc: "Humanos → +teto de população", base: 1.5e6, tipo: "popteto", val: 15 },
-  { id: "gado", nome: "Fazenda de Gado", desc: "Bois → muito +comida", base: 6e6, tipo: "comida", val: 16 },
-  { id: "lab", nome: "Laboratório", desc: "População → +ciência", base: 4e7, tipo: "ciencia", val: 0.05 },
-  { id: "reator", nome: "Reator", desc: "Multiplica todo o planeta", base: 1e9, tipo: "energia", val: 0.4 },
+  { id: "cardume", nome: "Cardume de Peixes", desc: "Enche o mar de peixes → +comida", base: 8e4, tipo: "comida", val: 2, req: () => true, reqTxt: "" },
+  { id: "planta", nome: "Plantação", desc: "Vegetação na terra → +comida", base: 4e5, tipo: "comida", val: 5, req: () => nivelPla("cardume") >= 1, reqTxt: "requer 1 Cardume" },
+  { id: "aldeia", nome: "Aldeia", desc: "Abriga População (precisa de comida)", base: 1.5e6, tipo: "popteto", val: 15, req: () => comidaPorSeg() >= 4, reqTxt: "requer comida (Cardume/Plantação)" },
+  { id: "gado", nome: "Fazenda de Gado", desc: "Bois na terra → muito +comida", base: 6e6, tipo: "comida", val: 16, req: () => nivelPla("aldeia") >= 1, reqTxt: "requer 1 Aldeia" },
+  { id: "lab", nome: "Laboratório", desc: "População estuda → +Ciência (multiplica seu DNA)", base: 4e7, tipo: "ciencia", val: 0.05, req: () => (estado.pop || 0) >= 8, reqTxt: "requer 8 de população" },
+  { id: "reator", nome: "Reator", desc: "Multiplica TUDO do planeta", base: 1e9, tipo: "energia", val: 0.4, req: () => nivelPla("lab") >= 1, reqTxt: "requer 1 Laboratório" },
 ];
 
 const CRIATURAS = {
@@ -122,8 +122,14 @@ function comprarPla(b) { const c = custoPla(b); if (estado.dna < c) { Som.erro()
 
 function comprarMelhoria(u) { if (comprou(u.id) || estado.dna < u.custo) { Som.erro(); return; } estado.dna -= u.custo; estado.melhorias[u.id] = 1; Som.vitoria(); render(); }
 
+const REQ_ERA = { 1: "peixe", 2: "reptil", 3: "dino", 4: "mamifero", 5: "humano", 6: "ciborgue" };
+function orgProxEra() { return REQ_ERA[estado.era + 1]; }
 function custoEvolucao() { return 1e6 * Math.pow(15, estado.era); }
-function podeEvoluir() { return estado.dna >= custoEvolucao(); }
+function podeEvoluir() {
+  if (estado.dna < custoEvolucao()) return false;
+  const org = orgProxEra();
+  return !org || q(org) >= 1;
+}
 function genesGanhos() { return Math.floor(Math.sqrt(estado.totalEra / 2e6)); }
 
 function evoluir() {
@@ -174,9 +180,16 @@ function render() {
   criaturaEl.innerHTML = svgDe(estado.era % 8);
 
   const gg = genesGanhos();
-  painelEvo.innerHTML = podeEvoluir()
-    ? `<button class="btn" id="btn-evoluir">Evoluir para ${nomeEra(estado.era + 1)} — ×3${gg > 0 ? ` +${gg} Genes` : ""}</button>`
-    : `<div style="text-align:center;color:var(--text-dim);font-size:0.8rem;">Evoluir em ${formatar(custoEvolucao())} DNA${gg > 0 ? ` · renderia +${gg} Genes` : ""}</div>`;
+  const org = orgProxEra();
+  const temDna = estado.dna >= custoEvolucao();
+  if (podeEvoluir()) {
+    painelEvo.innerHTML = `<button class="btn" id="btn-evoluir">Evoluir para ${nomeEra(estado.era + 1)} — ×3${gg > 0 ? ` +${gg} Genes` : ""}</button>`;
+  } else if (temDna && org && q(org) < 1) {
+    const nomeOrg = (GERADORES.find((g) => g.id === org) || {}).nome || org;
+    painelEvo.innerHTML = `<div style="text-align:center;color:#ffd54f;font-size:0.8rem;font-weight:700;">Desbloqueie o organismo <b>${nomeOrg}</b> pra virar a era ${nomeEra(estado.era + 1)}</div>`;
+  } else {
+    painelEvo.innerHTML = `<div style="text-align:center;color:var(--text-dim);font-size:0.8rem;">Evoluir em ${formatar(custoEvolucao())} DNA${gg > 0 ? ` · renderia +${gg} Genes` : ""}</div>`;
+  }
   const be = $("btn-evoluir"); if (be) be.addEventListener("click", evoluir);
 
   // organismos
@@ -204,16 +217,24 @@ function render() {
       <div><div style="color:#25c8e8;">${formatar(estado.ciencia)}</div><div style="font-size:0.65rem;color:var(--text-dim);">Ciência</div></div>
     </div>
     <div style="margin-top:6px;color:#b56fff;font-weight:800;font-size:0.85rem;">Planeta dá ×${multPlaneta().toFixed(2)} ao seu DNA</div>
+    <div style="margin-top:4px;color:var(--text-dim);font-size:0.68rem;">Cardume/Plantação fazem comida → Aldeia vira população → Laboratório vira ciência (que turbina o DNA)</div>
   </div>`;
   listaPlaEl.innerHTML = resumo;
   PLANETA.forEach((b) => {
+    const liberado = b.req();
     const c = custoPla(b);
     const item = document.createElement("div");
-    item.className = "evo-item" + (estado.dna < c ? " bloq" : "");
-    item.innerHTML = `<div class="ic" style="color:#3fd06f;font-weight:900;">◈</div>
-      <div class="meio"><div class="nome">${b.nome} <span class="evo-qtd">${nivelPla(b.id)}</span></div><div class="sub">${b.desc}</div></div>
-      <button class="comprar" ${estado.dna < c ? "disabled" : ""}>${formatar(c)}</button>`;
-    item.querySelector(".comprar").addEventListener("click", () => comprarPla(b));
+    item.className = "evo-item" + (!liberado || estado.dna < c ? " bloq" : "");
+    if (!liberado) {
+      item.innerHTML = `<div class="ic" style="color:#888;">🔒</div>
+        <div class="meio"><div class="nome">${b.nome}</div><div class="sub">${b.reqTxt}</div></div>
+        <button class="comprar" disabled>—</button>`;
+    } else {
+      item.innerHTML = `<div class="ic" style="color:#3fd06f;font-weight:900;">◈</div>
+        <div class="meio"><div class="nome">${b.nome} <span class="evo-qtd">${nivelPla(b.id)}</span></div><div class="sub">${b.desc}</div></div>
+        <button class="comprar" ${estado.dna < c ? "disabled" : ""}>${formatar(c)}</button>`;
+      item.querySelector(".comprar").addEventListener("click", () => comprarPla(b));
+    }
     listaPlaEl.appendChild(item);
   });
 
@@ -334,7 +355,7 @@ function setupMundo() {
     mundoCanvas = document.getElementById("mundo");
     if (!mundoCanvas || !mundoCanvas.getContext) return;
     mundoCtx = mundoCanvas.getContext("2d");
-    const L = mundoCanvas.clientWidth || 340, A = 230;
+    const L = mundoCanvas.clientWidth || 340, A = mundoCanvas.clientHeight || 230;
     mundoCanvas.width = L; mundoCanvas.height = A;
     tile = 10; mCols = Math.ceil(L / tile); mLins = Math.ceil(A / tile);
     gerarBiomas();
@@ -361,12 +382,13 @@ function novaEnt(tipo, agua, estatico) {
 function alvos() {
   const era = estado.era;
   return {
-    // desbloqueou o organismo -> ele aparece no mapa (mais unidades = mais bichos)
+    // células aparecem cedo (com DNA); peixes vêm do CARDUME (planeta) + organismo Peixe
     celula: Math.min(16, q("celula") > 0 ? 3 + Math.floor(q("celula") / 4) : Math.min(4, Math.floor(Math.log10(1 + estado.dna)))),
-    peixe: Math.min(24, q("peixe") > 0 ? 2 + Math.floor(q("peixe") / 3) : 0),
-    bicho: Math.min(16, Math.floor((q("reptil") + q("dino") + q("mamifero")) / 3)),
-    humano: Math.min(28, (q("humano") > 0 ? 2 + Math.floor(q("humano") / 3) : 0) + Math.floor(Math.sqrt(estado.pop || 0) / 2)),
-    // na aba Planeta: Plantação -> árvores; Aldeia -> casas
+    peixe: Math.min(26, nivelPla("cardume") * 3 + (q("peixe") > 0 ? 2 : 0)),
+    // bichos terrestres: Fazenda de Gado + eras de réptil/dino
+    bicho: Math.min(16, nivelPla("gado") * 2 + (era >= 2 ? 2 : 0) + Math.floor((q("reptil") + q("dino")) / 4)),
+    // humanos aparecem com a POPULAÇÃO do planeta (Aldeia + comida)
+    humano: Math.min(28, Math.floor(Math.sqrt(estado.pop || 0))),
     planta: Math.min(30, nivelPla("planta") * 3 + nivelPla("gado")),
     aldeia: Math.min(12, nivelPla("aldeia")),
     passaro: Math.min(10, (era >= 3 ? 1 : 0) + Math.floor(q("dino") / 30) + nivelPla("planta")),
@@ -499,6 +521,16 @@ window.addEventListener("resize", () => { setupMundo(); sincronizarMundo(); });
   const toque = (ev) => { ev.preventDefault(); const r = cv.getBoundingClientRect(); const t = ev.touches ? ev.touches[0] : ev; criarVida(t.clientX - r.left, t.clientY - r.top); };
   cv.addEventListener("touchstart", toque, { passive: false });
   cv.addEventListener("mousedown", toque);
+  const btn = document.getElementById("mapa-cheia");
+  let cheio = false;
+  if (btn) btn.addEventListener("click", () => {
+    cheio = !cheio;
+    cv.classList.toggle("cheia", cheio);
+    btn.textContent = cheio ? "✕ Fechar" : "⛶ Tela cheia";
+    btn.style.position = "fixed"; btn.style.zIndex = "301"; btn.style.top = "10px"; btn.style.right = "14px";
+    if (!cheio) { btn.style.position = "absolute"; btn.style.zIndex = "4"; btn.style.top = "8px"; btn.style.right = "20px"; }
+    setTimeout(() => { setupMundo(); sincronizarMundo(); }, 60);
+  });
 }
 carregar();
 render();
