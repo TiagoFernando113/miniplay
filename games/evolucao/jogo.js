@@ -146,6 +146,23 @@ function avisar(txt) {
   setTimeout(() => { a.classList.remove("visivel"); setTimeout(() => a.remove(), 400); }, 3000);
 }
 function svgDe(i) { return `<svg viewBox="0 0 100 100">${CRIATURAS[Math.min(i, 7)]}</svg>`; }
+// ícone próprio de cada organismo (bate com o nome na lista)
+const GER_ICON = [
+  CRIATURAS[0], // Célula
+  '<rect x="28" y="42" width="40" height="18" rx="9" fill="#8fd0a0"/><path d="M68 51c8-1 8-8 15-6M68 51c8 4 6 11 13 13" stroke="#8fd0a0" stroke-width="3" fill="none"/><circle cx="44" cy="51" r="4" fill="#2a7a4a"/>', // Bactéria
+  '<path d="M40 88c-4-22 4-32 0-52M50 88c0-26 6-32 4-58M60 88c-4-22 2-36 0-48" stroke="#3fae5f" stroke-width="6" fill="none" stroke-linecap="round"/>', // Alga
+  '<path d="M18 62c10-22 20 0 30-16s25 0 32-10" stroke="#e0906f" stroke-width="13" fill="none" stroke-linecap="round"/><circle cx="78" cy="38" r="2" fill="#111"/>', // Verme
+  '<ellipse cx="45" cy="52" rx="28" ry="16" fill="#4f9fd8"/><path d="M73 52l16-10v20z" fill="#4f9fd8"/><circle cx="34" cy="48" r="4" fill="#fff"/><circle cx="34" cy="48" r="2" fill="#12203a"/>', // Peixe
+  '<ellipse cx="50" cy="60" rx="26" ry="19" fill="#5fae4f"/><circle cx="38" cy="42" r="9" fill="#6fbf5f"/><circle cx="62" cy="42" r="9" fill="#6fbf5f"/><circle cx="38" cy="42" r="4" fill="#111"/><circle cx="62" cy="42" r="4" fill="#111"/><path d="M40 66c6 4 14 4 20 0" stroke="#2a5a20" stroke-width="3" fill="none"/>', // Anfíbio
+  '<ellipse cx="50" cy="55" rx="30" ry="11" fill="#6fae4f"/><path d="M80 55c8-2 12-8 10-15" stroke="#6fae4f" stroke-width="6" fill="none" stroke-linecap="round"/><circle cx="74" cy="50" r="3.5" fill="#111"/><path d="M30 65l-6 9M46 65l-4 10M60 63l5 10" stroke="#6fae4f" stroke-width="4" stroke-linecap="round"/>', // Réptil
+  CRIATURAS[3], // Dinossauro
+  CRIATURAS[4], // Mamífero
+  '<circle cx="50" cy="52" r="21" fill="#8a5a3a"/><circle cx="30" cy="46" r="9" fill="#8a5a3a"/><circle cx="70" cy="46" r="9" fill="#8a5a3a"/><ellipse cx="50" cy="58" rx="13" ry="11" fill="#d8b088"/><circle cx="43" cy="50" r="3" fill="#111"/><circle cx="57" cy="50" r="3" fill="#111"/>', // Primata
+  CRIATURAS[5], // Humano
+  CRIATURAS[6], // Ciborgue
+];
+function svgGer(idx) { return `<svg viewBox="0 0 100 100">${GER_ICON[Math.min(idx, GER_ICON.length - 1)]}</svg>`; }
+
 
 function render() {
   dnaEl.textContent = formatar(estado.dna);
@@ -170,7 +187,7 @@ function render() {
     const n = nDoModo(g), c = custo(g, n);
     const item = document.createElement("div");
     item.className = "evo-item" + (estado.dna < c ? " bloq" : "");
-    item.innerHTML = `<div class="ic">${svgDe(Math.min(idx, 7))}</div>
+    item.innerHTML = `<div class="ic">${svgGer(idx)}</div>
       <div class="meio"><div class="nome">${g.nome} <span class="evo-qtd">${q(g.id)}</span></div>
       <div class="sub">${formatar(g.prod * estado.mult * bonusGenes() * multGlobal() * multGerador(g.id) * marco(q(g.id)))}/s cada · ×${marco(q(g.id))} bônus</div></div>
       <button class="comprar" ${estado.dna < c ? "disabled" : ""}>+${n}<br>${formatar(c)}</button>`;
@@ -255,50 +272,71 @@ $("aba-mel").addEventListener("click", () => trocarAba("mel"));
 $("aba-pla").addEventListener("click", () => trocarAba("pla"));
 
 
-// ===== Planeta vivo (canvas): terreno + seres que evoluem com o jogo =====
-let mundoCanvas, mundoCtx, terreno, tile, mCols, mLins, offCanvas, offCtx, entidades = [];
-let semente = Math.random() * 100;
+// ===== Planeta vivo (canvas): biomas, dia/noite, seres que evoluem =====
+let mundoCanvas, mundoCtx, bioma, tile, mCols, mLins, offCanvas, offCtx, entidades = [], nuvens = [], estrelas = [];
+let semente = Math.random() * 100, tempoDia = 0.3;
 
-function ehTerra(c, r) {
-  if (c < 0 || r < 0 || c >= mCols || r >= mLins) return false;
-  const dx = (c - mCols / 2) / (mCols * 0.44), dy = (r - mLins / 2) / (mLins * 0.46);
-  const d = Math.sqrt(dx * dx + dy * dy);
-  const n = 0.16 * Math.sin(c * 0.6 + semente) + 0.16 * Math.cos(r * 0.85 + semente * 1.7) + 0.1 * Math.sin((c + r) * 0.4);
-  return d + n < 0.95;
+function ruido(x, y, s) { return 0.5 + 0.5 * (Math.sin(x * 0.6 + s) * 0.5 + Math.cos(y * 0.7 + s * 1.3) * 0.3 + Math.sin((x + y) * 0.45 + s * 2.1) * 0.2); }
+
+function gerarBiomas() {
+  bioma = [];
+  const cx = mCols / 2, cy = mLins / 2;
+  const mask = (c, r) => {
+    const dx = (c - cx) / (mCols * 0.45), dy = (r - cy) / (mLins * 0.48);
+    const d = Math.sqrt(dx * dx + dy * dy);
+    const n = 0.16 * Math.sin(c * 0.55 + semente) + 0.16 * Math.cos(r * 0.8 + semente * 1.7) + 0.1 * Math.sin((c + r) * 0.4);
+    return d + n < 0.96;
+  };
+  for (let r = 0; r < mLins; r++) {
+    bioma[r] = [];
+    for (let c = 0; c < mCols; c++) {
+      if (!mask(c, r)) {
+        const raso = mask(c + 1, r) || mask(c - 1, r) || mask(c, r + 1) || mask(c, r - 1);
+        bioma[r][c] = raso ? 1 : 0; // 0 fundo, 1 raso
+      } else {
+        const praia = !mask(c + 1, r) || !mask(c - 1, r) || !mask(c, r + 1) || !mask(c, r - 1);
+        const elev = ruido(c, r, semente + 5);
+        const flor = ruido(c * 1.3, r * 1.3, semente + 20);
+        if (praia) bioma[r][c] = 2;              // areia
+        else if (elev > 0.78) bioma[r][c] = elev > 0.9 && estado.era >= 4 ? 6 : 5; // montanha/neve
+        else if (flor > 0.62) bioma[r][c] = 4;   // floresta
+        else bioma[r][c] = 3;                    // grama
+      }
+    }
+  }
 }
-function terraNoPix(x, y) { return ehTerra(Math.floor(x / tile), Math.floor(y / tile)); }
+const CORES_BIOMA = { 0: "#0e2c48", 1: "#1a5578", 2: "#cdb27a", 3: "#43a24f", 4: "#266b34", 5: "#6a6f78", 6: "#e0e8f0" };
+function ehAgua(c, r) { return bioma[r] && bioma[r][c] <= 1; }
+function ehAndavel(c, r) { const b = bioma[r] && bioma[r][c]; return b === 2 || b === 3 || b === 4; }
+function biomaPix(x, y, fn) { return fn(Math.floor(x / tile), Math.floor(y / tile)); }
 
 function setupMundo() {
   try {
     mundoCanvas = document.getElementById("mundo");
     if (!mundoCanvas || !mundoCanvas.getContext) return;
     mundoCtx = mundoCanvas.getContext("2d");
-    const L = mundoCanvas.clientWidth || 340, A = 190;
+    const L = mundoCanvas.clientWidth || 340, A = 230;
     mundoCanvas.width = L; mundoCanvas.height = A;
     tile = 10; mCols = Math.ceil(L / tile); mLins = Math.ceil(A / tile);
+    gerarBiomas();
     offCanvas = document.createElement("canvas"); offCanvas.width = L; offCanvas.height = A;
     offCtx = offCanvas.getContext("2d");
-    // desenha o terreno uma vez
     for (let r = 0; r < mLins; r++) for (let c = 0; c < mCols; c++) {
-      const terra = ehTerra(c, r);
-      let cor;
-      if (terra) {
-        const praia = !ehTerra(c + 1, r) || !ehTerra(c - 1, r) || !ehTerra(c, r + 1) || !ehTerra(c, r - 1);
-        cor = praia ? "#c8b078" : ((c + r) % 3 === 0 ? "#3a8f4a" : "#42a054");
-      } else {
-        cor = ((c + r) % 4 === 0) ? "#123a5a" : "#0f3050";
-      }
+      let cor = CORES_BIOMA[bioma[r][c]];
+      if (bioma[r][c] === 3 && (c + r) % 3 === 0) cor = "#3a8f45";
+      if (bioma[r][c] === 4 && (c + r) % 2 === 0) cor = "#1f5a2b";
       offCtx.fillStyle = cor; offCtx.fillRect(c * tile, r * tile, tile + 1, tile + 1);
     }
+    nuvens = []; for (let i = 0; i < 4; i++) nuvens.push({ x: Math.random() * L, y: 12 + Math.random() * 40, w: 26 + Math.random() * 30, spd: 0.1 + Math.random() * 0.15 });
+    estrelas = []; for (let i = 0; i < 40; i++) estrelas.push({ x: Math.random() * L, y: Math.random() * (A * 0.5), b: Math.random() });
     entidades = [];
   } catch (e) {}
 }
 
-function novaEnt(tipo, naAgua) {
-  let x, y, t = 0;
-  do { x = Math.random() * (mundoCanvas.width - 8) + 4; y = Math.random() * (mundoCanvas.height - 8) + 4; t++; }
-  while (t < 40 && (naAgua ? terraNoPix(x, y) : !terraNoPix(x, y)));
-  return { tipo, x, y, ang: Math.random() * 6.28, vel: 0.2 + Math.random() * 0.4, naAgua, f: Math.random() * 6 };
+function novaEnt(tipo, agua, estatico) {
+  let x, y, t = 0, ok = false;
+  do { x = Math.random() * (mundoCanvas.width - 8) + 4; y = Math.random() * (mundoCanvas.height - 8) + 4; ok = biomaPix(x, y, agua ? ehAgua : ehAndavel); t++; } while (t < 50 && !ok);
+  return { tipo, x, y, ang: Math.random() * 6.28, vel: 0.15 + Math.random() * 0.4, agua, estatico, f: Math.random() * 6, nasc: 0 };
 }
 
 function alvos() {
@@ -306,10 +344,11 @@ function alvos() {
   return {
     celula: Math.min(16, 3 + Math.floor(Math.log10(1 + d))),
     peixe: Math.min(22, nivelPla("cardume") * 2 + (era >= 1 ? 3 : 0) + Math.floor(q("peixe") / 20)),
-    planta: Math.min(26, nivelPla("planta") * 2 + nivelPla("gado") + (era >= 2 ? 2 : 0)),
+    planta: Math.min(30, nivelPla("planta") * 2 + nivelPla("gado") + (era >= 2 ? 3 : 0)),
     bicho: Math.min(14, (era >= 2 ? 3 : 0) + nivelPla("gado") + Math.floor(q("dino") / 30)),
     humano: Math.min(28, Math.floor(Math.sqrt(estado.pop || 0)) + (era >= 5 ? 3 : 0)),
-    aldeia: Math.min(10, nivelPla("aldeia")),
+    aldeia: Math.min(12, nivelPla("aldeia")),
+    passaro: Math.min(10, (era >= 3 ? 2 : 0) + Math.floor(q("dino") / 40) + nivelPla("planta")),
   };
 }
 
@@ -318,21 +357,29 @@ function sincronizarMundo() {
   const alvo = alvos();
   for (const tipo in alvo) {
     const atual = entidades.filter((e) => e.tipo === tipo).length;
-    const naAgua = tipo === "celula" || tipo === "peixe";
+    const agua = tipo === "celula" || tipo === "peixe";
     const estatico = tipo === "planta" || tipo === "aldeia";
-    if (atual < alvo[tipo]) for (let i = 0; i < alvo[tipo] - atual; i++) { const e = novaEnt(tipo, naAgua); e.estatico = estatico; entidades.push(e); }
+    if (atual < alvo[tipo]) for (let i = 0; i < alvo[tipo] - atual; i++) { if (tipo === "passaro") { entidades.push({ tipo, x: Math.random() * mundoCanvas.width, y: 20 + Math.random() * 60, ang: 0, vel: 0.6 + Math.random() * 0.4, voa: true, f: Math.random() * 6, nasc: 0 }); } else entidades.push(novaEnt(tipo, agua, estatico)); }
     else if (atual > alvo[tipo]) { let rem = atual - alvo[tipo]; entidades = entidades.filter((e) => { if (e.tipo === tipo && rem > 0) { rem--; return false; } return true; }); }
   }
+  // dá "casa" aos humanos (aldeia mais próxima)
+  const aldeias = entidades.filter((e) => e.tipo === "aldeia");
+  entidades.filter((e) => e.tipo === "humano" && !e.casa).forEach((h) => { if (aldeias.length) { let m = aldeias[0], md = 1e9; aldeias.forEach((a) => { const dd = Math.hypot(a.x - h.x, a.y - h.y); if (dd < md) { md = dd; m = a; } }); h.casa = m; } });
 }
 
 function animarMundo(dt) {
   if (!mundoCanvas) return;
-  const p = dt * 60;
+  const p = Math.min(3, dt * 60), Lc = mundoCanvas.width;
+  tempoDia = (tempoDia + dt / 100) % 1; // dia completo ~100s
+  nuvens.forEach((n) => { n.x += n.spd * p; if (n.x - n.w > Lc) n.x = -n.w; });
   entidades.forEach((e) => {
-    e.f += 0.1 * p;
+    e.f += 0.12 * p; if (e.nasc < 1) e.nasc = Math.min(1, e.nasc + 0.04 * p);
     if (e.estatico) return;
+    if (e.voa) { e.x += e.vel * p; if (e.x > Lc + 10) e.x = -10; e.y += Math.sin(e.f) * 0.3; return; }
+    // humano tende a voltar pra casa
+    if (e.casa && Math.hypot(e.x - e.casa.x, e.y - e.casa.y) > 34 && Math.random() < 0.1) e.ang = Math.atan2(e.casa.y - e.y, e.casa.x - e.x);
     const nx = e.x + Math.cos(e.ang) * e.vel * p, ny = e.y + Math.sin(e.ang) * e.vel * p;
-    const ok = nx > 3 && ny > 3 && nx < mundoCanvas.width - 3 && ny < mundoCanvas.height - 3 && (e.naAgua ? !terraNoPix(nx, ny) : terraNoPix(nx, ny));
+    const ok = nx > 3 && ny > 3 && nx < Lc - 3 && ny < mundoCanvas.height - 3 && biomaPix(nx, ny, e.agua ? ehAgua : ehAndavel);
     if (ok) { e.x = nx; e.y = ny; } else e.ang += 2 + Math.random();
     if (Math.random() < 0.02) e.ang += (Math.random() - 0.5);
   });
@@ -340,16 +387,32 @@ function animarMundo(dt) {
 
 function desenharMundo() {
   if (!mundoCtx) return;
+  const A = mundoCanvas.height, Lc = mundoCanvas.width;
   mundoCtx.drawImage(offCanvas, 0, 0);
+  const luz = Math.max(0, Math.min(1, (Math.sin(tempoDia * 6.283) + 0.35) / 1.35));
+  // estrelas de noite
+  if (luz < 0.4) { const a = (0.4 - luz) / 0.4; estrelas.forEach((s) => { mundoCtx.globalAlpha = a * (0.4 + 0.6 * Math.abs(Math.sin(tempoDia * 10 + s.b * 6))); mundoCtx.fillStyle = "#fff"; mundoCtx.fillRect(s.x, s.y, 1.4, 1.4); }); mundoCtx.globalAlpha = 1; }
+  // sol / lua
+  const sx = tempoDia * Lc, sh = Math.sin(tempoDia * 6.283), sy = 40 - sh * 30;
+  if (sh > -0.1) { mundoCtx.fillStyle = "#ffe680"; mundoCtx.shadowColor = "#ffd54f"; mundoCtx.shadowBlur = 16; mundoCtx.beginPath(); mundoCtx.arc(sx, sy, 10, 0, 6.28); mundoCtx.fill(); mundoCtx.shadowBlur = 0; }
+  else { const mx = ((tempoDia + 0.5) % 1) * Lc; mundoCtx.fillStyle = "#e8eef8"; mundoCtx.beginPath(); mundoCtx.arc(mx, 40 + sh * 30, 8, 0, 6.28); mundoCtx.fill(); }
+  // nuvens
+  nuvens.forEach((n) => { mundoCtx.fillStyle = "rgba(255,255,255,0.22)"; mundoCtx.beginPath(); mundoCtx.ellipse(n.x, n.y, n.w, n.w * 0.4, 0, 0, 6.28); mundoCtx.fill(); });
+  // seres
   entidades.forEach((e) => {
-    const x = e.x, y = e.y;
-    if (e.tipo === "celula") { mundoCtx.fillStyle = "#7fffd0"; mundoCtx.beginPath(); mundoCtx.arc(x, y, 1.6, 0, 6.28); mundoCtx.fill(); }
-    else if (e.tipo === "peixe") { mundoCtx.save(); mundoCtx.translate(x, y); mundoCtx.rotate(e.ang); mundoCtx.fillStyle = "#e8a040"; mundoCtx.beginPath(); mundoCtx.ellipse(0, 0, 4, 2, 0, 0, 6.28); mundoCtx.fill(); mundoCtx.beginPath(); mundoCtx.moveTo(-4, 0); mundoCtx.lineTo(-7, -2); mundoCtx.lineTo(-7, 2); mundoCtx.fill(); mundoCtx.restore(); }
-    else if (e.tipo === "planta") { mundoCtx.fillStyle = "#6a4a2a"; mundoCtx.fillRect(x - 1, y, 2, 4); mundoCtx.fillStyle = "#2f8f3f"; mundoCtx.beginPath(); mundoCtx.moveTo(x, y - 7); mundoCtx.lineTo(x - 5, y + 1); mundoCtx.lineTo(x + 5, y + 1); mundoCtx.fill(); }
-    else if (e.tipo === "bicho") { mundoCtx.fillStyle = "#b06a3a"; mundoCtx.beginPath(); mundoCtx.arc(x, y, 2.4, 0, 6.28); mundoCtx.fill(); }
+    const s = e.nasc, x = e.x, y = e.y;
+    mundoCtx.save(); mundoCtx.globalAlpha = s;
+    if (e.tipo === "celula") { mundoCtx.fillStyle = "#7fffd0"; mundoCtx.beginPath(); mundoCtx.arc(x, y, 1.6 * s, 0, 6.28); mundoCtx.fill(); }
+    else if (e.tipo === "peixe") { mundoCtx.translate(x, y); mundoCtx.rotate(e.ang); mundoCtx.scale(s, s); mundoCtx.fillStyle = "#e8a040"; mundoCtx.beginPath(); mundoCtx.ellipse(0, 0, 4, 2, 0, 0, 6.28); mundoCtx.fill(); mundoCtx.beginPath(); mundoCtx.moveTo(-4, 0); mundoCtx.lineTo(-7, -2); mundoCtx.lineTo(-7, 2); mundoCtx.fill(); }
+    else if (e.tipo === "planta") { mundoCtx.fillStyle = "#6a4a2a"; mundoCtx.fillRect(x - 1, y, 2, 4 * s); mundoCtx.fillStyle = "#2f8f3f"; mundoCtx.beginPath(); mundoCtx.moveTo(x, y - 7 * s); mundoCtx.lineTo(x - 5 * s, y + 1); mundoCtx.lineTo(x + 5 * s, y + 1); mundoCtx.fill(); }
+    else if (e.tipo === "bicho") { mundoCtx.fillStyle = "#b06a3a"; mundoCtx.beginPath(); mundoCtx.arc(x, y, 2.4 * s, 0, 6.28); mundoCtx.fill(); }
     else if (e.tipo === "humano") { mundoCtx.fillStyle = "#ffd0a0"; mundoCtx.beginPath(); mundoCtx.arc(x, y - 2, 1.4, 0, 6.28); mundoCtx.fill(); mundoCtx.strokeStyle = "#4f8cff"; mundoCtx.lineWidth = 1.6; mundoCtx.beginPath(); mundoCtx.moveTo(x, y - 1); mundoCtx.lineTo(x, y + 2); mundoCtx.stroke(); }
-    else if (e.tipo === "aldeia") { mundoCtx.fillStyle = "#8a5a30"; mundoCtx.fillRect(x - 4, y - 2, 8, 6); mundoCtx.fillStyle = "#5a3818"; mundoCtx.beginPath(); mundoCtx.moveTo(x - 5, y - 2); mundoCtx.lineTo(x, y - 8); mundoCtx.lineTo(x + 5, y - 2); mundoCtx.fill(); }
+    else if (e.tipo === "aldeia") { mundoCtx.fillStyle = "#8a5a30"; mundoCtx.fillRect(x - 4, y - 2, 8, 6); mundoCtx.fillStyle = "#5a3818"; mundoCtx.beginPath(); mundoCtx.moveTo(x - 5, y - 2); mundoCtx.lineTo(x, y - 8); mundoCtx.lineTo(x + 5, y - 2); mundoCtx.fill(); if (luz < 0.4) { mundoCtx.fillStyle = "#ffd54f"; mundoCtx.fillRect(x - 1.5, y, 3, 3); } }
+    else if (e.tipo === "passaro") { mundoCtx.strokeStyle = "#222"; mundoCtx.lineWidth = 1.4; const w = Math.sin(e.f) * 3; mundoCtx.beginPath(); mundoCtx.moveTo(x - 4, y + w); mundoCtx.lineTo(x, y); mundoCtx.lineTo(x + 4, y + w); mundoCtx.stroke(); }
+    mundoCtx.restore();
   });
+  // véu de noite por cima de tudo
+  if (luz < 1) { mundoCtx.fillStyle = `rgba(10,18,45,${(1 - luz) * 0.5})`; mundoCtx.fillRect(0, 0, Lc, A); }
 }
 
 function simularPlaneta(dt) {
