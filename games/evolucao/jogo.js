@@ -34,6 +34,15 @@ const MELHORIAS = [
   { id: "g5", nome: "Singularidade", desc: "TUDO ×5", custo: 5e12, tipo: "global", val: 5, req: () => estado.era >= 4 },
 ];
 
+const PLANETA = [
+  { id: "cardume", nome: "Cardume de Peixes", desc: "Pescadores → +comida", base: 8e4, tipo: "comida", val: 2 },
+  { id: "planta", nome: "Plantação", desc: "Colheita → +comida", base: 4e5, tipo: "comida", val: 5 },
+  { id: "aldeia", nome: "Aldeia", desc: "Humanos → +teto de população", base: 1.5e6, tipo: "popteto", val: 15 },
+  { id: "gado", nome: "Fazenda de Gado", desc: "Bois → muito +comida", base: 6e6, tipo: "comida", val: 16 },
+  { id: "lab", nome: "Laboratório", desc: "População → +ciência", base: 4e7, tipo: "ciencia", val: 0.05 },
+  { id: "reator", nome: "Reator", desc: "Multiplica todo o planeta", base: 1e9, tipo: "energia", val: 0.4 },
+];
+
 const CRIATURAS = {
   0: '<circle cx="50" cy="50" r="34" fill="#6fdf9f" stroke="#3aa856" stroke-width="3"/><circle cx="50" cy="50" r="12" fill="#2a7a4a"/><circle cx="38" cy="40" r="4" fill="rgba(255,255,255,0.5)"/>',
   1: '<ellipse cx="46" cy="52" rx="30" ry="18" fill="#4f9fd8"/><path d="M74 52l16-10v20z" fill="#4f9fd8"/><circle cx="34" cy="48" r="4" fill="#fff"/><circle cx="34" cy="48" r="2" fill="#12203a"/>',
@@ -50,7 +59,7 @@ let estado, modo = 1, aba = "org", laco = 0, tempoBonus = 0;
 const $ = (id) => document.getElementById(id);
 const dnaEl = $("dna"), psEl = $("ps"), eraEl = $("era"), eraNomeEl = $("era-nome");
 const genesEl = $("genes"), genesBonusEl = $("genes-bonus");
-const criaturaEl = $("criatura"), listaEl = $("lista"), listaMelEl = $("lista-melhorias"), painelEvo = $("painel-evoluir");
+const criaturaEl = $("criatura"), listaEl = $("lista"), listaMelEl = $("lista-melhorias"), listaPlaEl = $("lista-planeta"), painelEvo = $("painel-evoluir");
 
 function formatar(n) {
   if (n < 1000) return Math.floor(n).toString();
@@ -68,11 +77,17 @@ function multGerador(id) { let m = 1; MELHORIAS.forEach((u) => { if (u.tipo === 
 function multGlobal() { let m = 1; MELHORIAS.forEach((u) => { if (u.tipo === "global" && comprou(u.id)) m *= u.val; }); return m; }
 function multClique() { let m = 1; MELHORIAS.forEach((u) => { if (u.tipo === "clique" && comprou(u.id)) m *= u.val; }); return m; }
 function bonusGenes() { return 1 + estado.genes * 0.03; }
+function nivelPla(id) { return estado.planeta[id] || 0; }
+function somaPla(tipo) { let s = 0; PLANETA.forEach((b) => { if (b.tipo === tipo) s += b.val * nivelPla(b.id); }); return s; }
+function energiaPla() { return 1 + somaPla("energia"); }
+function comidaPorSeg() { return somaPla("comida") * energiaPla(); }
+function tetoPop() { return somaPla("popteto"); }
+function multPlaneta() { return 1 + Math.log10(1 + estado.ciencia) * 0.4 + estado.pop * 0.004; }
 
 function producaoPorSeg() {
   let p = 0;
   GERADORES.forEach((g) => (p += g.prod * q(g.id) * marco(q(g.id)) * multGerador(g.id)));
-  return p * estado.mult * bonusGenes() * multGlobal();
+  return p * estado.mult * bonusGenes() * multGlobal() * multPlaneta();
 }
 function valorClique() { return Math.max(estado.mult, producaoPorSeg() * 0.1) * multClique(); }
 
@@ -86,6 +101,9 @@ function carregar() {
   estado.mult = estado.mult || 1;
   estado.genes = estado.genes || 0;
   estado.totalEra = estado.totalEra || 0;
+  estado.planeta = estado.planeta || {};
+  estado.pop = estado.pop || 0;
+  estado.ciencia = estado.ciencia || 0;
   GERADORES.forEach((g) => { if (estado.qtds[g.id] === undefined) estado.qtds[g.id] = 0; });
   const passou = Math.min(8 * 3600, (Date.now() - (estado.ultimo || Date.now())) / 1000);
   const ganho = producaoPorSeg() * passou;
@@ -98,6 +116,9 @@ function custo(g, n) { const qq = q(g.id); return g.base * Math.pow(MULT_CUSTO, 
 function quantosCabe(g) { const base = g.base * Math.pow(MULT_CUSTO, q(g.id)); return Math.max(0, Math.floor(Math.log((estado.dna * (MULT_CUSTO - 1)) / base + 1) / Math.log(MULT_CUSTO))); }
 function nDoModo(g) { return modo === "max" ? Math.max(1, quantosCabe(g)) : modo; }
 function comprar(g) { const n = nDoModo(g), c = custo(g, n); if (estado.dna < c || n < 1) { Som.erro(); return; } estado.dna -= c; estado.qtds[g.id] += n; Som.clique(); render(); }
+
+function custoPla(b) { return b.base * Math.pow(1.18, nivelPla(b.id)); }
+function comprarPla(b) { const c = custoPla(b); if (estado.dna < c) { Som.erro(); return; } estado.dna -= c; estado.planeta[b.id] = nivelPla(b.id) + 1; Som.clique(); render(); }
 
 function comprarMelhoria(u) { if (comprou(u.id) || estado.dna < u.custo) { Som.erro(); return; } estado.dna -= u.custo; estado.melhorias[u.id] = 1; Som.vitoria(); render(); }
 
@@ -157,6 +178,28 @@ function render() {
     listaEl.appendChild(item);
   });
 
+  // planeta
+  const resumo = `<div style="background:linear-gradient(135deg,#0a2a3f,#1a0a2e);border-radius:14px;padding:12px;margin-bottom:6px;text-align:center;">
+    <div style="font-size:0.8rem;color:var(--text-dim);">PLANETA VIVO</div>
+    <div style="display:flex;justify-content:space-around;margin-top:6px;font-weight:800;">
+      <div><div style="color:#6fdf6f;">${formatar(comidaPorSeg())}/s</div><div style="font-size:0.65rem;color:var(--text-dim);">Comida</div></div>
+      <div><div style="color:#ffd54f;">${formatar(estado.pop)}/${formatar(tetoPop())}</div><div style="font-size:0.65rem;color:var(--text-dim);">População</div></div>
+      <div><div style="color:#25c8e8;">${formatar(estado.ciencia)}</div><div style="font-size:0.65rem;color:var(--text-dim);">Ciência</div></div>
+    </div>
+    <div style="margin-top:6px;color:#b56fff;font-weight:800;font-size:0.85rem;">Planeta dá ×${multPlaneta().toFixed(2)} ao seu DNA</div>
+  </div>`;
+  listaPlaEl.innerHTML = resumo;
+  PLANETA.forEach((b) => {
+    const c = custoPla(b);
+    const item = document.createElement("div");
+    item.className = "evo-item" + (estado.dna < c ? " bloq" : "");
+    item.innerHTML = `<div class="ic" style="color:#3fd06f;font-weight:900;">◈</div>
+      <div class="meio"><div class="nome">${b.nome} <span class="evo-qtd">${nivelPla(b.id)}</span></div><div class="sub">${b.desc}</div></div>
+      <button class="comprar" ${estado.dna < c ? "disabled" : ""}>${formatar(c)}</button>`;
+    item.querySelector(".comprar").addEventListener("click", () => comprarPla(b));
+    listaPlaEl.appendChild(item);
+  });
+
   // melhorias
   listaMelEl.innerHTML = "";
   const disp = MELHORIAS.filter((u) => !comprou(u.id) && u.req());
@@ -199,14 +242,32 @@ document.querySelectorAll(".evo-modo button[data-modo]").forEach((b) => {
     b.classList.add("ativo"); modo = b.dataset.modo === "max" ? "max" : parseInt(b.dataset.modo, 10); render();
   });
 });
-$("aba-org").addEventListener("click", () => { aba = "org"; $("aba-org").classList.add("ativo"); $("aba-mel").classList.remove("ativo"); listaEl.style.display = "flex"; listaMelEl.style.display = "none"; });
-$("aba-mel").addEventListener("click", () => { aba = "mel"; $("aba-mel").classList.add("ativo"); $("aba-org").classList.remove("ativo"); listaEl.style.display = "none"; listaMelEl.style.display = "flex"; render(); });
+$("aba-org").addEventListener("click", () => trocarAba("org"));
+function trocarAba(qual) {
+  aba = qual;
+  ["org", "mel", "pla"].forEach((a) => $("aba-" + a).classList.toggle("ativo", a === qual));
+  listaEl.style.display = qual === "org" ? "flex" : "none";
+  listaMelEl.style.display = qual === "mel" ? "flex" : "none";
+  listaPlaEl.style.display = qual === "pla" ? "flex" : "none";
+  render();
+}
+$("aba-mel").addEventListener("click", () => trocarAba("mel"));
+$("aba-pla").addEventListener("click", () => trocarAba("pla"));
+
+function simularPlaneta(dt) {
+  const teto = tetoPop();
+  const alvo = Math.min(teto, comidaPorSeg() / 0.5); // cada comida/s sustenta 2 pessoas
+  estado.pop += (alvo - estado.pop) * Math.min(1, dt * 0.4);
+  if (estado.pop < 0) estado.pop = 0;
+  estado.ciencia += estado.pop * somaPla("ciencia") * energiaPla() * dt;
+}
 
 function iniciar() {
   const meu = ++laco; let ultimo = performance.now();
   const passo = (agora) => {
     if (meu !== laco) return;
     const dt = Math.min(0.5, (agora - ultimo) / 1000); ultimo = agora;
+    simularPlaneta(dt);
     ganhar(producaoPorSeg() * dt);
     dnaEl.textContent = formatar(estado.dna);
     requestAnimationFrame(passo);
