@@ -26,7 +26,13 @@ function novoJogo() {
 
 function iniciar() {
   const meu = ++laco;
-  const passo = () => { if (meu !== laco) return; if (rodando && !document.hidden) atualizar(); desenhar(); requestAnimationFrame(passo); };
+  let ultimo = performance.now(), acc = 0;
+  const passo = (agora) => {
+    if (meu !== laco) return;
+    acc += agora - ultimo; ultimo = agora; if (acc > 100) acc = 100;
+    while (acc >= 16.7) { if (rodando && !document.hidden) atualizar(); acc -= 16.7; }
+    desenhar(); requestAnimationFrame(passo);
+  };
   requestAnimationFrame(passo);
 }
 

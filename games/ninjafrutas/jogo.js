@@ -21,7 +21,13 @@ function novoJogo() {
 
 function iniciar() {
   const meu = ++laco;
-  const passo = () => { if (meu !== laco) return; if (rodando && !document.hidden) atualizar(); desenhar(); requestAnimationFrame(passo); };
+  let ultimo = performance.now(), acc = 0;
+  const passo = (agora) => {
+    if (meu !== laco) return;
+    acc += agora - ultimo; ultimo = agora; if (acc > 100) acc = 100;
+    while (acc >= 16.7) { if (rodando && !document.hidden) atualizar(); acc -= 16.7; }
+    desenhar(); requestAnimationFrame(passo);
+  };
   requestAnimationFrame(passo);
 }
 
@@ -29,7 +35,7 @@ function lancar() {
   const bomba = Math.random() < 0.16;
   objetos.push({
     x: 40 + Math.random() * (L - 80), y: A + 30,
-    vx: (Math.random() - 0.5) * 5, vy: -(13 + Math.random() * 4),
+    vx: (Math.random() - 0.5) * 3.4, vy: -(11 + Math.random() * 2.5),
     r: 30, tipo: bomba ? "bomba" : "fruta", cor: bomba ? "#333" : FRUTAS[Math.floor(Math.random() * FRUTAS.length)],
     rot: Math.random() * 6, vr: (Math.random() - 0.5) * 0.2, cortado: false,
   });
@@ -38,7 +44,7 @@ function lancar() {
 function atualizar() {
   spawn--;
   if (spawn <= 0) { const n = 1 + Math.floor(Math.random() * 2); for (let i = 0; i < n; i++) lancar(); spawn = 50 + Math.random() * 30; }
-  objetos.forEach((o) => { o.x += o.vx; o.y += o.vy; o.vy += 0.32; o.rot += o.vr; });
+  objetos.forEach((o) => { o.x += o.vx; o.y += o.vy; o.vy += 0.28; o.rot += o.vr; });
   // saiu por baixo
   objetos = objetos.filter((o) => {
     if (o.y > A + 60 && o.vy > 0) { if (o.tipo === "fruta" && !o.cortado) { vidas--; Som.erro(); vibrar(60); if (vidas <= 0) fim(); } return false; }
