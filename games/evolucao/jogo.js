@@ -274,18 +274,25 @@ $("aba-pla").addEventListener("click", () => trocarAba("pla"));
 
 // ===== Planeta vivo (canvas): biomas, dia/noite, seres que evoluem =====
 let mundoCanvas, mundoCtx, bioma, tile, mCols, mLins, offCanvas, offCtx, entidades = [], nuvens = [], estrelas = [];
-let semente = Math.random() * 100, tempoDia = 0.3;
+let semente = Math.random() * 100, tempoDia = 0.3, ultimaEra = -1;
 
 function ruido(x, y, s) { return 0.5 + 0.5 * (Math.sin(x * 0.6 + s) * 0.5 + Math.cos(y * 0.7 + s * 1.3) * 0.3 + Math.sin((x + y) * 0.45 + s * 2.1) * 0.2); }
 
 function gerarBiomas() {
   bioma = [];
-  const cx = mCols / 2, cy = mLins / 2;
+  // nº de terras cresce com a era e com o prestígio (genes) — o mundo se expande
+  const nIlhas = Math.min(6, 1 + Math.floor((estado.era || 0) / 2) + Math.floor((estado.genes || 0) / 25));
+  const ilhas = [{ cx: 0.5, cy: 0.5, r: 0.26 }];
+  for (let i = 1; i < nIlhas; i++) {
+    const ang = i * 2.399 + semente;
+    const dist = 0.30 + 0.12 * (((i * 37 + semente * 90) % 100) / 100);
+    ilhas.push({ cx: 0.5 + Math.cos(ang) * dist, cy: 0.5 + Math.sin(ang) * dist, r: 0.13 + 0.06 * (((i * 53) % 100) / 100) });
+  }
   const mask = (c, r) => {
-    const dx = (c - cx) / (mCols * 0.45), dy = (r - cy) / (mLins * 0.48);
-    const d = Math.sqrt(dx * dx + dy * dy);
-    const n = 0.16 * Math.sin(c * 0.55 + semente) + 0.16 * Math.cos(r * 0.8 + semente * 1.7) + 0.1 * Math.sin((c + r) * 0.4);
-    return d + n < 0.96;
+    const nx = c / mCols, ny = r / mLins;
+    const n = 0.14 * Math.sin(c * 0.55 + semente) + 0.14 * Math.cos(r * 0.8 + semente * 1.7);
+    for (const il of ilhas) { const dx = (nx - il.cx) / il.r, dy = (ny - il.cy) / (il.r * 1.05); if (Math.sqrt(dx * dx + dy * dy) + n < 1) return true; }
+    return false;
   };
   for (let r = 0; r < mLins; r++) {
     bioma[r] = [];
@@ -340,15 +347,17 @@ function novaEnt(tipo, agua, estatico) {
 }
 
 function alvos() {
-  const d = estado.dna, era = estado.era;
+  const era = estado.era;
   return {
-    celula: Math.min(16, 3 + Math.floor(Math.log10(1 + d))),
-    peixe: Math.min(22, nivelPla("cardume") * 2 + (era >= 1 ? 3 : 0) + Math.floor(q("peixe") / 20)),
-    planta: Math.min(30, nivelPla("planta") * 2 + nivelPla("gado") + (era >= 2 ? 3 : 0)),
-    bicho: Math.min(14, (era >= 2 ? 3 : 0) + nivelPla("gado") + Math.floor(q("dino") / 30)),
-    humano: Math.min(28, Math.floor(Math.sqrt(estado.pop || 0)) + (era >= 5 ? 3 : 0)),
+    // desbloqueou o organismo -> ele aparece no mapa (mais unidades = mais bichos)
+    celula: Math.min(16, q("celula") > 0 ? 3 + Math.floor(q("celula") / 4) : Math.min(4, Math.floor(Math.log10(1 + estado.dna)))),
+    peixe: Math.min(24, q("peixe") > 0 ? 2 + Math.floor(q("peixe") / 3) : 0),
+    bicho: Math.min(16, Math.floor((q("reptil") + q("dino") + q("mamifero")) / 3)),
+    humano: Math.min(28, (q("humano") > 0 ? 2 + Math.floor(q("humano") / 3) : 0) + Math.floor(Math.sqrt(estado.pop || 0) / 2)),
+    // na aba Planeta: Plantação -> árvores; Aldeia -> casas
+    planta: Math.min(30, nivelPla("planta") * 3 + nivelPla("gado")),
     aldeia: Math.min(12, nivelPla("aldeia")),
-    passaro: Math.min(10, (era >= 3 ? 2 : 0) + Math.floor(q("dino") / 40) + nivelPla("planta")),
+    passaro: Math.min(10, (era >= 3 ? 1 : 0) + Math.floor(q("dino") / 30) + nivelPla("planta")),
   };
 }
 
@@ -359,7 +368,12 @@ function sincronizarMundo() {
     const atual = entidades.filter((e) => e.tipo === tipo).length;
     const agua = tipo === "celula" || tipo === "peixe";
     const estatico = tipo === "planta" || tipo === "aldeia";
-    if (atual < alvo[tipo]) for (let i = 0; i < alvo[tipo] - atual; i++) { if (tipo === "passaro") { entidades.push({ tipo, x: Math.random() * mundoCanvas.width, y: 20 + Math.random() * 60, ang: 0, vel: 0.6 + Math.random() * 0.4, voa: true, f: Math.random() * 6, nasc: 0 }); } else entidades.push(novaEnt(tipo, agua, estatico)); }
+    if (atual < alvo[tipo]) for (let i = 0; i < alvo[tipo] - atual; i++) {
+      if (tipo === "passaro") { entidades.push({ tipo, x: Math.random() * mundoCanvas.width, y: 20 + Math.random() * 60, ang: 0, vel: 0.6 + Math.random() * 0.4, voa: true, f: Math.random() * 6, nasc: 0 }); continue; }
+      const ent = novaEnt(tipo, agua, estatico);
+      if (tipo === "planta") { const hs = entidades.filter((x) => x.tipo === "humano"); if (hs.length) { const h = hs[Math.floor(Math.random() * hs.length)]; for (let a = 0; a < 14; a++) { const px = h.x + (Math.random() - 0.5) * 44, py = h.y + (Math.random() - 0.5) * 44; if (px > 3 && py > 3 && px < mundoCanvas.width - 3 && py < mundoCanvas.height - 3 && biomaPix(px, py, ehAndavel)) { ent.x = px; ent.y = py; break; } } } }
+      entidades.push(ent);
+    }
     else if (atual > alvo[tipo]) { let rem = atual - alvo[tipo]; entidades = entidades.filter((e) => { if (e.tipo === tipo && rem > 0) { rem--; return false; } return true; }); }
   }
   // dá "casa" aos humanos (aldeia mais próxima)
@@ -429,6 +443,7 @@ function iniciar() {
     if (meu !== laco) return;
     const dt = Math.min(0.5, (agora - ultimo) / 1000); ultimo = agora;
     simularPlaneta(dt);
+    if (estado.era !== ultimaEra) { ultimaEra = estado.era; setupMundo(); sincronizarMundo(); }
     animarMundo(dt);
     desenharMundo();
     ganhar(producaoPorSeg() * dt);
