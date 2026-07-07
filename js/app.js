@@ -1,4 +1,4 @@
-const APP_VERSAO = "v95";
+const APP_VERSAO = "v96";
 
 // mata o menu de toque longo (copiar link...) — MENOS em campos de texto,
 // senão o jogador não consegue copiar/colar o código de backup!
@@ -146,6 +146,21 @@ const TUTORIAIS = {
       });
     });
   }
+}
+
+// jogos verticais (data-retrato): bloqueia deitado com um aviso pra girar
+// (senão o Pássaro/Torre ficam fáceis demais na horizontal)
+if (document.body && document.body.hasAttribute("data-retrato")) {
+  document.addEventListener("DOMContentLoaded", () => {
+    const aviso = document.createElement("div");
+    aviso.style.cssText = "position:fixed;inset:0;z-index:500;background:#0d1420;color:#f0f0f0;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;font-family:sans-serif;padding:24px;";
+    aviso.innerHTML = '<div style="font-size:3rem;">📱↻</div><h2>Vire o celular em pé</h2><p style="color:#a0a0a0;">Este jogo é feito pra jogar na vertical.</p>';
+    document.body.appendChild(aviso);
+    const checar = () => { aviso.style.display = window.innerWidth > window.innerHeight ? "flex" : "none"; };
+    window.addEventListener("resize", checar);
+    window.addEventListener("orientationchange", checar);
+    checar();
+  });
 }
 
 // a dica flutuante some no primeiro toque (ou sozinha depois de 5s)

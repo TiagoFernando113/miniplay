@@ -3,22 +3,24 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <title>Pássaro</title>
+  <title>Ligue 4</title>
   <link rel="stylesheet" href="../../css/estilo.css" />
   <link rel="manifest" href="../../manifest.json" />
   <meta name="theme-color" content="#121212" />
   <script src="../../js/tema.js"></script>
+  <style>
+    .l4-tela { max-width: 460px; margin: 0 auto; padding: 8px 12px; text-align: center; }
+    #tela { width: 100%; max-width: 380px; touch-action: none; display: block; margin: 10px auto; border-radius: 10px; }
+    .l4-info { font-weight: 700; color: var(--text-dim); }
+  </style>
 </head>
-<body class="pagina-cheia" data-retrato>
-  <canvas id="tela"></canvas>
-
-  <div class="hud">
-    <a class="hud-chip" href="../../index.html">←</a>
-    <span class="hud-chip">🐤 <strong id="placar">0</strong> · 🏆 <strong id="melhor">0</strong></span>
-    <button class="hud-chip" id="reiniciar">🔄</button>
+<body>
+  <a class="voltar" href="../../index.html">← voltar</a>
+  <div class="l4-tela">
+    <p class="l4-info">Vitórias: <strong id="melhor">0</strong> · <span id="status">Sua vez!</span></p>
+    <canvas id="tela"></canvas>
+    <button class="btn" id="reiniciar">Novo jogo</button>
   </div>
-  <p class="hud-msg" id="mensagem">Toque pra voar — passe entre os canos!</p>
-
   <script src="../../js/util.js"></script>
   <script src="../../js/pontos.js"></script>
   <script src="../../js/som.js"></script>
