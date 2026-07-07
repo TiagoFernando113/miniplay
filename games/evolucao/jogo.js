@@ -299,7 +299,7 @@ $("aba-pla").addEventListener("click", () => trocarAba("pla"));
 
 // ===== Planeta vivo (canvas): biomas, dia/noite, seres que evoluem =====
 let mundoCanvas, mundoCtx, bioma, tile, mCols, mLins, offCanvas, offCtx, entidades = [], nuvens = [], estrelas = [];
-let semente = Math.random() * 100, tempoDia = 0.3, ultimaEra = -1, ondas = [];
+let semente = Math.random() * 100, tempoDia = 0.3, ultimaEra = -1, ondas = [], atividades = [];
 
 function ruido(x, y, s) { return 0.5 + 0.5 * (Math.sin(x * 0.6 + s) * 0.5 + Math.cos(y * 0.7 + s * 1.3) * 0.3 + Math.sin((x + y) * 0.45 + s * 2.1) * 0.2); }
 
@@ -377,6 +377,21 @@ function setupMundo() {
   } catch (e) {}
 }
 
+function acharBeira() {
+  for (let t = 0; t < 60; t++) {
+    const x = Math.random() * (mundoCanvas.width - 8) + 4, y = Math.random() * (mundoCanvas.height - 8) + 4;
+    const c = Math.floor(x / tile), r = Math.floor(y / tile);
+    if (ehBeira(c, r)) { let ang = 1.57; for (const [dc, dr, a] of [[1, 0, 0], [-1, 0, Math.PI], [0, 1, 1.57], [0, -1, -1.57]]) if (ehAgua(c + dc, r + dr)) { ang = a; break; } return { x, y, ang }; }
+  }
+  return null;
+}
+function atribuirPapel(e) {
+  const r = Math.random();
+  if (r < 0.4) { const b = acharBeira(); if (b) { e.x = b.x; e.y = b.y; e.dirAgua = b.ang; e.papel = "pescador"; e.estatico = true; return; } }
+  if (r < 0.75) { const arv = entidades.filter((x) => x.tipo === "planta"); if (arv.length) { const a = arv[Math.floor(Math.random() * arv.length)]; e.x = a.x + (Math.random() - 0.5) * 10; e.y = a.y + 4; e.papel = "agricultor"; e.estatico = true; return; } }
+  e.papel = "andarilho";
+}
+
 function novaEnt(tipo) {
   const hab = TIPO_HAB[tipo] || "terra";
   const fn = hab === "agua" ? ehAgua : hab === "beira" ? ehBeira : ehAndavel;
@@ -389,24 +404,28 @@ const TIPO_HAB = { celula: "agua", bacteria: "agua", alga: "agua", verme: "agua"
 const ESTATICOS = { planta: 1, aldeia: 1, alga: 1 };
 function ehBeira(c, r) { return ehAndavel(c, r) && (ehAgua(c + 1, r) || ehAgua(c - 1, r) || ehAgua(c, r + 1) || ehAgua(c, r - 1)); }
 
+const ORG_ERA = { celula: 0, bacteria: 0, alga: 0, verme: 0, peixe: 1, anfibio: 2, reptil: 2, dino: 3, mamifero: 4, primata: 5, humano: 5, ciborgue: 6 };
+// bicho de era passada some conforme você evolui (dino não convive com humano)
+function relev(orgE) { const d = (estado.era || 0) - orgE; if (d <= 0) return 1; if (d === 1) return 0.6; if (d === 2) return 0.25; return 0.06; }
+
 function alvos() {
-  const cnt = (id, div, cap) => Math.min(cap, Math.floor(q(id) / div));
+  const cnt = (id, div, cap) => Math.round(Math.min(cap, Math.floor(q(id) / div)) * relev(ORG_ERA[id]));
   return {
-    celula: Math.min(10, q("celula") > 0 ? 2 + Math.floor(q("celula") / 5) : Math.min(3, Math.floor(Math.log10(1 + estado.dna)))),
-    bacteria: cnt("bacteria", 3, 12),
-    alga: cnt("alga", 3, 10),
-    verme: cnt("verme", 3, 8),
-    peixe: cnt("peixe", 2, 14),
-    anfibio: cnt("anfibio", 2, 8),
-    reptil: cnt("reptil", 2, 8),
-    dino: cnt("dino", 2, 6),
-    mamifero: cnt("mamifero", 2, 8),
-    primata: cnt("primata", 2, 6),
-    humano: Math.min(14, cnt("humano", 2, 10) + Math.floor(Math.sqrt(estado.pop || 0) / 2)),
-    ciborgue: cnt("ciborgue", 2, 6),
-    planta: Math.min(30, nivelPla("planta") * 3 + nivelPla("gado")),
-    aldeia: Math.min(12, nivelPla("aldeia")),
-    passaro: Math.min(8, (estado.era >= 3 ? 1 : 0) + Math.floor(q("dino") / 30) + nivelPla("planta")),
+    celula: Math.round(Math.min(6, q("celula") > 0 ? 2 + Math.floor(q("celula") / 6) : Math.min(2, Math.floor(Math.log10(1 + estado.dna)))) * relev(0)),
+    bacteria: cnt("bacteria", 4, 7),
+    alga: cnt("alga", 4, 5),
+    verme: cnt("verme", 4, 4),
+    peixe: cnt("peixe", 3, 8),
+    anfibio: cnt("anfibio", 3, 5),
+    reptil: cnt("reptil", 3, 5),
+    dino: cnt("dino", 3, 5),
+    mamifero: cnt("mamifero", 3, 5),
+    primata: cnt("primata", 3, 4),
+    humano: Math.min(12, cnt("humano", 3, 8) + Math.floor(Math.sqrt(estado.pop || 0) / 3)),
+    ciborgue: cnt("ciborgue", 3, 4),
+    planta: Math.min(22, nivelPla("planta") * 3 + nivelPla("gado")),
+    aldeia: Math.min(10, nivelPla("aldeia")),
+    passaro: Math.min(5, (estado.era >= 3 ? 1 : 0) + Math.floor(q("dino") / 40) + nivelPla("planta")),
   };
 }
 
@@ -418,6 +437,7 @@ function sincronizarMundo() {
     if (atual < alvo[tipo]) for (let i = 0; i < alvo[tipo] - atual; i++) {
       if (tipo === "passaro") { entidades.push({ tipo, hab: "voa", x: Math.random() * mundoCanvas.width, y: 20 + Math.random() * 60, ang: 0, vel: 0.6 + Math.random() * 0.4, voa: true, f: Math.random() * 6, nasc: 0 }); continue; }
       const ent = novaEnt(tipo);
+      if (tipo === "humano") atribuirPapel(ent);
       if (tipo === "planta") { const hs = entidades.filter((x) => x.tipo === "humano"); if (hs.length) { const h = hs[Math.floor(Math.random() * hs.length)]; for (let a = 0; a < 14; a++) { const px = h.x + (Math.random() - 0.5) * 44, py = h.y + (Math.random() - 0.5) * 44; if (px > 3 && py > 3 && px < mundoCanvas.width - 3 && py < mundoCanvas.height - 3 && biomaPix(px, py, ehAndavel)) { ent.x = px; ent.y = py; break; } } } }
       entidades.push(ent);
     }
@@ -435,6 +455,8 @@ function animarMundo(dt) {
   nuvens.forEach((n) => { n.x += n.spd * p; if (n.x - n.w > Lc) n.x = -n.w; });
   ondas.forEach((o) => { o.r += 1.5 * p; o.vida -= p; });
   ondas = ondas.filter((o) => o.vida > 0);
+  atividades.forEach((a) => { a.y -= 0.35 * p; a.vida -= p; });
+  atividades = atividades.filter((a) => a.vida > 0);
   entidades = entidades.filter((e) => { if (e.temp) { e.vida -= p; return e.vida > 0; } return true; });
   // Cardume: peixes nadam juntos (schooling)
   if (nivelPla("cardume") > 0) {
@@ -443,6 +465,7 @@ function animarMundo(dt) {
   }
   entidades.forEach((e) => {
     e.f += 0.12 * p; if (e.nasc < 1) e.nasc = Math.min(1, e.nasc + 0.04 * p);
+    if (e.papel === "pescador" || e.papel === "agricultor") { e.trab = (e.trab || 0) - p; if (e.trab <= 0) { e.trab = 100 + Math.random() * 100; atividades.push({ x: e.x, y: e.y - 5, vida: 30, cor: e.papel === "pescador" ? "#8fd0ff" : "#9fe08f" }); } }
     if (e.estatico) return;
     if (e.voa) { e.x += e.vel * p; if (e.x > Lc + 10) e.x = -10; e.y += Math.sin(e.f) * 0.3; return; }
     // humano tende a voltar pra casa
@@ -484,7 +507,7 @@ function desenharMundo() {
     else if (e.tipo === "dino") { mundoCtx.fillStyle = "#4f9f5f"; mundoCtx.beginPath(); mundoCtx.ellipse(x, y, 5 * s, 3 * s, 0, 0, 6.28); mundoCtx.fill(); mundoCtx.fillRect(x + 2, y - 7 * s, 2, 7 * s); mundoCtx.beginPath(); mundoCtx.arc(x + 3, y - 7 * s, 2 * s, 0, 6.28); mundoCtx.fill(); }
     else if (e.tipo === "mamifero") { mundoCtx.fillStyle = "#b06a3a"; mundoCtx.beginPath(); mundoCtx.ellipse(x, y, 4 * s, 2.4 * s, 0, 0, 6.28); mundoCtx.fill(); mundoCtx.fillRect(x - 3, y + 1, 1.3, 3 * s); mundoCtx.fillRect(x + 2, y + 1, 1.3, 3 * s); mundoCtx.beginPath(); mundoCtx.arc(x + 4 * s, y - 1, 1.6 * s, 0, 6.28); mundoCtx.fill(); }
     else if (e.tipo === "primata") { mundoCtx.fillStyle = "#8a5a3a"; mundoCtx.beginPath(); mundoCtx.arc(x, y, 3 * s, 0, 6.28); mundoCtx.fill(); mundoCtx.beginPath(); mundoCtx.arc(x, y - 3.5 * s, 2 * s, 0, 6.28); mundoCtx.fill(); }
-    else if (e.tipo === "humano") { mundoCtx.fillStyle = "#ffd0a0"; mundoCtx.beginPath(); mundoCtx.arc(x, y - 2, 1.4, 0, 6.28); mundoCtx.fill(); mundoCtx.strokeStyle = "#4f8cff"; mundoCtx.lineWidth = 1.6; mundoCtx.beginPath(); mundoCtx.moveTo(x, y - 1); mundoCtx.lineTo(x, y + 2); mundoCtx.stroke(); }
+    else if (e.tipo === "humano") { mundoCtx.fillStyle = "#ffd0a0"; mundoCtx.beginPath(); mundoCtx.arc(x, y - 2, 1.4, 0, 6.28); mundoCtx.fill(); mundoCtx.strokeStyle = "#4f8cff"; mundoCtx.lineWidth = 1.6; mundoCtx.beginPath(); mundoCtx.moveTo(x, y - 1); mundoCtx.lineTo(x, y + 2); mundoCtx.stroke(); if (e.papel === "pescador") { const dx = Math.cos(e.dirAgua || 1.57), dy = Math.sin(e.dirAgua || 1.57); mundoCtx.strokeStyle = "rgba(255,255,255,0.55)"; mundoCtx.lineWidth = 0.8; mundoCtx.beginPath(); mundoCtx.moveTo(x, y - 2); mundoCtx.lineTo(x + dx * 9, y + dy * 9 + Math.sin(e.f) * 1.5); mundoCtx.stroke(); } }
     else if (e.tipo === "ciborgue") { mundoCtx.fillStyle = "#9fb8d8"; mundoCtx.beginPath(); mundoCtx.arc(x, y - 2, 1.6, 0, 6.28); mundoCtx.fill(); mundoCtx.fillStyle = "#25c8e8"; mundoCtx.fillRect(x - 0.8, y - 2.6, 1.6, 1); mundoCtx.strokeStyle = "#5a6675"; mundoCtx.lineWidth = 1.9; mundoCtx.beginPath(); mundoCtx.moveTo(x, y - 1); mundoCtx.lineTo(x, y + 2); mundoCtx.stroke(); }
     else if (e.tipo === "planta") { mundoCtx.fillStyle = "#6a4a2a"; mundoCtx.fillRect(x - 1, y, 2, 4 * s); mundoCtx.fillStyle = "#2f8f3f"; mundoCtx.beginPath(); mundoCtx.moveTo(x, y - 7 * s); mundoCtx.lineTo(x - 5 * s, y + 1); mundoCtx.lineTo(x + 5 * s, y + 1); mundoCtx.fill(); }
     else if (e.tipo === "aldeia") {
@@ -500,6 +523,7 @@ function desenharMundo() {
     else if (e.tipo === "passaro") { mundoCtx.strokeStyle = "#222"; mundoCtx.lineWidth = 1.4; const w = Math.sin(e.f) * 3; mundoCtx.beginPath(); mundoCtx.moveTo(x - 4, y + w); mundoCtx.lineTo(x, y); mundoCtx.lineTo(x + 4, y + w); mundoCtx.stroke(); }
     mundoCtx.restore();
   });
+  atividades.forEach((a) => { mundoCtx.globalAlpha = a.vida / 30; mundoCtx.fillStyle = a.cor; mundoCtx.beginPath(); mundoCtx.arc(a.x, a.y, 2, 0, 6.28); mundoCtx.fill(); mundoCtx.globalAlpha = 1; });
   ondas.forEach((o) => { mundoCtx.strokeStyle = `rgba(255,255,255,${o.vida / 20})`; mundoCtx.lineWidth = 2; mundoCtx.beginPath(); mundoCtx.arc(o.x, o.y, o.r, 0, 6.28); mundoCtx.stroke(); });
   // véu de noite por cima de tudo
   if (luz < 1) { mundoCtx.fillStyle = `rgba(10,18,45,${(1 - luz) * 0.5})`; mundoCtx.fillRect(0, 0, Lc, A); }
