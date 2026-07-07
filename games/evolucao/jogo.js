@@ -104,6 +104,8 @@ function carregar() {
   estado.planeta = estado.planeta || {};
   estado.pop = estado.pop || 0;
   estado.ciencia = estado.ciencia || 0;
+  estado.semente = estado.semente || (Math.random() * 100);
+  semente = estado.semente;
   GERADORES.forEach((g) => { if (estado.qtds[g.id] === undefined) estado.qtds[g.id] = 0; });
   const passou = Math.min(8 * 3600, (Date.now() - (estado.ultimo || Date.now())) / 1000);
   const ganho = producaoPorSeg() * passou;
@@ -538,6 +540,7 @@ const estilo = document.createElement("style");
 estilo.textContent = "@keyframes pulsa{from{transform:scale(1)}to{transform:scale(1.15)}}";
 if (document.head) document.head.appendChild(estilo);
 
+carregar();
 setupMundo();
 window.addEventListener("resize", () => { setupMundo(); sincronizarMundo(); });
 {
@@ -556,7 +559,6 @@ window.addEventListener("resize", () => { setupMundo(); sincronizarMundo(); });
     setTimeout(() => { setupMundo(); sincronizarMundo(); }, 60);
   });
 }
-carregar();
 render();
 sincronizarMundo();
 setInterval(sincronizarMundo, 1500);
