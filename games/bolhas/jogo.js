@@ -156,7 +156,7 @@ function novoBot(i) {
     y,
     raio: Math.max(8, referencia * (0.4 + aleatorio(0.5))),
     cor: CORES_BOTS[i % CORES_BOTS.length],
-    nome: "Bot " + (i + 1),
+    nome: (window.nomeBot ? nomeBot(i + Math.floor(Math.random()*9)) : 'bot'),
     prot: 90, // ~3s de proteção
   };
 }

@@ -1,4 +1,4 @@
-const CACHE = "minigames-v89";
+const CACHE = "minigames-v90";
 
 const ARQUIVOS = [
   "./",

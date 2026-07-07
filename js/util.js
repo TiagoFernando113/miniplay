@@ -132,6 +132,9 @@ const JOGOS_TODOS = [
 ];
 
 // Jogos com ranking online (maior valor = melhor)
+const NOMES_BOTS = ["grandelucas","pedrin","ghoshh","war","zezinho","biellzin","dark_x","sombra","jhow","gabziN","noob123","proplaya","lipezin","dudu","mateuz","kaue","vrau","tikzin","kraken","relampago","trovao","fera","monstro","lenda","zToNy","MgLucas","brabo","cellzin","yuriGG","faixa_preta","007","xandinho","rei_do_mapa","piuzin","JP","thiaguin","ninja","fumaca","zero1"];
+function nomeBot(i) { return NOMES_BOTS[i % NOMES_BOTS.length]; }
+
 const RANKING_JOGOS = {
   passaro: { nome: "Pássaro", rotulo: "canos" },
   torre: { nome: "Torre", rotulo: "andares" },
@@ -225,6 +228,8 @@ window.JOGOS_TODOS = JOGOS_TODOS;
 window.NOMES_JOGOS = NOMES_JOGOS;
 window.JogoDaSemana = JogoDaSemana;
 window.RANKING_JOGOS = RANKING_JOGOS;
+window.NOMES_BOTS = NOMES_BOTS;
+window.nomeBot = nomeBot;
 window.LIMITES_RANKING = LIMITES_RANKING;
 window.escaparHtml = escaparHtml;
 window.Nivel = Nivel;

@@ -33,7 +33,7 @@ const MELHORIAS = [
   { nome: "Roubo de vida", desc: "Cura ao matar", aplicar: (t) => (t.roubo += 4) },
 ];
 
-const NOMES_BOT = ["Rex", "Nova", "Zé", "Kira", "Bolt", "Duda", "Max", "Yuki", "Tato", "Lia", "Vov", "Pip"];
+// nomes vêm de NOMES_BOTS (util.js)
 const CORES = ["#ff6f6f", "#6fbfff", "#ffd54f", "#cf8fff", "#6fdf9f", "#ff9f4f", "#25c8e8", "#ff7fbf"];
 
 let jogador, tanques, formas, balas, particulas, rodando, pausadoUpgrade, laco = 0;
@@ -83,7 +83,7 @@ function botLonge() {
   do { x = Math.random() * MUNDO; y = Math.random() * MUNDO; t++; }
   while (t < 20 && jogador && Math.hypot(jogador.x - x, jogador.y - y) < 400);
   const i = tanques ? tanques.length : 0;
-  const b = novoTanque(x, y, CORES[i % CORES.length], NOMES_BOT[i % NOMES_BOT.length], false);
+  const b = novoTanque(x, y, CORES[i % CORES.length], (window.nomeBot ? nomeBot(i + Math.floor(Math.random()*7)) : 'bot'), false);
   const esc = 1 + (jogador ? jogador.nivel : 1) * 0.08;
   b.vidaMax *= esc; b.vida = b.vidaMax; b.dano *= esc; b.score = Math.floor((jogador ? jogador.nivel : 1) * 6);
   // dá uma classe conforme o nível do jogo

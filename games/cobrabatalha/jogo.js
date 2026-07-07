@@ -39,7 +39,7 @@ function novoBot(i) {
   let x, y, t = 0;
   do { x = aleatorio(MUNDO); y = aleatorio(MUNDO); t++; }
   while (t < 20 && eu && Math.hypot(eu.x - x, eu.y - y) < 300);
-  const b = novaCobra(x, y, CORES_BOTS[i % CORES_BOTS.length], "Bot " + (i + 1));
+  const b = novaCobra(x, y, CORES_BOTS[i % CORES_BOTS.length], (window.nomeBot ? nomeBot(i + Math.floor(Math.random()*9)) : 'bot'));
   b.rumo = aleatorio(Math.PI * 2);
   return b;
 }
