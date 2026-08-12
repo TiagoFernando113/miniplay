@@ -688,7 +688,7 @@
     <div class="panel">
       <div class="stitle"><h2>Chat da Aliança</h2><div class="rule"></div><button class="trtoggle" id="chatAuto">🌐 Auto</button></div>
       <div class="chatbox">
-        <div class="msgs" id="chatMsgs"><p class="empty">Carregando…</p></div>
+        <div class="msgs" id="chatMsgs" data-notrans><p class="empty">Carregando…</p></div>
         <form class="chatform" id="chatForm">
           <input id="chatInput" type="text" maxlength="400" placeholder="Fale com a aliança…" autocomplete="off">
           <button type="submit">Enviar</button>
@@ -1199,6 +1199,66 @@
     tx.innerHTML = esc(res.texto) + (res.de && res.de !== meuIdioma()
       ? '<div class="trmeta">🌐 traduzido de '+esc(res.de)+' · <a href="#" class="trorig">ver original</a></div>' : "");
   }
+
+  /* ------- tradução da INTERFACE (auto, com cache + observer) ------- */
+  var _uiCache = {}, _trQ = [], _trActive = 0, TR_MAX = 6, _uiObs = null;
+  function uiCacheFor(lang){
+    if(_uiCache[lang]) return _uiCache[lang];
+    var c = {}; try{ c = JSON.parse(localStorage.getItem("top.ui."+lang)||"{}"); }catch(e){}
+    _uiCache[lang] = c; return c;
+  }
+  function saveUiCache(lang){ try{ localStorage.setItem("top.ui."+lang, JSON.stringify(_uiCache[lang])); }catch(e){} }
+  function _trPump(){
+    while(_trActive < TR_MAX && _trQ.length){
+      var fn = _trQ.shift(); _trActive++;
+      fn().then(function(){ _trActive--; _trPump(); }, function(){ _trActive--; _trPump(); });
+    }
+  }
+  function traduzirNode(n){
+    var alvo = meuIdioma(); if(alvo === "pt") return;
+    if(n.__lang === alvo) return;
+    var base = (n.__base != null) ? n.__base : n.nodeValue;
+    var t = (base||"").trim();
+    if(!t || t.length < 2 || /^[\d\s.,:%/\-+º°#·|()\[\]/]+$/.test(t)) return;
+    var p = n.parentNode; if(!p || p.nodeType !== 1) return;
+    var tag = p.nodeName;
+    if(tag==="SCRIPT"||tag==="STYLE"||tag==="TEXTAREA"||tag==="OPTION") return;
+    if(p.closest && p.closest("[data-notrans],svg")) return;
+    n.__base = base;
+    var cache = uiCacheFor(alvo);
+    if(cache[t]){ n.nodeValue = base.replace(t, cache[t]); n.__lang = alvo; return; }
+    _trQ.push(function(){
+      return traduzir(t, alvo).then(function(res){
+        cache[t] = res.texto; saveUiCache(alvo);
+        if(n.__base != null){ n.nodeValue = n.__base.replace(t, res.texto); n.__lang = alvo; }
+      });
+    });
+    _trPump();
+  }
+  function traduzirArvore(root){
+    if(!root) return;
+    if(root.nodeType === 3){ traduzirNode(root); return; }
+    if(root.nodeType !== 1) return;
+    var w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null), n;
+    while((n = w.nextNode())) traduzirNode(n);
+  }
+  function restaurarUI(){
+    var w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null), n;
+    while((n = w.nextNode())){ if(n.__base != null){ n.nodeValue = n.__base; n.__lang = null; } }
+  }
+  function iniciarTraducaoUI(){
+    if(meuIdioma() === "pt"){ restaurarUI(); return; }
+    traduzirArvore(document.body);
+    if(!_uiObs){
+      _uiObs = new MutationObserver(function(muts){
+        for(var i=0;i<muts.length;i++){
+          var add = muts[i].addedNodes; if(!add) continue;
+          for(var j=0;j<add.length;j++) traduzirArvore(add[j]);
+        }
+      });
+      _uiObs.observe(document.body, {childList:true, subtree:true});
+    }
+  }
   function traduzirTudo(){
     var alvo = meuIdioma();
     Object.keys(chatById).forEach(function(id){
@@ -1328,6 +1388,7 @@
   function salvarPerfil(){
     localStorage.setItem("top.lang", $("#perfilIdioma").value);
     lastChatSig = "";
+    iniciarTraducaoUI();
     var patch = {avatar: perfilAvatarSel};
     var up = perfilFotoFile ? subirArquivo("top-avatars", perfilFotoFile, "av_"+ME.id) : Promise.resolve(null);
     return up.then(function(url){
@@ -1990,6 +2051,7 @@
   paintRanking();
   applyMenuOrder();
   iniciarNuvem();
+  iniciarTraducaoUI();
 
   setInterval(function(){ if(cur === 'missoes') paintMissions(); }, 60000);
   setInterval(function(){ if(cur === 'chat' && ME) chatCarregar(); }, 4000);
