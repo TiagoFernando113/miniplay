@@ -830,6 +830,34 @@
   </div>
 </div>
 
+<!-- ============ LOGIN (nome + senha) ============ -->
+<div class="overlay" id="loginOverlay">
+  <div class="modal">
+    <div style="font-size:2.4rem;text-align:center">🛡️</div>
+    <h2 style="text-align:center;margin-top:4px">Entrar na aliança</h2>
+    <p class="sub" style="text-align:center">Use o nome e a senha que você cadastrou.</p>
+    <input class="reginput" id="loginNome" type="text" placeholder="Seu nome no jogo" autocomplete="off">
+    <input class="reginput" id="loginSenha" type="password" placeholder="Sua senha">
+    <p class="note" id="loginMsg" style="display:none;color:var(--red);margin-top:8px"></p>
+    <button class="bigbtn green" id="loginEntrar" style="margin-top:12px">Entrar</button>
+    <button class="bcancel" id="loginFechar" style="width:100%;margin-top:10px;border-radius:11px;padding:11px">Cancelar</button>
+  </div>
+</div>
+
+<!-- ============ CÓDIGO DE OFICIAL ============ -->
+<div class="overlay" id="codigoOverlay">
+  <div class="modal">
+    <div style="font-size:2.4rem;text-align:center">🔑</div>
+    <h2 style="text-align:center;margin-top:4px">Acesso de oficial</h2>
+    <p class="sub" style="text-align:center">Digite o código da liderança.</p>
+    <input class="reginput" id="codigoNome" type="text" placeholder="Seu nome no jogo" autocomplete="off">
+    <input class="reginput" id="codigoValor" type="text" placeholder="Código de oficial">
+    <p class="note" id="codigoMsg" style="display:none;color:var(--red);margin-top:8px"></p>
+    <button class="bigbtn green" id="codigoEntrar" style="margin-top:12px">Entrar como oficial</button>
+    <button class="bcancel" id="codigoFechar" style="width:100%;margin-top:10px;border-radius:11px;padding:11px">Cancelar</button>
+  </div>
+</div>
+
 <style>
   /* ---- identidade / oficial ---- */
   .eurow{display:flex;align-items:center;gap:10px;margin-top:12px;background:rgba(255,255,255,.4);
@@ -1005,8 +1033,7 @@
       if(!Object.keys(patch).length) return Promise.resolve(existing);
       return sbPatch("top_membros?id=eq."+existing.id, patch).then(function(x){ return x[0]; });
     }
-    var nome = (localStorage.getItem("top.nome")||"").trim();
-    if(!nome){ nome = (prompt("Seu nome no jogo (aparece pros oficiais):")||"").trim() || "Governador"; }
+    var nome = (extra && extra.nome ? String(extra.nome).trim() : "") || (localStorage.getItem("top.nome")||"").trim() || "Governador";
     localStorage.setItem("top.nome", nome);
     var body = {device_id:deviceId(), nome:nome, autorizado:!!autorizar};
     if(extra) for(var j in extra) body[j] = extra[j];
@@ -1091,12 +1118,24 @@
   }
 
   function ehOficial(m){ return !!(m && (m.is_oficial || m.cargo === "R4" || m.cargo === "R5")); }
-  function virarOficial(codigo){
+  function virarOficial(codigo, nome){
     return sbGet("top_config?chave=eq.codigo_oficial&select=valor").then(function(r){
       var code = (r&&r[0]) ? r[0].valor : null;
       if(String(codigo).trim() !== String(code)) return false;
       return getMembro().then(function(m){
-        return garantirMembro(m, true, {is_oficial:true, cargo:(m&&m.cargo&&m.cargo!=="R1")?m.cargo:"R4"}).then(function(x){ ME = x; return true; });
+        var extra = {is_oficial:true, cargo:(m&&m.cargo&&m.cargo!=="R1")?m.cargo:"R4"};
+        if(!m && nome) extra.nome = nome;
+        // sem membro no aparelho, mas existe pré-cadastro com esse nome? reivindica
+        if(!m && nome){
+          return sbGet("top_membros?senha_hash=is.null&nome=ilike."+enc(nome)+"&select=*").then(function(pre){
+            var achou = (pre||[])[0];
+            if(achou){
+              return sbPatch("top_membros?id=eq."+achou.id, {device_id:deviceId(), autorizado:true, is_oficial:true, status:"ativo"}).then(function(x){ ME = x[0]; return true; });
+            }
+            return garantirMembro(m, true, extra).then(function(x){ ME = x; return true; });
+          });
+        }
+        return garantirMembro(m, true, extra).then(function(x){ ME = x; return true; });
       });
     });
   }
@@ -2008,15 +2047,25 @@
 
   /* ---------------- wiring: oficial / chat / admin / convite ---------------- */
   function pedirCodigoOficial(){
-    var c = (prompt('Código de oficial:')||'').trim();
-    if(!c) return;
-    virarOficial(c).then(function(ok){
-      if(ok){ toast('🔑 Acesso de oficial liberado!'); entrar(); go('admin'); }
-      else toast('❌ Código incorreto.');
-    }).catch(function(){ toast('❌ Erro de conexão.'); });
+    $('#codigoMsg').style.display = 'none';
+    $('#codigoNome').value = (ME && ME.nome) || localStorage.getItem('top.nome') || '';
+    $('#codigoValor').value = '';
+    $('#codigoOverlay').classList.add('on');
   }
   $('#oficialBtn').addEventListener('click', pedirCodigoOficial);
   $('#gateOficial').addEventListener('click', pedirCodigoOficial);
+  $('#codigoFechar').addEventListener('click', function(){ $('#codigoOverlay').classList.remove('on'); });
+  $('#codigoEntrar').addEventListener('click', function(){
+    var nome = $('#codigoNome').value.trim(), cod = $('#codigoValor').value.trim();
+    if(!cod){ codErro('Digite o código.'); return; }
+    var btn = this; btn.disabled = true;
+    virarOficial(cod, nome).then(function(ok){
+      btn.disabled = false;
+      if(ok){ $('#codigoOverlay').classList.remove('on'); toast('🔑 Acesso de oficial liberado!'); entrar(); go('admin'); }
+      else codErro('Código incorreto.');
+    }).catch(function(){ btn.disabled = false; codErro('Erro de conexão.'); });
+  });
+  function codErro(m){ var e = $('#codigoMsg'); e.textContent = m; e.style.display = 'block'; }
 
   $('#chatForm').addEventListener('submit', function(e){
     e.preventDefault();
@@ -2075,11 +2124,23 @@
   });
   function loginPrompt(e){
     if(e) e.preventDefault();
-    var nome = (prompt("Seu nome no jogo:")||"").trim(); if(!nome) return;
-    var senha = prompt("Sua senha:")||"";
-    fazerLogin(nome, senha).then(function(ok){ if(ok) entrar(); else toast("❌ Nome ou senha incorretos."); })
-      .catch(function(){ toast("❌ Erro de conexão."); });
+    $("#loginMsg").style.display = "none";
+    $("#loginNome").value = localStorage.getItem("top.nome") || "";
+    $("#loginSenha").value = "";
+    $("#loginOverlay").classList.add("on");
   }
+  function loginErro(m){ var el = $("#loginMsg"); el.textContent = m; el.style.display = "block"; }
+  $("#loginFechar").addEventListener("click", function(){ $("#loginOverlay").classList.remove("on"); });
+  $("#loginEntrar").addEventListener("click", function(){
+    var nome = $("#loginNome").value.trim(), senha = $("#loginSenha").value;
+    if(!nome || !senha){ loginErro("Preencha nome e senha."); return; }
+    var btn = this; btn.disabled = true;
+    fazerLogin(nome, senha).then(function(ok){
+      btn.disabled = false;
+      if(ok){ $("#loginOverlay").classList.remove("on"); entrar(); }
+      else loginErro("Nome ou senha incorretos.");
+    }).catch(function(){ btn.disabled = false; loginErro("Erro de conexão."); });
+  });
   var _gl = $("#gateLogin"); if(_gl) _gl.addEventListener("click", loginPrompt);
   var _rl = $("#regLogin"); if(_rl) _rl.addEventListener("click", loginPrompt);
 
