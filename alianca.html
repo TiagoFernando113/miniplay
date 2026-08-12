@@ -509,6 +509,7 @@
   <!-- ============ INÍCIO ============ -->
   <div class="screen on" id="s-inicio">
     <div class="panel">
+      <div class="r0banner" id="r0banner">⏳ Seu perfil ainda não foi inserido — você entrou como <b>novo jogador (R0)</b>. Um oficial vai revisar e completar seus dados.</div>
       <div class="ah">
         <svg class="crest" viewBox="0 0 88 100" aria-label="Brasão [TOP]">
           <path d="M6 8h76v52c0 22-18 32-38 40C24 92 6 82 6 60V8z" fill="#3E7EC4" stroke="#EAF2FB" stroke-width="4" stroke-linejoin="round"/>
@@ -576,7 +577,7 @@
 
       <div class="hint">✋ Segure e arraste um botão para mudar a ordem — fica salvo no seu aparelho.</div>
 
-      <div class="eurow">👤 <span class="nm" id="euNome">…</span>
+      <div class="eurow" id="eurow" style="cursor:pointer"><span class="nm" id="euNome">…</span>
         <button class="oficialbtn" id="oficialBtn">🔑 Sou oficial</button>
       </div>
     </div>
@@ -717,6 +718,9 @@
         </div>
       </div>
 
+      <div class="stitle"><h2>Solicitações de entrada (R0)</h2><div class="rule"></div></div>
+      <div id="adminR0"><p class="empty">Carregando…</p></div>
+
       <div class="stitle"><h2>Provas pendentes</h2><div class="rule"></div></div>
       <div id="adminFila"><p class="empty">Carregando…</p></div>
     </div>
@@ -745,6 +749,18 @@
 
 <div class="toast" id="toast"></div>
 
+<!-- ============ AVATARES DE PERSONAGEM (arte própria, estilo jogo) ============ -->
+<svg style="display:none" aria-hidden="true"><defs>
+  <symbol id="av1" viewBox="0 0 64 64"><rect width="64" height="64" rx="15" fill="#6E9BD1"/><circle cx="32" cy="35" r="16" fill="#F2C89B"/><path d="M17 31Q17 15 32 15Q47 15 47 31Q40 24 32 24Q24 24 17 31Z" fill="#5A3E24"/><path d="M21 40Q32 55 43 40Q43 50 32 52Q21 50 21 40Z" fill="#5A3E24"/><path d="M22 15 25 9 32 14 39 9 42 15Z" fill="#F2C33C" stroke="#9A6E12" stroke-width="1.3"/><circle cx="27" cy="34" r="2" fill="#2A211A"/><circle cx="37" cy="34" r="2" fill="#2A211A"/><path d="M28 43Q32 46 36 43" fill="none" stroke="#9A5B47" stroke-width="1.6" stroke-linecap="round"/></symbol>
+  <symbol id="av2" viewBox="0 0 64 64"><rect width="64" height="64" rx="15" fill="#E79BC1"/><path d="M14 48Q12 24 32 22Q52 24 50 48Q44 34 32 34Q20 34 14 48Z" fill="#F4CE5A"/><circle cx="32" cy="34" r="15" fill="#F5D0AE"/><path d="M23 16 27 10 32 15 37 10 41 16Z" fill="#F2C33C" stroke="#9A6E12" stroke-width="1.2"/><circle cx="27" cy="34" r="2" fill="#5A3B2A"/><circle cx="37" cy="34" r="2" fill="#5A3B2A"/><path d="M28 41Q32 44 36 41" fill="none" stroke="#C56B85" stroke-width="1.6" stroke-linecap="round"/></symbol>
+  <symbol id="av3" viewBox="0 0 64 64"><rect width="64" height="64" rx="15" fill="#8FA3B5"/><circle cx="32" cy="36" r="16" fill="#EEC199"/><path d="M15 34Q15 12 32 12Q49 12 49 34L44 34Q44 22 32 22Q20 22 20 34Z" fill="#C7D0DA"/><path d="M20 32h24v4H20z" fill="#9AA6B2"/><circle cx="27" cy="37" r="2" fill="#2A211A"/><circle cx="37" cy="37" r="2" fill="#2A211A"/><path d="M28 44Q32 47 36 44" fill="none" stroke="#9A5B47" stroke-width="1.6" stroke-linecap="round"/></symbol>
+  <symbol id="av4" viewBox="0 0 64 64"><rect width="64" height="64" rx="15" fill="#C98F4A"/><circle cx="32" cy="33" r="15" fill="#E9B98A"/><path d="M17 44Q14 20 32 18Q50 20 47 44Q45 30 32 30Q19 30 17 44Z" fill="#E06D2E"/><path d="M18 42Q32 60 46 42Q46 52 32 55Q18 52 18 42Z" fill="#E06D2E"/><rect x="16" y="20" width="32" height="7" rx="3" fill="#7A5228"/><circle cx="27" cy="33" r="2" fill="#2A211A"/><circle cx="37" cy="33" r="2" fill="#2A211A"/></symbol>
+  <symbol id="av5" viewBox="0 0 64 64"><rect width="64" height="64" rx="15" fill="#D8B36A"/><circle cx="32" cy="37" r="15" fill="#E9B98A"/><path d="M12 30Q32 22 52 30Q52 24 32 22Q12 24 12 30Z" fill="#7A5228"/><ellipse cx="32" cy="30" rx="13" ry="7" fill="#8A5E30"/><path d="M24 42Q28 40 30 42M40 42Q36 40 34 42" fill="none" stroke="#7A5228" stroke-width="2.4" stroke-linecap="round"/><circle cx="27" cy="36" r="2" fill="#2A211A"/><circle cx="37" cy="36" r="2" fill="#2A211A"/></symbol>
+  <symbol id="av6" viewBox="0 0 64 64"><rect width="64" height="64" rx="15" fill="#7FB07A"/><path d="M12 46Q12 16 32 16Q52 16 52 46Q52 30 32 30Q12 30 12 46Z" fill="#4E8C4A"/><circle cx="32" cy="37" r="14" fill="#EEC199"/><path d="M14 44Q14 18 32 18Q50 18 50 44L44 44Q44 30 32 30Q20 30 20 44Z" fill="none" stroke="#3E6E3B" stroke-width="0"/><circle cx="27" cy="37" r="2" fill="#2A211A"/><circle cx="37" cy="37" r="2" fill="#2A211A"/><path d="M28 44Q32 47 36 44" fill="none" stroke="#9A5B47" stroke-width="1.6" stroke-linecap="round"/></symbol>
+  <symbol id="av7" viewBox="0 0 64 64"><rect width="64" height="64" rx="15" fill="#A9C4D8"/><circle cx="32" cy="33" r="15" fill="#EEC199"/><path d="M16 30Q16 14 32 14Q48 14 48 30Q40 24 32 24Q24 24 16 30Z" fill="#EDEDED"/><path d="M18 40Q32 60 46 40Q46 52 32 55Q18 52 18 40Z" fill="#EDEDED"/><rect x="22" y="31" width="8" height="6" rx="2" fill="none" stroke="#8A6A3C" stroke-width="1.6"/><rect x="34" y="31" width="8" height="6" rx="2" fill="none" stroke="#8A6A3C" stroke-width="1.6"/><path d="M30 34h4" stroke="#8A6A3C" stroke-width="1.6"/></symbol>
+  <symbol id="av8" viewBox="0 0 64 64"><rect width="64" height="64" rx="15" fill="#D98B6A"/><path d="M15 50Q13 22 32 20Q51 22 49 50Q46 32 32 32Q18 32 15 50Z" fill="#2E2A33"/><circle cx="32" cy="35" r="15" fill="#F2C89B"/><path d="M15 27Q32 19 49 27L49 23Q32 16 15 23Z" fill="#D6402E"/><circle cx="27" cy="35" r="2" fill="#2A211A"/><circle cx="37" cy="35" r="2" fill="#2A211A"/><path d="M28 42Q32 45 36 42" fill="none" stroke="#9A5B47" stroke-width="1.6" stroke-linecap="round"/></symbol>
+</defs></svg>
+
 <!-- ============ GATE DE ACESSO ============ -->
 <div class="overlay on" id="gateOverlay">
   <div class="modal" style="text-align:center">
@@ -752,6 +768,39 @@
     <h2 style="margin-top:6px">Acesso restrito</h2>
     <p class="sub" id="gateMsg">Verificando seu acesso…</p>
     <button class="bigbtn" id="gateOficial" style="margin-top:6px">🔑 Sou oficial</button>
+    <p class="reglink" style="margin-top:14px"><a href="#" id="gateLogin">Já tenho conta — entrar com senha</a></p>
+  </div>
+</div>
+
+<!-- ============ REGISTRO ============ -->
+<div class="overlay" id="regOverlay">
+  <div class="modal">
+    <h2 id="regTitle">Criar seu acesso</h2>
+    <p class="sub">Bem-vindo à <b>[TOP] Best</b>! Escolha seu avatar e crie sua senha.</p>
+    <input class="reginput" id="regNome" type="text" placeholder="Seu nome no jogo" maxlength="40" autocomplete="off">
+    <input class="reginput" id="regSenha" type="password" placeholder="Crie uma senha (mín. 4)" maxlength="60">
+    <p class="rlab" style="margin-top:12px">Escolha seu avatar</p>
+    <div class="avgrid" id="regAvatares"></div>
+    <p class="note" id="regMsg" style="display:none;color:var(--red);margin-top:8px"></p>
+    <button class="bigbtn green" id="regSend" style="margin-top:14px">🛡️ Entrar na aliança</button>
+    <p class="reglink">Já se cadastrou? <a href="#" id="regLogin">Entrar com senha</a></p>
+  </div>
+</div>
+
+<!-- ============ PERFIL ============ -->
+<div class="overlay" id="perfilOverlay">
+  <div class="modal">
+    <h2>Meu perfil</h2>
+    <div id="perfilAtual" style="width:82px;height:82px;margin:10px auto;border-radius:16px;overflow:hidden;border:3px solid var(--pill-dk)"></div>
+    <p class="rlab">Escolha seu avatar</p>
+    <div class="avgrid" id="perfilAvatares"></div>
+    <div id="perfilFotoWrap" style="display:none;margin-top:12px">
+      <label class="drop" style="padding:14px 12px"><div style="font-size:1.6rem">📷</div><span>Enviar minha própria foto</span><input type="file" accept="image/*" id="perfilFoto"></label>
+    </div>
+    <div class="mrow">
+      <button class="bcancel" id="perfilFechar">Fechar</button>
+      <button class="bsend" id="perfilSalvar">Salvar</button>
+    </div>
   </div>
 </div>
 
@@ -806,6 +855,38 @@
   .pmember .dot.on{background:var(--green);box-shadow:0 0 0 0 rgba(61,154,61,.6);animation:pulse 1.8s infinite}
   @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(61,154,61,.6)}70%{box-shadow:0 0 0 7px rgba(61,154,61,0)}100%{box-shadow:0 0 0 0 rgba(61,154,61,0)}}
   #portalCount{font-size:.8rem;color:var(--ink-soft);font-weight:700}
+
+  /* ---- registro ---- */
+  .reginput{width:100%;margin-top:10px;border:3px solid var(--pill-dk);border-radius:11px;background:var(--panel-3);
+    padding:12px;font-family:inherit;font-weight:700;font-size:.95rem;color:var(--ink);outline:none}
+  .regfoto{width:66px;height:66px;margin:0 auto;border-radius:13px;overflow:hidden;display:grid;place-items:center;
+    font-size:2rem;background:linear-gradient(140deg,#8FD3F4,#3E7EC4);border:2.5px solid #2B5D96}
+  .regfoto img{width:100%;height:100%;object-fit:cover}
+  .reglink{text-align:center;margin-top:12px;font-size:.84rem;color:var(--ink-soft)}
+  .reglink a{color:var(--teal-dk);font-weight:800;text-decoration:none}
+  .avgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:8px}
+  .avopt{aspect-ratio:1;border-radius:11px;border:3px solid var(--pill-dk);background:var(--panel-3);
+    font-size:1.5rem;display:grid;place-items:center;cursor:pointer;padding:0;font-family:inherit}
+  .avopt.sel{border-color:var(--green);background:linear-gradient(180deg,var(--gold-lt),var(--gold));box-shadow:inset 0 0 0 2px var(--green)}
+  .avopt{padding:2px}
+  .avopt>svg{width:100%;height:100%;border-radius:8px}
+  .avsvg{width:100%;height:100%;display:block}
+  .pmember .av2{overflow:hidden;border:2px solid #2B5D96}
+  .pmember .av2>*{width:100%;height:100%;border-radius:7px}
+  .euav{width:26px;height:26px;border-radius:7px;overflow:hidden;display:inline-block;vertical-align:middle;margin-right:7px}
+  .euav>*{width:100%;height:100%}
+  .eurow .nm{display:flex;align-items:center}
+  .subm .sh .r0av{width:38px;height:38px;border-radius:9px;overflow:hidden;flex:none;border:2px solid var(--pill-dk)}
+  .subm .sh .r0av>*{width:100%;height:100%}
+  #perfilAtual>*{width:100%;height:100%}
+  /* ---- admin R0 ---- */
+  .rlab{display:block;font-size:.75rem;color:var(--ink-soft);margin-bottom:4px}
+  .rin{width:100%;border:2.5px solid var(--pill-dk);border-radius:9px;background:#fff;padding:9px;
+    font-family:inherit;font-weight:700;font-size:.86rem;color:var(--ink);outline:none}
+  .r0banner{display:none;align-items:center;gap:8px;margin-bottom:12px;
+    background:linear-gradient(180deg,var(--gold-lt),var(--gold));border:3px solid var(--gold-dk);
+    border-radius:12px;padding:10px 12px;font-size:.82rem;color:var(--ink);font-weight:700;box-shadow:0 3px 0 var(--gold-dk)}
+  .pmember .av2 img{width:100%;height:100%;object-fit:cover;border-radius:7px}
 </style>
 
 <nav class="bottomnav">
@@ -875,14 +956,73 @@
     return sbPost("top_membros", body).then(function(x){ return x[0]; });
   }
 
-  // consome o convite de forma atômica (só o 1º clique ganha)
-  function usarConvite(tk, existing){
-    return sbPatch("top_convites?token=eq."+enc(tk)+"&usado=eq.false",
+  /* ------- avatares ------- */
+  var AV_IDS = ["av1","av2","av3","av4","av5","av6","av7","av8"];
+  function avIdFor(name){
+    var h = 0; name = name || "";
+    for(var i=0;i<name.length;i++) h = (h*31 + name.charCodeAt(i)) >>> 0;
+    return AV_IDS[h % AV_IDS.length];
+  }
+  function avatarSVG(m){
+    var foto=null, av=null, nome="";
+    if(typeof m === "string"){ nome = m; }
+    else if(m){ foto = m.foto_url; av = m.avatar; nome = m.nome || ""; }
+    if(foto) return '<img src="'+esc(foto)+'" alt="">';
+    var id = (av && AV_IDS.indexOf(av) > -1) ? av : avIdFor(nome);
+    return '<svg class="avsvg"><use href="#'+id+'"/></svg>';
+  }
+
+  /* ------- convite / registro / login ------- */
+  var conviteToken = null;
+  function validarConvite(tk){
+    return sbGet("top_convites?token=eq."+enc(tk)+"&usado=eq.false&select=token").then(function(r){ return !!(r&&r.length); });
+  }
+  function hashSenha(nome, senha){
+    var txt = "topbest::" + (nome||"").toLowerCase().trim() + "::" + senha;
+    var data = new TextEncoder().encode(txt);
+    return crypto.subtle.digest("SHA-256", data).then(function(buf){
+      return Array.prototype.map.call(new Uint8Array(buf), function(b){ return ("0"+b.toString(16)).slice(-2); }).join("");
+    });
+  }
+  function subirArquivo(bucket, file, prefix){
+    var ext = (file.name && file.name.indexOf(".")>-1) ? file.name.split(".").pop() : "jpg";
+    var path = prefix + "_" + Date.now() + "." + ext;
+    return fetch(SB_URL+"/storage/v1/object/"+bucket+"/"+path,
+      {method:"POST", headers:sbHead({"Content-Type":file.type||"image/jpeg","x-upsert":"true"}), body:file})
+      .then(function(r){ if(!r.ok) throw new Error("upload"); return SB_URL+"/storage/v1/object/public/"+bucket+"/"+path; });
+  }
+  function vincularConvite(){
+    if(!conviteToken) return Promise.resolve();
+    return sbPatch("top_convites?token=eq."+enc(conviteToken), {membro_id:ME.id}).catch(function(){});
+  }
+  function registrar(nome, senha, avatar){
+    // queima o convite de forma atômica (só o 1º clique ganha)
+    return sbPatch("top_convites?token=eq."+enc(conviteToken)+"&usado=eq.false",
         {usado:true, usado_em:new Date().toISOString()}).then(function(rows){
-      if(!Array.isArray(rows) || !rows.length) return false;
-      return garantirMembro(existing, true).then(function(m){
-        ME = m;
-        return sbPatch("top_convites?token=eq."+enc(tk), {membro_id:m.id}).then(function(){ return true; });
+      if(!Array.isArray(rows) || !rows.length) return {ok:false, msg:"Este convite já foi usado. Peça outro a um oficial."};
+      return hashSenha(nome, senha).then(function(hash){
+        // já existe pré-cadastro do admin com esse nome (ainda sem senha)?
+        return sbGet("top_membros?senha_hash=is.null&nome=ilike."+enc(nome)+"&select=*").then(function(pre){
+          var achou = (pre||[])[0], agora = new Date().toISOString();
+          if(achou){
+            return sbPatch("top_membros?id=eq."+achou.id,
+              {senha_hash:hash, device_id:deviceId(), avatar:avatar, autorizado:true, status:"ativo", visto_em:agora})
+              .then(function(x){ ME = x[0]; return vincularConvite().then(function(){ return {ok:true, novo:false}; }); });
+          }
+          return sbPost("top_membros",
+            {device_id:deviceId(), nome:nome, senha_hash:hash, avatar:avatar, autorizado:true, status:"pendente", cargo:"R0", visto_em:agora})
+            .then(function(x){ ME = x[0]; return vincularConvite().then(function(){ return {ok:true, novo:true}; }); });
+        });
+      });
+    });
+  }
+  function fazerLogin(nome, senha){
+    return hashSenha(nome, senha).then(function(hash){
+      return sbGet("top_membros?nome=ilike."+enc(nome)+"&senha_hash=eq."+hash+"&select=*").then(function(r){
+        var m = (r||[])[0];
+        if(!m) return false;
+        return sbPatch("top_membros?id=eq."+m.id, {device_id:deviceId(), visto_em:new Date().toISOString()})
+          .then(function(x){ ME = x[0]; return true; });
       });
     });
   }
@@ -897,13 +1037,25 @@
     });
   }
 
-  function autorizar(){
-    return getMembro().then(function(m){
-      if(m && m.autorizado){ ME = m; return true; }
-      var tk = tokenDaUrl();
-      if(tk){ return usarConvite(tk, m); }
-      return false;
-    });
+  var regAvatarSel = "av1";
+  function renderAvatarGrid(sel, atual, onPick){
+    var host = $(sel); if(!host) return;
+    host.innerHTML = AV_IDS.map(function(id){
+      return '<button type="button" class="avopt'+(id===atual?' sel':'')+'" data-av="'+id+'"><svg class="avsvg"><use href="#'+id+'"/></svg></button>';
+    }).join("");
+    host.onclick = function(e){
+      var b = e.target.closest("[data-av]"); if(!b) return;
+      Array.prototype.forEach.call(host.children, function(c){ c.classList.remove("sel"); });
+      b.classList.add("sel");
+      onPick(b.dataset.av);
+    };
+  }
+  function abrirRegistro(tk){
+    conviteToken = tk;
+    regAvatarSel = "av1";
+    $("#gateOverlay").classList.remove("on");
+    $("#regOverlay").classList.add("on");
+    renderAvatarGrid("#regAvatares", "av1", function(id){ regAvatarSel = id; });
   }
 
   /* ------- entrar / gate ------- */
@@ -913,9 +1065,12 @@
   }
   function entrar(){
     $("#gateOverlay").classList.remove("on");
+    $("#regOverlay").classList.remove("on");
     try{ if(location.hash){ history.replaceState(null,"",location.pathname+location.search); } }catch(e){}
     S.coins = ME.moedas || 0;
-    $("#euNome").textContent = ME.nome + (ME.is_oficial ? " • Oficial" : "");
+    var cargoTxt = ME.is_oficial ? " • Oficial" : (ME.cargo && ME.cargo!=="R1" ? " • "+ME.cargo : "");
+    $("#euNome").innerHTML = '<span class="euav">'+avatarSVG(ME)+'</span>'+esc(ME.nome)+cargoTxt;
+    $("#r0banner").style.display = (ME.status === "pendente") ? "flex" : "none";
     if(ME.is_oficial){ $("#navAdmin").classList.remove("hidden"); $("#oficialBtn").style.display = "none"; }
     paintCoins();
     reconciliarMissoes();
@@ -977,7 +1132,7 @@
     sbPatch("top_membros?id=eq."+ME.id, {visto_em:new Date().toISOString()}).catch(function(){});
   }
   function paintPortalMembros(){
-    return sbGet("top_membros?visto_em=not.is.null&select=nome,cargo,visto_em&order=visto_em.desc&limit=100").then(function(rows){
+    return sbGet("top_membros?visto_em=not.is.null&select=nome,cargo,visto_em,foto_url,avatar&order=visto_em.desc&limit=100").then(function(rows){
       rows = rows || [];
       var wrap = $("#portalWrap"), host = $("#portalMembros");
       if(!rows.length){ wrap.style.display = "none"; return; }
@@ -986,7 +1141,7 @@
         var on = (Date.now() - new Date(m.visto_em).getTime()) < 300000;
         if(on) onN++;
         var t = tempoDesde(m.visto_em);
-        return '<div class="pmember"><span class="av2">'+avatarFor(m.nome)+'</span>'+
+        return '<div class="pmember"><span class="av2">'+avatarSVG(m)+'</span>'+
           '<span class="nm">'+esc(m.nome)+'</span>'+
           '<span class="seen'+(on?' now':'')+'"><span class="dot'+(on?' on':'')+'"></span>'+(on?"On-line":esc(t))+'</span></div>';
       }).join("");
@@ -1068,11 +1223,73 @@
       return location.origin + location.pathname + "#c=" + tk;
     });
   }
+  function parsePoder(txt){
+    if(!txt) return 0;
+    txt = String(txt).trim().toUpperCase().replace(/\./g,"").replace(",", ".");
+    var mult = 1;
+    if(txt.indexOf("M")>-1){ mult=1e6; txt=txt.replace("M",""); }
+    else if(txt.indexOf("K")>-1){ mult=1e3; txt=txt.replace("K",""); }
+    return Math.round((parseFloat(txt)||0)*mult);
+  }
+  function paintR0(){
+    if(!ME || !ME.is_oficial) return;
+    sbGet("top_membros?status=eq.pendente&select=id,nome,castelo,foto_url,avatar&order=visto_em.desc").then(function(rows){
+      rows = rows||[]; var host = $("#adminR0"); if(!host) return;
+      if(!rows.length){ host.innerHTML = '<div class="empty"><div>👌</div>Nenhuma solicitação pendente.</div>'; return; }
+      host.innerHTML = rows.map(function(m){
+        return '<div class="subm" data-r0="'+m.id+'">'+
+          '<div class="sh"><span class="r0av">'+avatarSVG(m)+'</span><h3>'+esc(m.nome)+'</h3></div>'+
+          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px">'+
+            '<div><label class="rlab">Cargo</label><select class="rin" data-f="cargo"><option>R4</option><option selected>R3</option><option>R2</option><option>R1</option></select></div>'+
+            '<div><label class="rlab">Castelo (Nv.)</label><input class="rin" data-f="castelo" type="number" inputmode="numeric" placeholder="26" value="'+(m.castelo||"")+'"></div>'+
+          '</div>'+
+          '<label class="rlab" style="margin-top:8px">Poder (ex.: 16,7M)</label><input class="rin" data-f="poder" type="text" placeholder="16,7M">'+
+          '<label class="rlab" style="margin-top:8px">Print do perfil (opcional)</label><input class="rin" data-f="print" type="file" accept="image/*">'+
+          '<div class="acts"><button class="bok" data-r0ok="'+m.id+'">✔ Aprovar e inserir</button></div>'+
+        '</div>';
+      }).join("");
+    }).catch(function(){});
+  }
+
+  var perfilAvatarSel = "av1", perfilFotoFile = null;
+  function abrirPerfil(){
+    if(!ME) return;
+    $("#perfilAtual").innerHTML = avatarSVG(ME);
+    perfilAvatarSel = ME.avatar || avIdFor(ME.nome);
+    perfilFotoFile = null;
+    renderAvatarGrid("#perfilAvatares", perfilAvatarSel, function(id){ perfilAvatarSel = id; $("#perfilAtual").innerHTML = '<svg class="avsvg"><use href="#'+id+'"/></svg>'; });
+    $("#perfilFotoWrap").style.display = ME.pode_avatar ? "block" : "none";
+    $("#perfilOverlay").classList.add("on");
+  }
+  function nomeComCargo(){
+    return esc(ME.nome) + (ME.is_oficial ? " • Oficial" : (ME.cargo && ME.cargo!=="R1" ? " • "+ME.cargo : ""));
+  }
+  function salvarPerfil(){
+    var patch = {avatar: perfilAvatarSel};
+    var up = perfilFotoFile ? subirArquivo("top-avatars", perfilFotoFile, "av_"+ME.id) : Promise.resolve(null);
+    return up.then(function(url){
+      if(url) patch.foto_url = url;
+      return sbPatch("top_membros?id=eq."+ME.id, patch).then(function(x){
+        ME = x[0];
+        $("#euNome").innerHTML = '<span class="euav">'+avatarSVG(ME)+'</span>'+nomeComCargo();
+        paintPortalMembros();
+        $("#perfilOverlay").classList.remove("on");
+        toast("✅ Perfil salvo!");
+      });
+    }).catch(function(){ toast("❌ Erro ao salvar."); });
+  }
 
   function iniciarNuvem(){
-    autorizar().then(function(ok){
-      if(ok) entrar();
-      else mostrarGate();
+    getMembro().then(function(m){
+      if(m && m.senha_hash){ ME = m; entrar(); return; }   // aparelho já registrado
+      var tk = tokenDaUrl();
+      if(tk){
+        return validarConvite(tk).then(function(ok){
+          if(ok) abrirRegistro(tk);
+          else mostrarGate("Este convite já foi usado ou é inválido. Peça um novo link a um oficial.");
+        });
+      }
+      mostrarGate();
     }).catch(function(){
       mostrarGate("Sem conexão com o servidor. Verifique a internet e recarregue.");
     });
@@ -1186,7 +1403,7 @@
     Array.prototype.forEach.call(document.querySelectorAll('.navbtn'), function(b){
       b.classList.toggle('on', b.dataset.go === name);
     });
-    if(name === 'admin') paintAdmin();
+    if(name === 'admin'){ paintAdmin(); paintR0(); }
     if(name === 'chat') chatCarregar();
     if(name === 'membros') paintPortalMembros();
     window.scrollTo({top:0, behavior:'instant'});
@@ -1286,7 +1503,15 @@
 
   function resgatar(it){
     return sbPost('top_resgates', {item_id:it.dbId, item_titulo:it.t, membro_id:ME.id, custo:it.p}).then(function(res){
-      if(Array.isArray(res) && res.length){ return refreshMoedas().then(function(){ return {ok:true}; }); }
+      if(Array.isArray(res) && res.length){ return refreshMoedas().then(function(){
+        if(/Avatar Pr/i.test(it.t)){
+          return sbPatch('top_membros?id=eq.'+ME.id, {pode_avatar:true}).then(function(x){
+            ME = x[0]; toast('🖼️ Avatar próprio desbloqueado! Abra seu perfil pra enviar sua foto.');
+            return {ok:true};
+          });
+        }
+        return {ok:true};
+      }); }
       return {ok:false, msg:'Saldo insuficiente'};
     });
   }
@@ -1626,6 +1851,50 @@
     }).catch(function(){ el.disabled = false; toast('❌ Erro.'); });
   });
 
+  /* ---------------- wiring: registro / login / perfil / R0 ---------------- */
+  function regErro(m){ var e = $("#regMsg"); e.textContent = m; e.style.display = "block"; }
+  function mostrarR0(){ toast("👋 Bem-vindo! Você entrou como novo jogador (R0). Um oficial vai revisar seu perfil."); }
+  $("#regSend").addEventListener("click", function(){
+    var nome = $("#regNome").value.trim(), senha = $("#regSenha").value;
+    if(nome.length < 2){ regErro("Digite seu nome do jogo."); return; }
+    if(senha.length < 4){ regErro("Senha muito curta (mínimo 4)."); return; }
+    var btn = this; btn.disabled = true; $("#regMsg").style.display = "none";
+    registrar(nome, senha, regAvatarSel).then(function(res){
+      if(res.ok){ entrar(); if(res.novo) mostrarR0(); }
+      else { regErro(res.msg); btn.disabled = false; }
+    }).catch(function(){ regErro("Erro de conexão. Tente de novo."); btn.disabled = false; });
+  });
+  function loginPrompt(e){
+    if(e) e.preventDefault();
+    var nome = (prompt("Seu nome no jogo:")||"").trim(); if(!nome) return;
+    var senha = prompt("Sua senha:")||"";
+    fazerLogin(nome, senha).then(function(ok){ if(ok) entrar(); else toast("❌ Nome ou senha incorretos."); })
+      .catch(function(){ toast("❌ Erro de conexão."); });
+  }
+  var _gl = $("#gateLogin"); if(_gl) _gl.addEventListener("click", loginPrompt);
+  var _rl = $("#regLogin"); if(_rl) _rl.addEventListener("click", loginPrompt);
+
+  var _er = $("#eurow"); if(_er) _er.addEventListener("click", function(e){ if(e.target.closest("#oficialBtn")) return; abrirPerfil(); });
+  $("#perfilFechar").addEventListener("click", function(){ $("#perfilOverlay").classList.remove("on"); });
+  $("#perfilSalvar").addEventListener("click", salvarPerfil);
+  $("#perfilFoto").addEventListener("change", function(e){ perfilFotoFile = (e.target.files && e.target.files[0]) || null; });
+
+  document.addEventListener("click", function(e){
+    var b = e.target.closest("[data-r0ok]"); if(!b) return;
+    var card = b.closest("[data-r0]"), id = b.dataset.r0ok;
+    var cargo = card.querySelector("[data-f=cargo]").value;
+    var castelo = parseInt(card.querySelector("[data-f=castelo]").value, 10) || 0;
+    var poder = parsePoder(card.querySelector("[data-f=poder]").value);
+    var pf = card.querySelector("[data-f=print]").files[0];
+    b.disabled = true;
+    (pf ? subirArquivo("top-provas", pf, "perfil_"+id) : Promise.resolve(null)).then(function(printUrl){
+      var patch = {cargo:cargo, castelo:castelo, poder:poder, status:"ativo"};
+      if(printUrl) patch.perfil_print_url = printUrl;
+      return sbPatch("top_membros?id=eq."+id, patch);
+    }).then(function(){ toast("✔ Jogador inserido na aliança!"); paintR0(); paintPortalMembros(); })
+      .catch(function(){ b.disabled = false; toast("❌ Erro ao inserir."); });
+  });
+
   /* ---------------- boot ---------------- */
   paintCoins();
   paintMissions();
@@ -1637,7 +1906,7 @@
 
   setInterval(function(){ if(cur === 'missoes') paintMissions(); }, 60000);
   setInterval(function(){ if(cur === 'chat' && ME) chatCarregar(); }, 4000);
-  setInterval(function(){ if(cur === 'admin' && ME && ME.is_oficial) paintAdmin(); }, 8000);
+  setInterval(function(){ if(cur === 'admin' && ME && ME.is_oficial){ paintAdmin(); paintR0(); } }, 8000);
   setInterval(function(){ if(ME){ heartbeat(); if(cur === 'membros') paintPortalMembros(); } }, 45000);
 })();
 </script>
