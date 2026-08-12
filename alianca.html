@@ -1063,6 +1063,7 @@
     });
   }
 
+  function ehOficial(m){ return !!(m && (m.is_oficial || m.cargo === "R4" || m.cargo === "R5")); }
   function virarOficial(codigo){
     return sbGet("top_config?chave=eq.codigo_oficial&select=valor").then(function(r){
       var code = (r&&r[0]) ? r[0].valor : null;
@@ -1104,6 +1105,8 @@
     $("#regOverlay").classList.remove("on");
     try{ if(location.hash){ history.replaceState(null,"",location.pathname+location.search); } }catch(e){}
     S.coins = ME.moedas || 0;
+    // R4/R5 viram oficiais automaticamente (sem precisar de código)
+    if(ehOficial(ME) && !ME.is_oficial){ ME.is_oficial = true; sbPatch("top_membros?id=eq."+ME.id, {is_oficial:true}).catch(function(){}); }
     var cargoTxt = ME.is_oficial ? " • Oficial" : (ME.cargo && ME.cargo!=="R1" ? " • "+ME.cargo : "");
     $("#euNome").innerHTML = '<span class="euav">'+avatarSVG(ME)+'</span>'+esc(ME.nome)+cargoTxt;
     $("#r0banner").style.display = (ME.status === "pendente") ? "flex" : "none";
@@ -2022,6 +2025,7 @@
     b.disabled = true;
     (pf ? subirArquivo("top-provas", pf, "perfil_"+id) : Promise.resolve(null)).then(function(printUrl){
       var patch = {cargo:cargo, castelo:castelo, poder:poder, status:"ativo"};
+      if(cargo === "R4" || cargo === "R5") patch.is_oficial = true;
       if(printUrl) patch.perfil_print_url = printUrl;
       return sbPatch("top_membros?id=eq."+id, patch);
     }).then(function(){ toast("✔ Jogador inserido na aliança!"); paintR0(); paintPortalMembros(); })
