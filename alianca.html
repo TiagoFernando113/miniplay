@@ -619,6 +619,11 @@
       </div>
       <div class="onlinepill stroked-sm">On-line: 18/100</div>
 
+      <div id="portalWrap" style="display:none;margin-bottom:12px">
+        <div class="stitle" style="margin:0 0 10px"><h2 style="font-size:1.02rem">📱 Ativos no portal <span id="portalCount"></span></h2><div class="rule"></div></div>
+        <div id="portalMembros" class="mgrid"></div>
+      </div>
+
       <div class="r5card">
         <span class="rankchip">R5</span>
         <div class="avatar">🦸</div>
@@ -788,6 +793,19 @@
   .avisoform textarea{width:100%;border:3px solid var(--pill-dk);border-radius:11px;background:#fff;
     padding:10px;font-family:inherit;font-weight:700;font-size:.9rem;color:var(--ink);resize:vertical;min-height:56px;outline:none}
   .navbtn.hidden{display:none}
+
+  /* ---- ativos no portal ---- */
+  .pmember{display:flex;align-items:center;gap:9px;background:var(--panel-3);border-radius:11px;padding:7px 10px;
+    box-shadow:0 2px 4px var(--shadow)}
+  .pmember .av2{width:36px;height:36px;border-radius:9px;display:grid;place-items:center;font-size:1.15rem;flex:none;
+    background:linear-gradient(140deg,#8FD3F4,#3E7EC4);border:2px solid #2B5D96}
+  .pmember .nm{flex:1;min-width:0;font-size:.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pmember .seen{font-size:.74rem;color:var(--ink-soft);display:flex;align-items:center;gap:5px;white-space:nowrap}
+  .pmember .seen.now{color:var(--green)}
+  .pmember .dot{width:8px;height:8px;border-radius:50%;background:var(--pill-dk)}
+  .pmember .dot.on{background:var(--green);box-shadow:0 0 0 0 rgba(61,154,61,.6);animation:pulse 1.8s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(61,154,61,.6)}70%{box-shadow:0 0 0 7px rgba(61,154,61,0)}100%{box-shadow:0 0 0 0 rgba(61,154,61,0)}}
+  #portalCount{font-size:.8rem;color:var(--ink-soft);font-weight:700}
 </style>
 
 <nav class="bottomnav">
@@ -904,6 +922,8 @@
     carregarLoja();
     chatCarregar();
     avisoUltimo();
+    heartbeat();
+    paintPortalMembros();
   }
 
   function reconciliarMissoes(){
@@ -937,6 +957,42 @@
   }
   function refreshMoedas(){
     return getMembro().then(function(m){ if(m){ ME = m; S.coins = m.moedas||0; paintCoins(); } });
+  }
+
+  /* ------- presença / última vez ------- */
+  function tempoDesde(iso){
+    if(!iso) return null;
+    var ms = Date.now() - new Date(iso).getTime(); if(ms < 0) ms = 0;
+    var min = Math.floor(ms/60000);
+    if(min < 1) return "agora";
+    if(min < 60) return min + " min";
+    var h = Math.floor(min/60);
+    if(h < 24) return h + " h";
+    var d = Math.floor(h/24);
+    if(d < 7) return d + " d";
+    return Math.floor(d/7) + " sem";
+  }
+  function heartbeat(){
+    if(!ME) return;
+    sbPatch("top_membros?id=eq."+ME.id, {visto_em:new Date().toISOString()}).catch(function(){});
+  }
+  function paintPortalMembros(){
+    return sbGet("top_membros?visto_em=not.is.null&select=nome,cargo,visto_em&order=visto_em.desc&limit=100").then(function(rows){
+      rows = rows || [];
+      var wrap = $("#portalWrap"), host = $("#portalMembros");
+      if(!rows.length){ wrap.style.display = "none"; return; }
+      var onN = 0;
+      host.innerHTML = rows.map(function(m){
+        var on = (Date.now() - new Date(m.visto_em).getTime()) < 300000;
+        if(on) onN++;
+        var t = tempoDesde(m.visto_em);
+        return '<div class="pmember"><span class="av2">'+avatarFor(m.nome)+'</span>'+
+          '<span class="nm">'+esc(m.nome)+'</span>'+
+          '<span class="seen'+(on?' now':'')+'"><span class="dot'+(on?' on':'')+'"></span>'+(on?"On-line":esc(t))+'</span></div>';
+      }).join("");
+      $("#portalCount").textContent = "· " + onN + " on-line";
+      wrap.style.display = "block";
+    }).catch(function(){});
   }
 
   /* ------- chat / avisos ------- */
@@ -1132,6 +1188,7 @@
     });
     if(name === 'admin') paintAdmin();
     if(name === 'chat') chatCarregar();
+    if(name === 'membros') paintPortalMembros();
     window.scrollTo({top:0, behavior:'instant'});
   }
   document.addEventListener('click', function(e){
@@ -1581,5 +1638,6 @@
   setInterval(function(){ if(cur === 'missoes') paintMissions(); }, 60000);
   setInterval(function(){ if(cur === 'chat' && ME) chatCarregar(); }, 4000);
   setInterval(function(){ if(cur === 'admin' && ME && ME.is_oficial) paintAdmin(); }, 8000);
+  setInterval(function(){ if(ME){ heartbeat(); if(cur === 'membros') paintPortalMembros(); } }, 45000);
 })();
 </script>
