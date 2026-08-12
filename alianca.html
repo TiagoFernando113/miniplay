@@ -3,6 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#56422D">
+<link rel="manifest" href="alianca-manifest.json">
+<link rel="apple-touch-icon" href="alianca-icon.svg">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="[TOP] Best">
 <title>Portal TOP Best</title>
 </head>
 <body>
@@ -814,6 +820,7 @@
     </div>
     <p class="rlab" style="margin-top:12px">Trocar senha (opcional)</p>
     <input class="reginput" id="perfilSenha" type="password" placeholder="Nova senha — deixe vazio pra manter" style="margin-top:0" autocomplete="new-password">
+    <button class="bigbtn" id="instalarBtn" style="display:none;margin-top:12px">📲 Instalar como app</button>
     <div class="mrow">
       <button class="bcancel" id="perfilFechar">Fechar</button>
       <button class="bsend" id="perfilSalvar">Salvar</button>
@@ -2238,6 +2245,14 @@
   applyMenuOrder();
   iniciarNuvem();
   iniciarTraducaoUI();
+  if("serviceWorker" in navigator){ try{ navigator.serviceWorker.register("alianca-sw.js"); }catch(e){} }
+  var deferredInstall = null;
+  window.addEventListener("beforeinstallprompt", function(e){ e.preventDefault(); deferredInstall = e; var b = $("#instalarBtn"); if(b) b.style.display = "block"; });
+  (function(){ var b = $("#instalarBtn"); if(b) b.addEventListener("click", function(){
+    if(!deferredInstall) { toast("No Chrome: menu ⋮ → Instalar app / Adicionar à tela inicial."); return; }
+    deferredInstall.prompt();
+    deferredInstall.userChoice.finally(function(){ deferredInstall = null; b.style.display = "none"; });
+  }); })();
 
   setInterval(function(){ if(cur === 'missoes') paintMissions(); }, 60000);
   setInterval(function(){ if(cur === 'chat' && ME) chatCarregar(); }, 4000);
