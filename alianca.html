@@ -511,6 +511,7 @@
   </button>
   <h1 class="stroked" id="screenTitle">Aliança</h1>
   <button class="bell" id="bellBtn" aria-label="Avisos">!</button>
+  <button class="topav" id="profileBtn" aria-label="Meu perfil" style="display:none"></button>
 </header>
 
 <div class="shell">
@@ -786,8 +787,9 @@
 <div class="overlay" id="perfilOverlay">
   <div class="modal">
     <h2>Meu perfil</h2>
-    <div id="perfilAtual" style="width:82px;height:82px;margin:10px auto;border-radius:16px;overflow:hidden;border:3px solid var(--pill-dk)"></div>
-    <p class="rlab">Escolha seu avatar</p>
+    <div id="perfilAtual" style="width:82px;height:82px;margin:10px auto 4px;border-radius:16px;overflow:hidden;border:3px solid var(--pill-dk)"></div>
+    <p class="perfilinfo" id="perfilInfo"></p>
+    <p class="rlab" style="margin-top:14px">Escolha seu avatar</p>
     <div class="avgrid" id="perfilAvatares"></div>
     <p class="rlab" style="margin-top:12px">Idioma do portal e das traduções</p>
     <select class="reginput" id="perfilIdioma" style="margin-top:0">
@@ -810,6 +812,8 @@
     <div id="perfilFotoWrap" style="display:none;margin-top:12px">
       <label class="drop" style="padding:14px 12px"><div style="font-size:1.6rem">📷</div><span>Enviar minha própria foto</span><input type="file" accept="image/*" id="perfilFoto"></label>
     </div>
+    <p class="rlab" style="margin-top:12px">Trocar senha (opcional)</p>
+    <input class="reginput" id="perfilSenha" type="password" placeholder="Nova senha — deixe vazio pra manter" style="margin-top:0" autocomplete="new-password">
     <div class="mrow">
       <button class="bcancel" id="perfilFechar">Fechar</button>
       <button class="bsend" id="perfilSalvar">Salvar</button>
@@ -930,6 +934,11 @@
   .euav{width:26px;height:26px;border-radius:7px;overflow:hidden;display:inline-block;vertical-align:middle;margin-right:7px}
   .euav>*{width:100%;height:100%}
   .eurow .nm{display:flex;align-items:center}
+  .topav{width:36px;height:36px;flex:none;margin-left:8px;border-radius:9px;overflow:hidden;padding:0;cursor:pointer;
+    border:2.5px solid #F3E2BC;background:#DCB87E;box-shadow:0 2px 0 rgba(0,0,0,.3)}
+  .topav>*{width:100%;height:100%;object-fit:cover;display:block}
+  .perfilinfo{text-align:center;font-size:.9rem;color:var(--ink-soft);font-weight:700;margin-top:2px}
+  .perfilinfo b{color:var(--ink)}
   .subm .sh .r0av{width:38px;height:38px;border-radius:9px;overflow:hidden;flex:none;border:2px solid var(--pill-dk)}
   .subm .sh .r0av>*{width:100%;height:100%}
   #perfilAtual>*{width:100%;height:100%}
@@ -1175,6 +1184,7 @@
     if(ehOficial(ME) && !ME.is_oficial){ ME.is_oficial = true; sbPatch("top_membros?id=eq."+ME.id, {is_oficial:true}).catch(function(){}); }
     var cargoTxt = ME.is_oficial ? " • Oficial" : (ME.cargo && ME.cargo!=="R1" ? " • "+ME.cargo : "");
     $("#euNome").innerHTML = '<span class="euav">'+avatarSVG(ME)+'</span>'+esc(ME.nome)+cargoTxt;
+    setTopAvatar();
     $("#r0banner").style.display = (ME.status === "pendente") ? "flex" : "none";
     if(ME.is_oficial){ $("#navAdmin").classList.remove("hidden"); $("#oficialBtn").style.display = "none"; }
     paintCoins();
@@ -1505,30 +1515,41 @@
   function abrirPerfil(){
     if(!ME) return;
     $("#perfilAtual").innerHTML = avatarSVG(ME);
+    $("#perfilInfo").innerHTML = "<b>"+esc(ME.nome)+"</b> · "+(ME.is_oficial?"Oficial · ":"")+(ME.cargo||"R1")+" · 🪙 "+fmt(ME.moedas||0);
     perfilAvatarSel = ME.avatar || avIdFor(ME.nome);
     perfilFotoFile = null;
-    renderAvatarGrid("#perfilAvatares", perfilAvatarSel, function(id){ perfilAvatarSel = id; $("#perfilAtual").innerHTML = '<svg class="avsvg"><use href="#'+id+'"/></svg>'; });
+    $("#perfilSenha").value = "";
+    renderAvatarGrid("#perfilAvatares", perfilAvatarSel, function(id){ perfilAvatarSel = id; $("#perfilAtual").innerHTML = avMarkup(id); });
     $("#perfilIdioma").value = meuIdioma();
     $("#perfilFotoWrap").style.display = ME.pode_avatar ? "block" : "none";
     $("#perfilOverlay").classList.add("on");
+  }
+  function setTopAvatar(){
+    var b = $("#profileBtn"); if(b && ME){ b.innerHTML = avatarSVG(ME); b.style.display = ""; }
   }
   function nomeComCargo(){
     return esc(ME.nome) + (ME.is_oficial ? " • Oficial" : (ME.cargo && ME.cargo!=="R1" ? " • "+ME.cargo : ""));
   }
   function salvarPerfil(){
+    if(!ME) return;
+    var novaS = $("#perfilSenha").value;
+    if(novaS && novaS.length < 4){ toast("Senha muito curta (mínimo 4)."); return; }
     localStorage.setItem("top.lang", $("#perfilIdioma").value);
     lastChatSig = "";
     iniciarTraducaoUI();
     var patch = {avatar: perfilAvatarSel};
-    var up = perfilFotoFile ? subirArquivo("top-avatars", perfilFotoFile, "av_"+ME.id) : Promise.resolve(null);
-    return up.then(function(url){
-      if(url) patch.foto_url = url;
+    var upFoto = perfilFotoFile ? subirArquivo("top-avatars", perfilFotoFile, "av_"+ME.id) : Promise.resolve(null);
+    var upSenha = novaS ? hashSenha(ME.nome, novaS) : Promise.resolve(null);
+    return Promise.all([upFoto, upSenha]).then(function(res){
+      if(res[0]) patch.foto_url = res[0];
+      if(res[1]) patch.senha_hash = res[1];
       return sbPatch("top_membros?id=eq."+ME.id, patch).then(function(x){
         ME = x[0];
         $("#euNome").innerHTML = '<span class="euav">'+avatarSVG(ME)+'</span>'+nomeComCargo();
+        setTopAvatar();
         paintMembros();
         $("#perfilOverlay").classList.remove("on");
-        toast("✅ Perfil salvo!");
+        toast(novaS ? "✅ Perfil e senha salvos!" : "✅ Perfil salvo!");
       });
     }).catch(function(){ toast("❌ Erro ao salvar."); });
   }
@@ -2145,6 +2166,7 @@
   var _rl = $("#regLogin"); if(_rl) _rl.addEventListener("click", loginPrompt);
 
   var _er = $("#eurow"); if(_er) _er.addEventListener("click", function(e){ if(e.target.closest("#oficialBtn")) return; abrirPerfil(); });
+  var _pb = $("#profileBtn"); if(_pb) _pb.addEventListener("click", abrirPerfil);
   $("#perfilFechar").addEventListener("click", function(){ $("#perfilOverlay").classList.remove("on"); });
   $("#perfilSalvar").addEventListener("click", salvarPerfil);
   $("#perfilFoto").addEventListener("change", function(e){ perfilFotoFile = (e.target.files && e.target.files[0]) || null; });
