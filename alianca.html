@@ -880,6 +880,8 @@
   .msg .who{font-size:.72rem;color:var(--ink-soft);margin-bottom:3px;display:flex;gap:6px;align-items:center}
   .msg .who .cg{background:var(--pill);color:#fff;border-radius:6px;padding:0 5px;font-size:.62rem;
     -webkit-text-stroke:0}
+  .chatav{width:22px;height:22px;border-radius:6px;overflow:hidden;flex:none;border:1.5px solid rgba(0,0,0,.22)}
+  .chatav>*{width:100%;height:100%;object-fit:cover}
   .msg .tx{font-size:.9rem;font-weight:600;color:var(--ink);word-break:break-word}
   .msg.me{align-self:flex-end;background:linear-gradient(180deg,var(--teal-lt),var(--teal));color:#fff}
   .msg.me .tx,.msg.me .who{color:#fff}
@@ -1416,10 +1418,14 @@
     lastChatSig = sig; chatById = {};
     box.innerHTML = rows.map(function(s){
       chatById[s.id] = s;
+      var mem = s.top_membros || {};
+      var cargo = mem.cargo || s.cargo;
       var mine = ME && s.membro_id === ME.id;
-      var ofi = s.cargo==="R5" || s.cargo==="R4";
+      var ofi = cargo==="R5" || cargo==="R4";
       var cls = "msg" + (mine?" me":"") + (s.tipo==="aviso" ? " aviso" : (ofi?" oficial":""));
-      return '<div class="'+cls+'" data-mid="'+s.id+'"><div class="who">'+(ofi?'<span class="cg">'+esc(s.cargo)+'</span>':'')+esc(s.nome)+
+      var avObj = {nome:s.nome, avatar:mem.avatar, foto_url:mem.foto_url};
+      return '<div class="'+cls+'" data-mid="'+s.id+'"><div class="who">'+
+        '<span class="chatav">'+avatarSVG(avObj)+'</span>'+(ofi?'<span class="cg">'+esc(cargo)+'</span>':'')+esc(s.nome)+
         '<button class="trbtn" data-tr="'+s.id+'">🌐</button></div>'+
         '<div class="tx">'+esc(s.texto)+'</div></div>';
     }).join("");
@@ -1427,7 +1433,7 @@
     if(autoTrad) traduzirTudo();
   }
   function chatCarregar(){
-    return sbGet("top_chat?select=*&order=id.desc&limit=60").then(function(rows){
+    return sbGet("top_chat?select=*,top_membros(avatar,foto_url,cargo)&order=id.desc&limit=60").then(function(rows){
       renderChat((rows||[]).slice().reverse());
     }).catch(function(){});
   }
@@ -1548,6 +1554,8 @@
         $("#euNome").innerHTML = '<span class="euav">'+avatarSVG(ME)+'</span>'+nomeComCargo();
         setTopAvatar();
         paintMembros();
+        paintRanking();
+        lastChatSig = ""; chatCarregar();
         $("#perfilOverlay").classList.remove("on");
         toast(novaS ? "✅ Perfil e senha salvos!" : "✅ Perfil salvo!");
       });
