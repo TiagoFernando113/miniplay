@@ -30,7 +30,12 @@
   *{box-sizing:border-box;margin:0;padding:0}
   html{-webkit-text-size-adjust:100%}
   body{
-    background:var(--bg-page);
+    min-height:100vh;
+    background:
+      radial-gradient(140% 70% at 50% 118%, rgba(86,66,45,.55) 0%, rgba(86,66,45,0) 55%),
+      radial-gradient(120% 80% at 50% -8%, rgba(107,82,56,.55) 0%, rgba(107,82,56,0) 42%),
+      radial-gradient(100% 60% at 50% 38%, #CFB489 0%, #C2A67F 46%, #A98B60 100%);
+    background-attachment:fixed;
     color:var(--ink);
     font-family:"Trebuchet MS","Segoe UI",system-ui,-apple-system,sans-serif;
     font-weight:700;
@@ -38,6 +43,11 @@
     overflow-x:hidden;
     padding-bottom:74px;
     -webkit-tap-highlight-color:transparent;
+  }
+  /* brasão marca-d'água no fundo — dá cara de app, preenche o vazio */
+  body::before{
+    content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.06;
+    background:no-repeat center 58%/min(64vw,320px) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 88 100'><path d='M6 8h76v52c0 22-18 32-38 40C24 92 6 82 6 60V8z' fill='%233A2A18'/><path d='M56 30 Q42 26 34 37 Q28 45 30 55 L18 53 Q14 53 16 57 L30 61 Q28 71 36 79 Q46 87 58 82 Q50 77 48 69 Q59 73 66 65 Q57 65 53 59 Q66 59 70 47 Q66 51 58 49 Q68 43 68 33 Q62 39 56 39 Z' fill='%23C2A67F'/></svg>");
   }
   @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
@@ -76,7 +86,7 @@
   }
 
   /* ---------- shell ---------- */
-  .shell{max-width:560px;margin:0 auto;padding:12px}
+  .shell{max-width:560px;margin:0 auto;padding:12px;min-height:calc(100vh - 132px)}
   .panel{
     background:var(--panel);
     border-radius:18px;
