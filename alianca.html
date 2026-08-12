@@ -1,4 +1,11 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Portal TOP Best</title>
+</head>
+<body>
 <style>
   :root{
     --bg-page:#C2A67F;
@@ -28,7 +35,9 @@
     --outline:#3A2A18;
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  html{-webkit-text-size-adjust:100%}
+  html{-webkit-text-size-adjust:100%;overflow-x:hidden;width:100%}
+  input,select,textarea,img{max-width:100%}
+  .subm>div[style*="grid"]>div{min-width:0}
   body{
     min-height:100vh;
     background:
@@ -2059,3 +2068,5 @@
   setInterval(function(){ if(ME){ heartbeat(); if(cur === 'membros') paintPortalMembros(); } }, 45000);
 })();
 </script>
+</body>
+</html>
